@@ -1,0 +1,16 @@
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\bin\Debug\net8.0-windows\Server.exe
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\bin\Debug\net8.0-windows\Server.deps.json
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\bin\Debug\net8.0-windows\Server.runtimeconfig.json
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\bin\Debug\net8.0-windows\Server.dll
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\bin\Debug\net8.0-windows\Server.pdb
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.csproj.GenerateResource.cache
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.GeneratedMSBuildEditorConfig.editorconfig
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.AssemblyInfoInputs.cache
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.AssemblyInfo.cs
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.csproj.CoreCompileInputs.cache
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.dll
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\refint\Server.dll
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.pdb
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.genruntimeconfig.cache
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\ref\Server.dll
+D:\UIT_2.1\LapTrinhMang\Project\SoanThaoOnline\Server\obj\Debug\net8.0-windows\Server.Server.resources
