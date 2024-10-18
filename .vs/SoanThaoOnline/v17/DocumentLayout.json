@@ -7,19 +7,27 @@
       "RelativeMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|solutionrelative:soanthaoonline\\app.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\soanthaoonline\\app.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|solutionrelative:soanthaoonline\\app.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\server\\server.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|solutionrelative:server\\server.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\soanthaoonline\\dangky.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|solutionrelative:soanthaoonline\\dangky.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\soanthaoonline\\app.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|solutionrelative:soanthaoonline\\app.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\soanthaoonline\\app.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A042F32-6CA4-4787-9298-97C5F145935D}|SoanThaoOnline\\SoanThaoOnline.csproj|solutionrelative:soanthaoonline\\app.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|solutionrelative:server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|d:\\uit_2.1\\laptrinhmang\\project\\soanthaoonline\\server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{D274049F-5A6A-463D-A607-999E16F93C15}|Server\\Server.csproj|solutionrelative:server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
@@ -30,11 +38,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "App.cs",
               "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\SoanThaoOnline\\App.cs",
               "RelativeDocumentMoniker": "SoanThaoOnline\\App.cs",
@@ -49,6 +57,31 @@
             {
               "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "App.Designer.cs",
+              "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\SoanThaoOnline\\App.Designer.cs",
+              "RelativeDocumentMoniker": "SoanThaoOnline\\App.Designer.cs",
+              "ToolTip": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\SoanThaoOnline\\App.Designer.cs",
+              "RelativeToolTip": "SoanThaoOnline\\App.Designer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-18T16:09:13.672Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DangKy.cs [Design]",
+              "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\SoanThaoOnline\\DangKy.cs",
+              "RelativeDocumentMoniker": "SoanThaoOnline\\DangKy.cs",
+              "ToolTip": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\SoanThaoOnline\\DangKy.cs [Design]",
+              "RelativeToolTip": "SoanThaoOnline\\DangKy.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-18T16:09:16.771Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "Server.cs",
               "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\Server\\Server.cs",
               "RelativeDocumentMoniker": "Server\\Server.cs",
@@ -61,8 +94,8 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Server",
+              "DocumentIndex": 1,
+              "Title": "Server.csproj",
               "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\Server\\Server.csproj",
               "RelativeDocumentMoniker": "Server\\Server.csproj",
               "ToolTip": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\Server\\Server.csproj",
@@ -74,15 +107,14 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "Server.cs [Design]",
               "DocumentMoniker": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\Server\\Server.cs",
               "RelativeDocumentMoniker": "Server\\Server.cs",
               "ToolTip": "D:\\UIT_2.1\\LapTrinhMang\\Project\\SoanThaoOnline\\Server\\Server.cs [Design]",
               "RelativeToolTip": "Server\\Server.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-18T14:26:17.732Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2024-10-18T14:26:17.732Z"
             },
             {
               "$type": "Document",
