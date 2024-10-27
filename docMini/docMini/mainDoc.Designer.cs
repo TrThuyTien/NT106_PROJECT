@@ -57,6 +57,7 @@ namespace docMini
             panel_Toolbar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
+
             SuspendLayout();
             // 
             // button_Exit
@@ -336,6 +337,17 @@ namespace docMini
             richTextBox1.TabIndex = 10;
             richTextBox1.Text = "";
             // 
+            // button1
+            // 
+            button1.Image = Properties.Resources.exit_32px;
+            button1.Location = new Point(474, 218);
+            button1.Name = "button1";
+            button1.Size = new Size(112, 73);
+            button1.TabIndex = 1;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
@@ -352,6 +364,7 @@ namespace docMini
             Controls.Add(button_Exit);
             Font = new Font("Tahoma", 9F, FontStyle.Regular, GraphicsUnit.Point, 163);
             FormBorderStyle = FormBorderStyle.None;
+     
             Name = "mainDoc";
             Text = "mainDoc";
             WindowState = FormWindowState.Maximized;
@@ -475,5 +488,6 @@ namespace docMini
         private Button button_Underline;
         private Button button_ShareDoc;
         private RichTextBox richTextBox1;
+
     }
 }
