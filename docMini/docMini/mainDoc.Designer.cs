@@ -51,13 +51,12 @@ namespace docMini
             numericUpDown_FontSize = new NumericUpDown();
             listBox_Font = new ListBox();
             pictureBox_Avatar = new PictureBox();
-            richTextBox1 = new RichTextBox();
+            richTextBox_Content = new RichTextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
-
             SuspendLayout();
             // 
             // button_Exit
@@ -72,7 +71,7 @@ namespace docMini
             button_Exit.Size = new Size(36, 35);
             button_Exit.TabIndex = 1;
             button_Exit.UseVisualStyleBackColor = true;
-            button_Exit.Click += button1_Click;
+            button_Exit.Click += button_Exit_Click;
             // 
             // button_Minimize
             // 
@@ -329,24 +328,13 @@ namespace docMini
             pictureBox_Avatar.TabIndex = 9;
             pictureBox_Avatar.TabStop = false;
             // 
-            // richTextBox1
+            // richTextBox_Content
             // 
-            richTextBox1.Location = new Point(606, 156);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(1064, 878);
-            richTextBox1.TabIndex = 10;
-            richTextBox1.Text = "";
-            // 
-            // button1
-            // 
-            button1.Image = Properties.Resources.exit_32px;
-            button1.Location = new Point(474, 218);
-            button1.Name = "button1";
-            button1.Size = new Size(112, 73);
-            button1.TabIndex = 1;
-            button1.Text = "button1";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            richTextBox_Content.Location = new Point(606, 156);
+            richTextBox_Content.Name = "richTextBox_Content";
+            richTextBox_Content.Size = new Size(1064, 878);
+            richTextBox_Content.TabIndex = 10;
+            richTextBox_Content.Text = "";
             // 
             // mainDoc
             // 
@@ -354,7 +342,7 @@ namespace docMini
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1902, 1046);
-            Controls.Add(richTextBox1);
+            Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
             Controls.Add(panel_ToolbarBorder);
             Controls.Add(label_DocumentName);
@@ -364,7 +352,6 @@ namespace docMini
             Controls.Add(button_Exit);
             Font = new Font("Tahoma", 9F, FontStyle.Regular, GraphicsUnit.Point, 163);
             FormBorderStyle = FormBorderStyle.None;
-     
             Name = "mainDoc";
             Text = "mainDoc";
             WindowState = FormWindowState.Maximized;
@@ -487,7 +474,7 @@ namespace docMini
         private Button button_Italic;
         private Button button_Underline;
         private Button button_ShareDoc;
-        private RichTextBox richTextBox1;
+        private RichTextBox richTextBox_Content;
 
     }
 }
