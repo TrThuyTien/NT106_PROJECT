@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using docMini;
 
 namespace docMini
 {
@@ -15,6 +7,27 @@ namespace docMini
         public SignIn()
         {
             InitializeComponent();
+        }
+
+        private void button_SignIn_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            mainDoc form = new mainDoc();
+            form.Show();
+        }
+
+        private void label_ForgotPass_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            FogotPass form = new FogotPass();
+            form.Show();
+        }
+
+        private void label_SwitchSignUp_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            SignUp form = new SignUp();
+            form.Show();
         }
     }
 }
