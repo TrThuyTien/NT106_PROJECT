@@ -66,7 +66,7 @@ namespace miniDoc
             button_Exit.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Exit.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Exit.FlatStyle = FlatStyle.Flat;
-            button_Exit.Image = Properties.Resources.exit_32px;
+            button_Exit.Image = docMini.Properties.Resources.exit_32px;
             button_Exit.Location = new Point(1878, 0);
             button_Exit.Name = "button_Exit";
             button_Exit.Size = new Size(34, 37);
@@ -81,7 +81,7 @@ namespace miniDoc
             button_Minimize.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Minimize.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Minimize.FlatStyle = FlatStyle.Flat;
-            button_Minimize.Image = Properties.Resources.minimize;
+            button_Minimize.Image = docMini.Properties.Resources.link_button;
             button_Minimize.Location = new Point(1838, 0);
             button_Minimize.Name = "button_Minimize";
             button_Minimize.Size = new Size(34, 37);
@@ -91,8 +91,6 @@ namespace miniDoc
             // 
             // pictureBox_Avatar
             // 
-            pictureBox_Avatar.ErrorImage = Properties.Resources.user;
-            pictureBox_Avatar.Image = Properties.Resources.user;
             pictureBox_Avatar.Location = new Point(1779, 1);
             pictureBox_Avatar.Name = "pictureBox_Avatar";
             pictureBox_Avatar.Size = new Size(36, 36);
@@ -124,8 +122,7 @@ namespace miniDoc
             // 
             // pictureBox_Logo
             // 
-            pictureBox_Logo.ErrorImage = Properties.Resources.doc;
-            pictureBox_Logo.Image = Properties.Resources.doc;
+            pictureBox_Logo.Image = docMini.Properties.Resources.doc;
             pictureBox_Logo.Location = new Point(0, 1);
             pictureBox_Logo.Name = "pictureBox_Logo";
             pictureBox_Logo.Size = new Size(36, 36);
@@ -164,7 +161,6 @@ namespace miniDoc
             button_ShareDoc.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_ShareDoc.FlatStyle = FlatStyle.Flat;
             button_ShareDoc.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
-            button_ShareDoc.Image = Properties.Resources.file;
             button_ShareDoc.ImageAlign = ContentAlignment.MiddleLeft;
             button_ShareDoc.Location = new Point(1740, 9);
             button_ShareDoc.Name = "button_ShareDoc";
@@ -183,7 +179,6 @@ namespace miniDoc
             button_AddLink.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_AddLink.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddLink.FlatStyle = FlatStyle.Flat;
-            button_AddLink.Image = Properties.Resources.link_button;
             button_AddLink.Location = new Point(1074, 18);
             button_AddLink.Name = "button_AddLink";
             button_AddLink.Size = new Size(34, 37);
@@ -197,7 +192,6 @@ namespace miniDoc
             button_AddTable.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_AddTable.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddTable.FlatStyle = FlatStyle.Flat;
-            button_AddTable.Image = Properties.Resources.table;
             button_AddTable.Location = new Point(1014, 18);
             button_AddTable.Name = "button_AddTable";
             button_AddTable.Size = new Size(34, 37);
@@ -211,7 +205,6 @@ namespace miniDoc
             button_AddPicture.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_AddPicture.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddPicture.FlatStyle = FlatStyle.Flat;
-            button_AddPicture.Image = Properties.Resources.image;
             button_AddPicture.Location = new Point(956, 18);
             button_AddPicture.Name = "button_AddPicture";
             button_AddPicture.Size = new Size(34, 37);
@@ -225,7 +218,6 @@ namespace miniDoc
             button_AlignRight.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
-            button_AlignRight.Image = Properties.Resources.align_right;
             button_AlignRight.Location = new Point(761, 18);
             button_AlignRight.Name = "button_AlignRight";
             button_AlignRight.Size = new Size(34, 37);
@@ -239,7 +231,6 @@ namespace miniDoc
             button_Justify.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
-            button_Justify.Image = Properties.Resources.justify;
             button_Justify.Location = new Point(815, 18);
             button_Justify.Name = "button_Justify";
             button_Justify.Size = new Size(34, 37);
@@ -253,7 +244,6 @@ namespace miniDoc
             button_Center.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
-            button_Center.Image = Properties.Resources.format;
             button_Center.Location = new Point(700, 16);
             button_Center.Name = "button_Center";
             button_Center.Size = new Size(34, 37);
@@ -267,7 +257,6 @@ namespace miniDoc
             button_AlignLeft.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
-            button_AlignLeft.Image = Properties.Resources.align_left1;
             button_AlignLeft.Location = new Point(640, 18);
             button_AlignLeft.Name = "button_AlignLeft";
             button_AlignLeft.Size = new Size(34, 37);
@@ -281,7 +270,6 @@ namespace miniDoc
             button_UnderlineText.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_UnderlineText.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_UnderlineText.FlatStyle = FlatStyle.Flat;
-            button_UnderlineText.Image = Properties.Resources.underline_text;
             button_UnderlineText.Location = new Point(509, 18);
             button_UnderlineText.Name = "button_UnderlineText";
             button_UnderlineText.Size = new Size(34, 37);
@@ -295,7 +283,6 @@ namespace miniDoc
             button_ItalicText.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_ItalicText.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_ItalicText.FlatStyle = FlatStyle.Flat;
-            button_ItalicText.Image = Properties.Resources.italic_button;
             button_ItalicText.Location = new Point(447, 18);
             button_ItalicText.Name = "button_ItalicText";
             button_ItalicText.Size = new Size(34, 37);
@@ -309,7 +296,6 @@ namespace miniDoc
             button_BoldText.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_BoldText.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_BoldText.FlatStyle = FlatStyle.Flat;
-            button_BoldText.Image = Properties.Resources.bold_button;
             button_BoldText.Location = new Point(383, 18);
             button_BoldText.Name = "button_BoldText";
             button_BoldText.Size = new Size(34, 37);
