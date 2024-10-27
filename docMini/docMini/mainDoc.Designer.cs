@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             pictureBox1 = new PictureBox();
+            button1 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
@@ -41,11 +42,23 @@
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
+            // button1
+            // 
+            button1.Image = Properties.Resources.exit_32px;
+            button1.Location = new Point(474, 218);
+            button1.Name = "button1";
+            button1.Size = new Size(112, 73);
+            button1.TabIndex = 1;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(button1);
             Controls.Add(pictureBox1);
             Name = "mainDoc";
             Text = "mainDoc";
@@ -56,5 +69,6 @@
         #endregion
 
         private PictureBox pictureBox1;
+        private Button button1;
     }
 }
