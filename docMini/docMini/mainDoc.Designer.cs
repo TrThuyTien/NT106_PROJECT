@@ -1,5 +1,5 @@
 ﻿using System.Drawing.Drawing2D;
-
+using static docMini.mainDoc;
 namespace docMini
 {
     partial class mainDoc
@@ -30,6 +30,7 @@ namespace docMini
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainDoc));
             button_Exit = new Button();
             button_Minimize = new Button();
             label_NameAccount = new Label();
@@ -37,6 +38,8 @@ namespace docMini
             pictureBox_Logo = new PictureBox();
             panel_ToolbarBorder = new Panel();
             panel_Toolbar = new Panel();
+            pictureBox_add = new PictureBox();
+            button_newFile = new RoundedButton();
             button_ShareDoc = new Button();
             button_AddLink = new Button();
             button_AddTable = new Button();
@@ -52,11 +55,18 @@ namespace docMini
             listBox_Font = new ListBox();
             pictureBox_Avatar = new PictureBox();
             richTextBox_Content = new RichTextBox();
+            panel_searchDoc = new Panel();
+            panel_areaSearch = new Panel();
+            button_searchDoc = new Button();
+            textBox_searchDoc = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox_add).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
+            panel_searchDoc.SuspendLayout();
+            panel_areaSearch.SuspendLayout();
             SuspendLayout();
             // 
             // button_Exit
@@ -121,9 +131,9 @@ namespace docMini
             // 
             // panel_ToolbarBorder
             // 
-            panel_ToolbarBorder.BackColor = Color.FromArgb(0, 101, 225);
+            panel_ToolbarBorder.BackColor = Color.RoyalBlue;
             panel_ToolbarBorder.Controls.Add(panel_Toolbar);
-            panel_ToolbarBorder.Location = new Point(3, 55);
+            panel_ToolbarBorder.Location = new Point(5, 55);
             panel_ToolbarBorder.Name = "panel_ToolbarBorder";
             panel_ToolbarBorder.Size = new Size(1898, 91);
             panel_ToolbarBorder.TabIndex = 7;
@@ -132,6 +142,8 @@ namespace docMini
             // panel_Toolbar
             // 
             panel_Toolbar.BackColor = Color.White;
+            panel_Toolbar.Controls.Add(pictureBox_add);
+            panel_Toolbar.Controls.Add(button_newFile);
             panel_Toolbar.Controls.Add(button_ShareDoc);
             panel_Toolbar.Controls.Add(button_AddLink);
             panel_Toolbar.Controls.Add(button_AddTable);
@@ -151,6 +163,30 @@ namespace docMini
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
             // 
+            // pictureBox_add
+            // 
+            pictureBox_add.BackColor = Color.FromArgb(205, 236, 255);
+            pictureBox_add.Image = (Image)resources.GetObject("pictureBox_add.Image");
+            pictureBox_add.Location = new Point(1554, 28);
+            pictureBox_add.Name = "pictureBox_add";
+            pictureBox_add.Size = new Size(34, 41);
+            pictureBox_add.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox_add.TabIndex = 12;
+            pictureBox_add.TabStop = false;
+            // 
+            // button_newFile
+            // 
+            button_newFile.BackColor = Color.FromArgb(205, 236, 255);
+            button_newFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            button_newFile.Location = new Point(1542, 23);
+            button_newFile.Name = "button_newFile";
+            button_newFile.Size = new Size(156, 46);
+            button_newFile.TabIndex = 12;
+            button_newFile.Text = "     New file";
+            button_newFile.UseVisualStyleBackColor = false;
+            button_newFile.Click += button_newFile_Click;
+   
+            // 
             // button_ShareDoc
             // 
             button_ShareDoc.BackColor = Color.FromArgb(175, 219, 255);
@@ -167,6 +203,7 @@ namespace docMini
             button_ShareDoc.TabIndex = 13;
             button_ShareDoc.Text = "      Share";
             button_ShareDoc.UseVisualStyleBackColor = false;
+            button_ShareDoc.Click += button_ShareDoc_Click;
             button_ShareDoc.Paint += button_ShareDoc_Paint;
             // 
             // button_AddLink
@@ -336,12 +373,59 @@ namespace docMini
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             // 
+            // panel_searchDoc
+            // 
+            panel_searchDoc.BackColor = Color.FromArgb(205, 236, 255);
+            panel_searchDoc.Controls.Add(panel_areaSearch);
+            panel_searchDoc.Location = new Point(79, 186);
+            panel_searchDoc.Name = "panel_searchDoc";
+            panel_searchDoc.Size = new Size(359, 362);
+            panel_searchDoc.TabIndex = 11;
+            panel_searchDoc.Paint += panel_searchDoc_Paint;
+            // 
+            // panel_areaSearch
+            // 
+            panel_areaSearch.BackColor = Color.White;
+            panel_areaSearch.Controls.Add(button_searchDoc);
+            panel_areaSearch.Controls.Add(textBox_searchDoc);
+            panel_areaSearch.Location = new Point(19, 16);
+            panel_areaSearch.Name = "panel_areaSearch";
+            panel_areaSearch.Size = new Size(322, 69);
+            panel_areaSearch.TabIndex = 3;
+            panel_areaSearch.Paint += panel3_Paint;
+            // 
+            // button_searchDoc
+            // 
+            button_searchDoc.BackColor = Color.White;
+            button_searchDoc.BackgroundImage = (Image)resources.GetObject("button_searchDoc.BackgroundImage");
+            button_searchDoc.BackgroundImageLayout = ImageLayout.Zoom;
+            button_searchDoc.FlatAppearance.BorderSize = 0;
+            button_searchDoc.FlatStyle = FlatStyle.Flat;
+            button_searchDoc.Location = new Point(15, 20);
+            button_searchDoc.Name = "button_searchDoc";
+            button_searchDoc.Size = new Size(38, 36);
+            button_searchDoc.TabIndex = 2;
+            button_searchDoc.UseVisualStyleBackColor = false;
+            // 
+            // textBox_searchDoc
+            // 
+            textBox_searchDoc.BackColor = Color.White;
+            textBox_searchDoc.BorderStyle = BorderStyle.None;
+            textBox_searchDoc.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            textBox_searchDoc.Location = new Point(59, 20);
+            textBox_searchDoc.Multiline = true;
+            textBox_searchDoc.Name = "textBox_searchDoc";
+            textBox_searchDoc.PlaceholderText = "Search";
+            textBox_searchDoc.Size = new Size(262, 35);
+            textBox_searchDoc.TabIndex = 1;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1902, 1046);
+            Controls.Add(panel_searchDoc);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
             Controls.Add(panel_ToolbarBorder);
@@ -358,8 +442,12 @@ namespace docMini
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).EndInit();
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox_add).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).EndInit();
+            panel_searchDoc.ResumeLayout(false);
+            panel_areaSearch.ResumeLayout(false);
+            panel_areaSearch.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -372,6 +460,34 @@ namespace docMini
         {
             SetRoundedPanel(panel_Toolbar, Color.White, 3, 30, Color.White);
         }
+        private void panel3_Paint(object sender, PaintEventArgs e)
+        {
+            SetRoundedPanel(panel_areaSearch, Color.Black, 3, 30, Color.Black);
+
+        }
+        public class RoundedButton : Button
+        {
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                GraphicsPath path = new GraphicsPath();
+                int radius = 20; // Bán kính bo góc, bạn có thể thay đổi giá trị này
+                path.AddArc(new Rectangle(0, 0, radius, radius), 180, 90);
+                path.AddArc(new Rectangle(Width - radius, 0, radius, radius), 270, 90);
+                path.AddArc(new Rectangle(Width - radius, Height - radius, radius, radius), 0, 90);
+                path.AddArc(new Rectangle(0, Height - radius, radius, radius), 90, 90);
+                path.CloseFigure();
+                this.Region = new Region(path);
+
+                base.OnPaint(e);
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                e.Graphics.FillPath(new SolidBrush(this.BackColor), path);
+
+                // Vẽ văn bản của Button
+                TextRenderer.DrawText(e.Graphics, this.Text, this.Font, this.ClientRectangle, this.ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+     
+
         private void SetRoundedPanel(Panel panel, Color borderColor, int borderWidth, int borderRadius, Color fillColor)
         {
             // Tạo đường dẫn GraphicsPath với bo góc
@@ -475,6 +591,11 @@ namespace docMini
         private Button button_Underline;
         private Button button_ShareDoc;
         private RichTextBox richTextBox_Content;
-
+        private Panel panel_searchDoc;
+        private TextBox textBox_searchDoc;
+        private Panel panel_areaSearch;
+        private Button button_searchDoc;
+        private Button button_newFile;
+        private PictureBox pictureBox_add;
     }
 }
