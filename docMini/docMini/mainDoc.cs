@@ -17,15 +17,15 @@ namespace docMini
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-        
+
         private void button_Minimize_Click(object sender, EventArgs e)
         {
             this.WindowState = FormWindowState.Minimized;
         }
 
+        private void button_Exit_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
