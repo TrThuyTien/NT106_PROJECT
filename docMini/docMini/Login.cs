@@ -11,9 +11,9 @@ namespace docMini
 
         private void button_DangNhap_Click(object sender, EventArgs e)
         {
-            mainDoc main = new mainDoc();
             this.Hide();
-            main.Show();
+            new mainDoc().ShowDialog();
+            this.Show();
         }
 
         private void button_DangKy_Click(object sender, EventArgs e)
