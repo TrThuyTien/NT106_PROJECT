@@ -66,7 +66,6 @@ namespace miniDoc
             button_Exit.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Exit.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Exit.FlatStyle = FlatStyle.Flat;
-            button_Exit.Image = docMini.Properties.Resources.exit_32px;
             button_Exit.Location = new Point(1878, 0);
             button_Exit.Name = "button_Exit";
             button_Exit.Size = new Size(34, 37);
@@ -81,7 +80,6 @@ namespace miniDoc
             button_Minimize.FlatAppearance.MouseDownBackColor = SystemColors.Window;
             button_Minimize.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Minimize.FlatStyle = FlatStyle.Flat;
-            button_Minimize.Image = docMini.Properties.Resources.link_button;
             button_Minimize.Location = new Point(1838, 0);
             button_Minimize.Name = "button_Minimize";
             button_Minimize.Size = new Size(34, 37);
@@ -122,7 +120,6 @@ namespace miniDoc
             // 
             // pictureBox_Logo
             // 
-            pictureBox_Logo.Image = docMini.Properties.Resources.doc;
             pictureBox_Logo.Location = new Point(0, 1);
             pictureBox_Logo.Name = "pictureBox_Logo";
             pictureBox_Logo.Size = new Size(36, 36);

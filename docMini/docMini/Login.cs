@@ -15,5 +15,17 @@ namespace docMini
             this.Hide();
             main.Show();
         }
+
+        private void button_DangKy_Click(object sender, EventArgs e)
+        {
+            SignIn sign = new SignIn();
+            sign.Show();
+        }
+
+        private void button_QuenMatKhau_Click(object sender, EventArgs e)
+        {
+            FogotPass fogotPass = new FogotPass();
+            fogotPass.Show();
+        }
     }
 }

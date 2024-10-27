@@ -77,6 +77,7 @@
             button_QuenMatKhau.TabIndex = 2;
             button_QuenMatKhau.Text = "Quên Mật Khẩu";
             button_QuenMatKhau.UseVisualStyleBackColor = true;
+            button_QuenMatKhau.Click += button_QuenMatKhau_Click;
             // 
             // button_DangNhap
             // 
@@ -96,6 +97,7 @@
             button_DangKy.TabIndex = 2;
             button_DangKy.Text = "Đăng Ký";
             button_DangKy.UseVisualStyleBackColor = true;
+            button_DangKy.Click += button_DangKy_Click;
             // 
             // Login
             // 
