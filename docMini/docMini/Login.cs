@@ -1,4 +1,4 @@
-using miniDoc;
+using docMini;
 
 namespace docMini
 {
