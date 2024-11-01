@@ -8,4 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspose.Words" Version="24.10.0" />
+    <PackageReference Include="DocX" Version="3.0.1" />
+    <PackageReference Include="GemBox.Document" Version="35.0.1886" />
+  </ItemGroup>
+
 </Project>
