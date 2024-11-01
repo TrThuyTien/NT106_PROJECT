@@ -12,8 +12,8 @@ namespace docMini
         private void button_SignIn_Click(object sender, EventArgs e)
         {
             this.Hide();
-            mainDoc form = new mainDoc();
-            form.Show();
+            new mainDoc().ShowDialog();
+            this.Show();
         }
 
         private void label_ForgotPass_Click(object sender, EventArgs e)
