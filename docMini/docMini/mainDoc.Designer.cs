@@ -76,7 +76,7 @@ namespace docMini
             button_Exit.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Exit.FlatStyle = FlatStyle.Flat;
             button_Exit.Image = Properties.Resources.exit_32px;
-            button_Exit.Location = new Point(1865, 11);
+            button_Exit.Location = new Point(1209, 11);
             button_Exit.Name = "button_Exit";
             button_Exit.Size = new Size(36, 35);
             button_Exit.TabIndex = 1;
@@ -90,7 +90,7 @@ namespace docMini
             button_Minimize.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Minimize.FlatStyle = FlatStyle.Flat;
             button_Minimize.Image = Properties.Resources.minimize;
-            button_Minimize.Location = new Point(1823, 11);
+            button_Minimize.Location = new Point(1167, 11);
             button_Minimize.Name = "button_Minimize";
             button_Minimize.Size = new Size(36, 35);
             button_Minimize.TabIndex = 2;
@@ -101,7 +101,7 @@ namespace docMini
             // 
             label_NameAccount.AutoSize = true;
             label_NameAccount.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            label_NameAccount.Location = new Point(1640, 14);
+            label_NameAccount.Location = new Point(984, 14);
             label_NameAccount.Name = "label_NameAccount";
             label_NameAccount.Size = new Size(133, 24);
             label_NameAccount.TabIndex = 4;
@@ -135,7 +135,7 @@ namespace docMini
             panel_ToolbarBorder.Controls.Add(panel_Toolbar);
             panel_ToolbarBorder.Location = new Point(5, 55);
             panel_ToolbarBorder.Name = "panel_ToolbarBorder";
-            panel_ToolbarBorder.Size = new Size(1898, 91);
+            panel_ToolbarBorder.Size = new Size(1240, 91);
             panel_ToolbarBorder.TabIndex = 7;
             panel_ToolbarBorder.Paint += panel1_Paint;
             // 
@@ -159,7 +159,7 @@ namespace docMini
             panel_Toolbar.Controls.Add(listBox_Font);
             panel_Toolbar.Location = new Point(3, 3);
             panel_Toolbar.Name = "panel_Toolbar";
-            panel_Toolbar.Size = new Size(1892, 85);
+            panel_Toolbar.Size = new Size(1234, 85);
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
             // 
@@ -167,7 +167,7 @@ namespace docMini
             // 
             pictureBox_add.BackColor = Color.FromArgb(205, 236, 255);
             pictureBox_add.Image = (Image)resources.GetObject("pictureBox_add.Image");
-            pictureBox_add.Location = new Point(1554, 28);
+            pictureBox_add.Location = new Point(937, 30);
             pictureBox_add.Name = "pictureBox_add";
             pictureBox_add.Size = new Size(34, 41);
             pictureBox_add.SizeMode = PictureBoxSizeMode.Zoom;
@@ -178,14 +178,13 @@ namespace docMini
             // 
             button_newFile.BackColor = Color.FromArgb(205, 236, 255);
             button_newFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            button_newFile.Location = new Point(1542, 23);
+            button_newFile.Location = new Point(925, 25);
             button_newFile.Name = "button_newFile";
             button_newFile.Size = new Size(156, 46);
             button_newFile.TabIndex = 12;
             button_newFile.Text = "     New file";
             button_newFile.UseVisualStyleBackColor = false;
             button_newFile.Click += button_newFile_Click;
-   
             // 
             // button_ShareDoc
             // 
@@ -197,13 +196,12 @@ namespace docMini
             button_ShareDoc.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
             button_ShareDoc.Image = Properties.Resources.file;
             button_ShareDoc.ImageAlign = ContentAlignment.MiddleLeft;
-            button_ShareDoc.Location = new Point(1773, 10);
+            button_ShareDoc.Location = new Point(1108, 13);
             button_ShareDoc.Name = "button_ShareDoc";
             button_ShareDoc.Size = new Size(111, 61);
             button_ShareDoc.TabIndex = 13;
             button_ShareDoc.Text = "      Share";
             button_ShareDoc.UseVisualStyleBackColor = false;
-            button_ShareDoc.Click += button_ShareDoc_Click;
             button_ShareDoc.Paint += button_ShareDoc_Paint;
             // 
             // button_AddLink
@@ -213,7 +211,7 @@ namespace docMini
             button_AddLink.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddLink.FlatStyle = FlatStyle.Flat;
             button_AddLink.Image = Properties.Resources.link_button;
-            button_AddLink.Location = new Point(1044, 25);
+            button_AddLink.Location = new Point(865, 27);
             button_AddLink.Name = "button_AddLink";
             button_AddLink.Size = new Size(36, 35);
             button_AddLink.TabIndex = 12;
@@ -226,7 +224,7 @@ namespace docMini
             button_AddTable.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddTable.FlatStyle = FlatStyle.Flat;
             button_AddTable.Image = Properties.Resources.table;
-            button_AddTable.Location = new Point(989, 25);
+            button_AddTable.Location = new Point(810, 27);
             button_AddTable.Name = "button_AddTable";
             button_AddTable.Size = new Size(36, 35);
             button_AddTable.TabIndex = 11;
@@ -239,7 +237,7 @@ namespace docMini
             button_AddPicture.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddPicture.FlatStyle = FlatStyle.Flat;
             button_AddPicture.Image = Properties.Resources.image;
-            button_AddPicture.Location = new Point(928, 25);
+            button_AddPicture.Location = new Point(749, 27);
             button_AddPicture.Name = "button_AddPicture";
             button_AddPicture.Size = new Size(36, 35);
             button_AddPicture.TabIndex = 10;
@@ -252,7 +250,7 @@ namespace docMini
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
             button_Center.Image = Properties.Resources.format;
-            button_Center.Location = new Point(657, 23);
+            button_Center.Location = new Point(569, 27);
             button_Center.Name = "button_Center";
             button_Center.Size = new Size(36, 35);
             button_Center.TabIndex = 9;
@@ -265,7 +263,7 @@ namespace docMini
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
             button_AlignRight.Image = Properties.Resources.align_right;
-            button_AlignRight.Location = new Point(715, 23);
+            button_AlignRight.Location = new Point(627, 27);
             button_AlignRight.Name = "button_AlignRight";
             button_AlignRight.Size = new Size(36, 35);
             button_AlignRight.TabIndex = 8;
@@ -278,7 +276,7 @@ namespace docMini
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
             button_Justify.Image = Properties.Resources.justify;
-            button_Justify.Location = new Point(776, 23);
+            button_Justify.Location = new Point(688, 27);
             button_Justify.Name = "button_Justify";
             button_Justify.Size = new Size(36, 35);
             button_Justify.TabIndex = 7;
@@ -291,7 +289,7 @@ namespace docMini
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
             button_AlignLeft.Image = Properties.Resources.align_left1;
-            button_AlignLeft.Location = new Point(597, 23);
+            button_AlignLeft.Location = new Point(509, 27);
             button_AlignLeft.Name = "button_AlignLeft";
             button_AlignLeft.Size = new Size(36, 35);
             button_AlignLeft.TabIndex = 6;
@@ -304,7 +302,7 @@ namespace docMini
             button_Italic.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Italic.FlatStyle = FlatStyle.Flat;
             button_Italic.Image = Properties.Resources.italic_button;
-            button_Italic.Location = new Point(412, 23);
+            button_Italic.Location = new Point(375, 25);
             button_Italic.Name = "button_Italic";
             button_Italic.Size = new Size(36, 35);
             button_Italic.TabIndex = 5;
@@ -317,7 +315,7 @@ namespace docMini
             button_Underline.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Underline.FlatStyle = FlatStyle.Flat;
             button_Underline.Image = Properties.Resources.underline_text;
-            button_Underline.Location = new Point(472, 23);
+            button_Underline.Location = new Point(435, 25);
             button_Underline.Name = "button_Underline";
             button_Underline.Size = new Size(36, 35);
             button_Underline.TabIndex = 4;
@@ -330,7 +328,7 @@ namespace docMini
             button_Bold.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Bold.FlatStyle = FlatStyle.Flat;
             button_Bold.Image = Properties.Resources.bold_button;
-            button_Bold.Location = new Point(353, 23);
+            button_Bold.Location = new Point(316, 25);
             button_Bold.Name = "button_Bold";
             button_Bold.Size = new Size(36, 35);
             button_Bold.TabIndex = 3;
@@ -358,7 +356,7 @@ namespace docMini
             // pictureBox_Avatar
             // 
             pictureBox_Avatar.Image = Properties.Resources.user;
-            pictureBox_Avatar.Location = new Point(1779, 11);
+            pictureBox_Avatar.Location = new Point(1123, 11);
             pictureBox_Avatar.Name = "pictureBox_Avatar";
             pictureBox_Avatar.Size = new Size(38, 35);
             pictureBox_Avatar.SizeMode = PictureBoxSizeMode.CenterImage;
@@ -367,9 +365,9 @@ namespace docMini
             // 
             // richTextBox_Content
             // 
-            richTextBox_Content.Location = new Point(606, 156);
+            richTextBox_Content.Location = new Point(460, 157);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(1064, 878);
+            richTextBox_Content.Size = new Size(657, 671);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             // 
@@ -377,7 +375,7 @@ namespace docMini
             // 
             panel_searchDoc.BackColor = Color.FromArgb(205, 236, 255);
             panel_searchDoc.Controls.Add(panel_areaSearch);
-            panel_searchDoc.Location = new Point(79, 186);
+            panel_searchDoc.Location = new Point(43, 219);
             panel_searchDoc.Name = "panel_searchDoc";
             panel_searchDoc.Size = new Size(359, 362);
             panel_searchDoc.TabIndex = 11;
@@ -424,7 +422,7 @@ namespace docMini
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
-            ClientSize = new Size(1902, 1046);
+            ClientSize = new Size(1254, 840);
             Controls.Add(panel_searchDoc);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
@@ -435,10 +433,10 @@ namespace docMini
             Controls.Add(button_Minimize);
             Controls.Add(button_Exit);
             Font = new Font("Tahoma", 9F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "mainDoc";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "mainDoc";
-            WindowState = FormWindowState.Maximized;
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).EndInit();
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
@@ -595,7 +593,7 @@ namespace docMini
         private TextBox textBox_searchDoc;
         private Panel panel_areaSearch;
         private Button button_searchDoc;
-        private Button button_newFile;
         private PictureBox pictureBox_add;
+        private RoundedButton button_newFile;
     }
 }
