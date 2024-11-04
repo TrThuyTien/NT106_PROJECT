@@ -21,7 +21,6 @@ namespace docMini
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -38,8 +37,10 @@ namespace docMini
             pictureBox_Logo = new PictureBox();
             panel_ToolbarBorder = new Panel();
             panel_Toolbar = new Panel();
+            comboBox_Size = new ComboBox();
+            comboBox_Font = new ComboBox();
             pictureBox_add = new PictureBox();
-            button_newFile = new RoundedButton();
+            button_NewFile = new RoundedButton();
             button_ShareDoc = new Button();
             button_AddLink = new Button();
             button_AddTable = new Button();
@@ -51,22 +52,27 @@ namespace docMini
             button_Italic = new Button();
             button_Underline = new Button();
             button_Bold = new Button();
-            numericUpDown_FontSize = new NumericUpDown();
-            listBox_Font = new ListBox();
             pictureBox_Avatar = new PictureBox();
-            richTextBox_Content = new RichTextBox();
             panel_searchDoc = new Panel();
             panel_areaSearch = new Panel();
             button_searchDoc = new Button();
             textBox_searchDoc = new TextBox();
+            panel1 = new Panel();
+            panel2 = new Panel();
+            panel3 = new Panel();
+            panel4 = new Panel();
+            button_Save = new Button();
+            button_Open = new Button();
+            //richTextBox_Content = new PagedRichTextBox(this);
+            richTextBox_Content = new RichTextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox_add).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
             panel_searchDoc.SuspendLayout();
             panel_areaSearch.SuspendLayout();
+            panel3.SuspendLayout();
             SuspendLayout();
             // 
             // button_Exit
@@ -142,8 +148,10 @@ namespace docMini
             // panel_Toolbar
             // 
             panel_Toolbar.BackColor = Color.White;
+            panel_Toolbar.Controls.Add(comboBox_Size);
+            panel_Toolbar.Controls.Add(comboBox_Font);
             panel_Toolbar.Controls.Add(pictureBox_add);
-            panel_Toolbar.Controls.Add(button_newFile);
+            panel_Toolbar.Controls.Add(button_NewFile);
             panel_Toolbar.Controls.Add(button_ShareDoc);
             panel_Toolbar.Controls.Add(button_AddLink);
             panel_Toolbar.Controls.Add(button_AddTable);
@@ -155,13 +163,27 @@ namespace docMini
             panel_Toolbar.Controls.Add(button_Italic);
             panel_Toolbar.Controls.Add(button_Underline);
             panel_Toolbar.Controls.Add(button_Bold);
-            panel_Toolbar.Controls.Add(numericUpDown_FontSize);
-            panel_Toolbar.Controls.Add(listBox_Font);
             panel_Toolbar.Location = new Point(3, 3);
             panel_Toolbar.Name = "panel_Toolbar";
             panel_Toolbar.Size = new Size(1234, 85);
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
+            // 
+            // comboBox_Size
+            // 
+            comboBox_Size.FormattingEnabled = true;
+            comboBox_Size.Location = new Point(226, 34);
+            comboBox_Size.Name = "comboBox_Size";
+            comboBox_Size.Size = new Size(54, 26);
+            comboBox_Size.TabIndex = 15;
+            // 
+            // comboBox_Font
+            // 
+            comboBox_Font.FormattingEnabled = true;
+            comboBox_Font.Location = new Point(48, 34);
+            comboBox_Font.Name = "comboBox_Font";
+            comboBox_Font.Size = new Size(156, 26);
+            comboBox_Font.TabIndex = 14;
             // 
             // pictureBox_add
             // 
@@ -174,17 +196,17 @@ namespace docMini
             pictureBox_add.TabIndex = 12;
             pictureBox_add.TabStop = false;
             // 
-            // button_newFile
+            // button_NewFile
             // 
-            button_newFile.BackColor = Color.FromArgb(205, 236, 255);
-            button_newFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            button_newFile.Location = new Point(925, 25);
-            button_newFile.Name = "button_newFile";
-            button_newFile.Size = new Size(156, 46);
-            button_newFile.TabIndex = 12;
-            button_newFile.Text = "     New file";
-            button_newFile.UseVisualStyleBackColor = false;
-            button_newFile.Click += button_newFile_Click;
+            button_NewFile.BackColor = Color.FromArgb(205, 236, 255);
+            button_NewFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            button_NewFile.Location = new Point(925, 25);
+            button_NewFile.Name = "button_NewFile";
+            button_NewFile.Size = new Size(156, 46);
+            button_NewFile.TabIndex = 12;
+            button_NewFile.Text = "     New file";
+            button_NewFile.UseVisualStyleBackColor = false;
+            button_NewFile.Click += button_newFile_Click;
             // 
             // button_ShareDoc
             // 
@@ -242,6 +264,7 @@ namespace docMini
             button_AddPicture.Size = new Size(36, 35);
             button_AddPicture.TabIndex = 10;
             button_AddPicture.UseVisualStyleBackColor = true;
+            button_AddPicture.Click += button_AddPicture_Click;
             // 
             // button_Center
             // 
@@ -255,6 +278,7 @@ namespace docMini
             button_Center.Size = new Size(36, 35);
             button_Center.TabIndex = 9;
             button_Center.UseVisualStyleBackColor = true;
+            button_Center.Click += button_Center_Click;
             // 
             // button_AlignRight
             // 
@@ -268,6 +292,7 @@ namespace docMini
             button_AlignRight.Size = new Size(36, 35);
             button_AlignRight.TabIndex = 8;
             button_AlignRight.UseVisualStyleBackColor = true;
+            button_AlignRight.Click += button_AlignRight_Click;
             // 
             // button_Justify
             // 
@@ -294,6 +319,7 @@ namespace docMini
             button_AlignLeft.Size = new Size(36, 35);
             button_AlignLeft.TabIndex = 6;
             button_AlignLeft.UseVisualStyleBackColor = true;
+            button_AlignLeft.Click += button_AlignLeft_Click;
             // 
             // button_Italic
             // 
@@ -307,6 +333,7 @@ namespace docMini
             button_Italic.Size = new Size(36, 35);
             button_Italic.TabIndex = 5;
             button_Italic.UseVisualStyleBackColor = true;
+            button_Italic.Click += button_Italic_Click;
             // 
             // button_Underline
             // 
@@ -320,6 +347,7 @@ namespace docMini
             button_Underline.Size = new Size(36, 35);
             button_Underline.TabIndex = 4;
             button_Underline.UseVisualStyleBackColor = true;
+            button_Underline.Click += button_Underline_Click;
             // 
             // button_Bold
             // 
@@ -333,25 +361,7 @@ namespace docMini
             button_Bold.Size = new Size(36, 35);
             button_Bold.TabIndex = 3;
             button_Bold.UseVisualStyleBackColor = true;
-            // 
-            // numericUpDown_FontSize
-            // 
-            numericUpDown_FontSize.Font = new Font("Tahoma", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            numericUpDown_FontSize.Location = new Point(229, 27);
-            numericUpDown_FontSize.Name = "numericUpDown_FontSize";
-            numericUpDown_FontSize.Size = new Size(52, 28);
-            numericUpDown_FontSize.TabIndex = 1;
-            // 
-            // listBox_Font
-            // 
-            listBox_Font.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            listBox_Font.FormattingEnabled = true;
-            listBox_Font.ItemHeight = 24;
-            listBox_Font.Items.AddRange(new object[] { "Time New Roman", "Cambria" });
-            listBox_Font.Location = new Point(18, 28);
-            listBox_Font.Name = "listBox_Font";
-            listBox_Font.Size = new Size(199, 28);
-            listBox_Font.TabIndex = 0;
+            button_Bold.Click += button_Bold_Click;
             // 
             // pictureBox_Avatar
             // 
@@ -362,14 +372,6 @@ namespace docMini
             pictureBox_Avatar.SizeMode = PictureBoxSizeMode.CenterImage;
             pictureBox_Avatar.TabIndex = 9;
             pictureBox_Avatar.TabStop = false;
-            // 
-            // richTextBox_Content
-            // 
-            richTextBox_Content.Location = new Point(460, 157);
-            richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(657, 671);
-            richTextBox_Content.TabIndex = 10;
-            richTextBox_Content.Text = "";
             // 
             // panel_searchDoc
             // 
@@ -417,12 +419,79 @@ namespace docMini
             textBox_searchDoc.Size = new Size(262, 35);
             textBox_searchDoc.TabIndex = 1;
             // 
+            // panel1
+            // 
+            panel1.BackColor = Color.White;
+            panel1.Location = new Point(457, 157);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(74, 671);
+            panel1.TabIndex = 15;
+            // 
+            // panel2
+            // 
+            panel2.BackColor = Color.White;
+            panel2.Location = new Point(539, 3);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(73, 671);
+            panel2.TabIndex = 16;
+            // 
+            // panel3
+            // 
+            panel3.BackColor = Color.White;
+            panel3.Controls.Add(panel2);
+            panel3.Location = new Point(531, 157);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(533, 63);
+            panel3.TabIndex = 17;
+            // 
+            // panel4
+            // 
+            panel4.BackColor = Color.White;
+            panel4.Location = new Point(1064, 157);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(76, 671);
+            panel4.TabIndex = 18;
+            // 
+            // button_Save
+            // 
+            button_Save.Location = new Point(43, 160);
+            button_Save.Name = "button_Save";
+            button_Save.Size = new Size(116, 44);
+            button_Save.TabIndex = 19;
+            button_Save.Text = "Save";
+            button_Save.UseVisualStyleBackColor = true;
+            button_Save.Click += button_Save_Click;
+            // 
+            // button_Open
+            // 
+            button_Open.Location = new Point(210, 160);
+            button_Open.Name = "button_Open";
+            button_Open.Size = new Size(116, 44);
+            button_Open.TabIndex = 20;
+            button_Open.Text = "Open";
+            button_Open.UseVisualStyleBackColor = true;
+            button_Open.Click += button_Open_Click;
+            // 
+            // richTextBox_Content
+            // 
+            richTextBox_Content.BorderStyle = BorderStyle.None;
+            richTextBox_Content.Location = new Point(531, 219);
+            richTextBox_Content.Name = "richTextBox_Content";
+            richTextBox_Content.Size = new Size(533, 609);
+            richTextBox_Content.TabIndex = 10;
+            richTextBox_Content.Text = "";
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1254, 840);
+            Controls.Add(button_Open);
+            Controls.Add(button_Save);
+            Controls.Add(panel4);
+            Controls.Add(panel3);
+            Controls.Add(panel1);
             Controls.Add(panel_searchDoc);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
@@ -437,15 +506,16 @@ namespace docMini
             Name = "mainDoc";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "mainDoc";
+            Load += mainDoc_Load;
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).EndInit();
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox_add).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown_FontSize).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).EndInit();
             panel_searchDoc.ResumeLayout(false);
             panel_areaSearch.ResumeLayout(false);
             panel_areaSearch.PerformLayout();
+            panel3.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -462,6 +532,17 @@ namespace docMini
         {
             SetRoundedPanel(panel_areaSearch, Color.Black, 3, 30, Color.Black);
 
+        }
+        private void panel_searchDoc_Paint(object sender, PaintEventArgs e)
+        {
+            Panel panel = sender as Panel;
+            Color borderColor = Color.Black; // Màu viền bạn muốn
+
+            int borderWidth = 5; // Độ dày của viền
+            ControlPaint.DrawBorder(e.Graphics, panel.ClientRectangle, borderColor, borderWidth, ButtonBorderStyle.Solid,
+                                    borderColor, borderWidth, ButtonBorderStyle.Solid,
+                                    borderColor, borderWidth, ButtonBorderStyle.Solid,
+                                    borderColor, borderWidth, ButtonBorderStyle.Solid);
         }
         public class RoundedButton : Button
         {
@@ -484,6 +565,40 @@ namespace docMini
                 TextRenderer.DrawText(e.Graphics, this.Text, this.Font, this.ClientRectangle, this.ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }
+        public class PagedRichTextBox : RichTextBox
+        {
+            private const int MaxLinesPerPage = 28;
+            private int currentPage = 1;
+            private Form parentForm;
+
+            public PagedRichTextBox(Form parent)
+            {
+                this.parentForm = parent;
+                this.TextChanged += new EventHandler(PagedRichTextBox_TextChanged);
+            }
+
+            private void PagedRichTextBox_TextChanged(object sender, EventArgs e)
+            {
+                if (this.Lines.Length > MaxLinesPerPage)
+                {
+                    CreateNewPage();
+                }
+            }
+
+            private void CreateNewPage()
+            {
+                currentPage++;
+                RichTextBox newPage = new PagedRichTextBox(this.parentForm)
+                {
+                    Location = new Point(this.Location.X, this.Location.Y + this.Height + 10),
+                    Size = this.Size
+                };
+                this.parentForm.Controls.Add(newPage);
+                newPage.BringToFront();
+                newPage.Focus();
+            }
+        }
+
 
 
         private void SetRoundedPanel(Panel panel, Color borderColor, int borderWidth, int borderRadius, Color fillColor)
@@ -575,9 +690,7 @@ namespace docMini
         private Panel panel_ToolbarBorder;
         private Panel panel_Toolbar;
         private PictureBox pictureBox_Avatar;
-        private ListBox listBox_Font;
         private Button button_Bold;
-        private NumericUpDown numericUpDown_FontSize;
         private Button button_AddLink;
         private Button button_AddTable;
         private Button button_AddPicture;
@@ -588,12 +701,20 @@ namespace docMini
         private Button button_Italic;
         private Button button_Underline;
         private Button button_ShareDoc;
-        private RichTextBox richTextBox_Content;
         private Panel panel_searchDoc;
         private TextBox textBox_searchDoc;
         private Panel panel_areaSearch;
         private Button button_searchDoc;
         private PictureBox pictureBox_add;
-        private RoundedButton button_newFile;
+        private RoundedButton button_NewFile;
+        private ComboBox comboBox_Size;
+        private ComboBox comboBox_Font;
+        private Panel panel1;
+        private Panel panel2;
+        private Panel panel3;
+        private Panel panel4;
+        private Button button_Save;
+        private RichTextBox richTextBox_Content;
+        private Button button_Open;
     }
 }
