@@ -1,15 +1,15 @@
-﻿using Microsoft.Office.Interop.Word;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using Word = Microsoft.Office.Interop.Word;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -36,7 +36,6 @@ namespace docMini
         {
             this.Close();
         }
-
 
         private void button_newFile_Click(object sender, EventArgs e)
         {
@@ -214,70 +213,51 @@ namespace docMini
                 }
             }
         }
-        private void DisplayWordDocument(string filePath)
+        private void SaveRtf(string filePath)
         {
-            Word.Application wordApp = new Word.Application();
-            Word.Document doc = null;
-
             try
             {
-                doc = wordApp.Documents.Open(filePath);
-                doc.ActiveWindow.Selection.WholeStory();
-                doc.ActiveWindow.Selection.Copy();
-                richTextBox_Content.Paste();
-                doc.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error: " + ex.Message);
-            }
-            finally
-            {
-                wordApp.Quit();
-            }
-        }
-        private void SaveWordDocument(string filePath)
-        {
-            Word.Application wordApp = new Word.Application();
-            Word.Document doc = wordApp.Documents.Add();
-            Word.Range docRange = doc.Range();
-            try
-            {
-                richTextBox_Content.SelectAll();
-                richTextBox_Content.Copy();
-                docRange.Paste();
-                doc.SaveAs2(filePath);
-                doc.Close();
+                richTextBox_Content.SaveFile(filePath, RichTextBoxStreamType.RichText);
                 MessageBox.Show("File saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message);
             }
-            finally
-            {
-                wordApp.Quit();
-            }
         }
         private void button_Save_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "Word Document (*.docx)|*.docx";
+            sfd.Filter = "Rich Text Format|*.rtf";
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                string fileName = sfd.FileName;
-                SaveWordDocument(fileName);
+                SaveRtf(sfd.FileName);
             }
         }
-
+        private void LoadRtf(string filePath)
+        {
+            try
+            {
+                richTextBox_Content.LoadFile(filePath, RichTextBoxStreamType.RichText);
+                MessageBox.Show("File loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
         private void button_Open_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Word Document (*.docx)|*.docx";
-            if (ofd.ShowDialog() == DialogResult.OK)
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                string fileName = ofd.FileName;
-                DisplayWordDocument(fileName);
+                Filter = "Rich Text Format|*.rtf",
+                Title = "Open a Rich Text File"
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+                LoadRtf(filePath);
             }
         }
     }
