@@ -126,6 +126,7 @@
             Controls.Add(textbox_Username);
             MaximizeBox = false;
             Name = "SignUp";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Sign Up";
             ResumeLayout(false);
             PerformLayout();

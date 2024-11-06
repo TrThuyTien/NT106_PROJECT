@@ -63,8 +63,8 @@ namespace docMini
             panel4 = new Panel();
             button_Save = new Button();
             button_Open = new Button();
-            //richTextBox_Content = new PagedRichTextBox(this);
             richTextBox_Content = new RichTextBox();
+            button_Connect = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -480,6 +480,17 @@ namespace docMini
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
+            // 
+            // button_Connect
+            // 
+            button_Connect.Location = new Point(77, 643);
+            button_Connect.Name = "button_Connect";
+            button_Connect.Size = new Size(257, 56);
+            button_Connect.TabIndex = 21;
+            button_Connect.Text = "Mở tài liệu";
+            button_Connect.UseVisualStyleBackColor = true;
+            button_Connect.Click += button_Connect_Click;
             // 
             // mainDoc
             // 
@@ -487,6 +498,7 @@ namespace docMini
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1254, 840);
+            Controls.Add(button_Connect);
             Controls.Add(button_Open);
             Controls.Add(button_Save);
             Controls.Add(panel4);
@@ -716,5 +728,6 @@ namespace docMini
         private Button button_Save;
         private RichTextBox richTextBox_Content;
         private Button button_Open;
+        private Button button_Connect;
     }
 }

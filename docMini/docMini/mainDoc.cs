@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -17,12 +18,12 @@ namespace docMini
         public mainDoc()
         {
             InitializeComponent();
-/*            PagedRichTextBox pagedRichTextBox = new PagedRichTextBox(this)
-            {
-                Location = new System.Drawing.Point(10, 10),
-                Size = new Size(531, 219)
-            };
-            this.Controls.Add(richTextBox_Content);*/
+            /*            PagedRichTextBox pagedRichTextBox = new PagedRichTextBox(this)
+                        {
+                            Location = new System.Drawing.Point(10, 10),
+                            Size = new Size(531, 219)
+                        };
+                        this.Controls.Add(richTextBox_Content);*/
 
         }
 
@@ -260,5 +261,87 @@ namespace docMini
                 LoadRtf(filePath);
             }
         }
+
+        // PHẦN KẾT NỐI VỚI SERVER -------------------------------------------------------------------------
+        private TcpClient tcpClient;
+        private NetworkStream stream;
+        private bool isConnected = false;
+        private string lastReceivedContent = ""; // Lưu nội dung lần cuối để so sánh
+        private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Thời gian debounce
+        private DateTime lastSendTime = DateTime.MinValue;
+        private bool isFormatting = false; // Cờ để kiểm soát việc định dạng
+
+        private async void button_Connect_Click(object sender, EventArgs e)
+        {
+            tcpClient = new TcpClient();
+            await tcpClient.ConnectAsync("127.0.0.1", 8080);
+            stream = tcpClient.GetStream();
+            isConnected = true;
+
+            // Nhận nội dung hiện tại từ server
+            _ = System.Threading.Tasks.Task.Run(() => ReceiveContentAsync());
+            richTextBox_Content.Enabled = true;
+        }
+
+        private async System.Threading.Tasks.Task ReceiveContentAsync()
+        {
+            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
+            {
+                while (isConnected)
+                {
+                    int length = reader.ReadInt32(); // Đọc độ dài nội dung từ server
+                    byte[] buffer = reader.ReadBytes(length); // Đọc nội dung với độ dài đã cho
+                    string content = Encoding.UTF8.GetString(buffer); // Chuyển đổi dữ liệu thành chuỗi RTF
+
+                    // Chỉ cập nhật nếu nội dung thực sự thay đổi
+                    if (content != lastReceivedContent)
+                    {
+                        lastReceivedContent = content;
+
+                        // Tạm thời tắt cờ để ngăn `TextChanged` khi cập nhật
+                        isFormatting = true;
+
+                        // Cập nhật RichTextBox trên luồng giao diện
+                        if (richTextBox_Content.InvokeRequired)
+                        {
+                            richTextBox_Content.Invoke((MethodInvoker)(() =>
+                            {
+                                richTextBox_Content.Rtf = content;
+                            }));
+                        }
+                        else
+                        {
+                            richTextBox_Content.Rtf = content;
+                        }
+
+                        isFormatting = false; // Bật lại sau khi cập nhật xong
+                    }
+                }
+            }
+        }
+
+        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        {
+            if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
+            {
+                // Thời gian debounce - bỏ qua nếu chưa đến thời gian debounce
+                if (DateTime.Now - lastSendTime < debounceTime)
+                    return;
+
+                lastSendTime = DateTime.Now;
+
+                string updatedContent = richTextBox_Content.Rtf;
+                byte[] bufferContent = Encoding.UTF8.GetBytes(updatedContent);
+
+                using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
+                {
+                    writer.Write(bufferContent.Length); // Gửi độ dài nội dung
+                    writer.Write(bufferContent); // Gửi nội dung
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------
+
     }
 }
