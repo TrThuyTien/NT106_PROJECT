@@ -77,7 +77,7 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
-        private void richTextBox_Content_TextChanged_button(object sender, EventArgs e)
+        private void richTextBox_Content_TextChangedButton(object sender, EventArgs e)
         {
             if (isBold && richTextBox_Content.SelectionLength == 0)
             {
@@ -116,7 +116,7 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, 0);
             }
         }
-        private void comboBox_size_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (richTextBox_Content.SelectionLength > 0)
             {
@@ -148,7 +148,7 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, 0);
             }
         }
-        private void comboBox_Font_SelectedIndexChanged_button(object sender, EventArgs e)
+        private void comboBox_Font_SelectedIndexChanged(object sender, EventArgs e)
         {
             currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
 
