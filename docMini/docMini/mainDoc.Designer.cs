@@ -542,7 +542,7 @@ namespace docMini
         }
         private void panel3_Paint(object sender, PaintEventArgs e)
         {
-            SetRoundedPanel(panel_areaSearch, Color.Black, 3, 30, Color.Black);
+            SetRoundedPanel(panel_areaSearch, Color.White, 3, 30, Color.White);
 
         }
         private void panel_searchDoc_Paint(object sender, PaintEventArgs e)

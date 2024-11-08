@@ -49,13 +49,19 @@ namespace docMini
 
         }
 
+        private string currentFont = "Tahoma";
+        private float currentFontSize = 12f;
+        private bool isBold = false;
+        private bool isItalic = false;
+        private bool isUnderline = false;
         private void button_Bold_Click(object sender, EventArgs e)
         {
+            isBold = !isBold; // Toggle the bold state
+
             if (richTextBox_Content.SelectionLength > 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
-                string selectedFont = comboBox_Font.SelectedItem.ToString();
 
                 for (int i = 0; i < selectionLength; i++)
                 {
@@ -63,10 +69,66 @@ namespace docMini
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = richTextBox_Content.SelectionFont.Style ^ System.Drawing.FontStyle.Bold;
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Bold;
                         richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
                     }
-                    richTextBox_Content.Select(selectionStart, selectionLength);
+                }
+                richTextBox_Content.Select(selectionStart, selectionLength);
+            }
+        }
+        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        {
+            if (isBold && richTextBox_Content.SelectionLength == 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                richTextBox_Content.Select(selectionStart-1 , 1);// con bug cho nay
+                if (richTextBox_Content.SelectionFont != null)
+                {
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold;
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                }
+                richTextBox_Content.Select(selectionStart, 0);
+            }
+            if (isItalic && richTextBox_Content.SelectionLength == 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                richTextBox_Content.Select(selectionStart - 1 , 1);// con bug cho nay
+                if (richTextBox_Content.SelectionFont != null)
+                {
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                }
+                richTextBox_Content.Select(selectionStart, 0);
+            }
+            if (isUnderline && richTextBox_Content.SelectionLength == 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                richTextBox_Content.Select(selectionStart -1, 1);// con bug cho nay
+                if (richTextBox_Content.SelectionFont != null)
+                {
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                }
+                richTextBox_Content.Select(selectionStart, 0);
+            }
+            if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
+            {
+                // Thời gian debounce - bỏ qua nếu chưa đến thời gian debounce
+                if (DateTime.Now - lastSendTime < debounceTime)
+                    return;
+
+                lastSendTime = DateTime.Now;
+
+                string updatedContent = richTextBox_Content.Rtf;
+                byte[] bufferContent = Encoding.UTF8.GetBytes(updatedContent);
+
+                using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
+                {
+                    writer.Write(bufferContent.Length); // Gửi độ dài nội dung
+                    writer.Write(bufferContent); // Gửi nội dung
                 }
             }
         }
@@ -90,14 +152,26 @@ namespace docMini
                 }
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
+            if (richTextBox_Content.SelectionLength == 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                richTextBox_Content.Select(selectionStart - 0, 1);
+                if (richTextBox_Content.SelectionFont != null)
+                {
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFontSize, currentFont.Style);
+                }
+                richTextBox_Content.Select(selectionStart, 0);
+            }
         }
-        private void comboBox_font_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox_Font_SelectedIndexChanged(object sender, EventArgs e)
         {
+            currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
+
             if (richTextBox_Content.SelectionLength > 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
-                string selectedFont = comboBox_Font.SelectedItem.ToString();
 
                 for (int i = 0; i < selectionLength; i++)
                 {
@@ -105,42 +179,34 @@ namespace docMini
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(selectedFont, currentFont.Size, currentFont.Style);
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
                     }
                 }
 
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
-        }
-        private void button_Italic_Click(object sender, EventArgs e)
-        {
-            if (richTextBox_Content.SelectionLength > 0)
+            if (richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
-                string selectedFont = comboBox_Font.SelectedItem.ToString();
-
-                for (int i = 0; i < selectionLength; i++)
+                richTextBox_Content.Select(selectionStart - 0, 1);
+                if (richTextBox_Content.SelectionFont != null)
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = richTextBox_Content.SelectionFont.Style ^ System.Drawing.FontStyle.Italic;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                    }
-                    richTextBox_Content.Select(selectionStart, selectionLength);
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
                 }
+                richTextBox_Content.Select(selectionStart, 0);
             }
         }
 
-        private void button_Underline_Click(object sender, EventArgs e)
+
+        private void button_Italic_Click(object sender, EventArgs e)
         {
+            isItalic = !isItalic;
+
             if (richTextBox_Content.SelectionLength > 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
-                string selectedFont = comboBox_Font.SelectedItem.ToString();
 
                 for (int i = 0; i < selectionLength; i++)
                 {
@@ -148,11 +214,32 @@ namespace docMini
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = richTextBox_Content.SelectionFont.Style ^ System.Drawing.FontStyle.Underline;
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Italic;
                         richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
                     }
-                    richTextBox_Content.Select(selectionStart, selectionLength);
                 }
+                richTextBox_Content.Select(selectionStart, selectionLength);
+            }
+        }
+        private void button_Underline_Click(object sender, EventArgs e)
+        {
+            isUnderline = !isUnderline;
+            if (richTextBox_Content.SelectionLength > 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                int selectionLength = richTextBox_Content.SelectionLength;
+
+                for (int i = 0; i < selectionLength; i++)
+                {
+                    richTextBox_Content.Select(selectionStart + i, 1);
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Underline;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    }
+                }
+                richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
 
@@ -320,7 +407,7 @@ namespace docMini
             }
         }
 
-        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+/*        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
             if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
             {
@@ -339,7 +426,7 @@ namespace docMini
                     writer.Write(bufferContent); // Gửi nội dung
                 }
             }
-        }
+        }*/
 
         // ---------------------------------------------------------------------------------
 
