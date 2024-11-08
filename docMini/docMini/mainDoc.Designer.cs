@@ -306,6 +306,7 @@ namespace docMini
             button_Justify.Size = new Size(36, 35);
             button_Justify.TabIndex = 7;
             button_Justify.UseVisualStyleBackColor = true;
+            button_Justify.Click += button_Justify_Click;
             // 
             // button_AlignLeft
             // 
@@ -480,6 +481,7 @@ namespace docMini
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChangedButton;
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
             // button_Connect
@@ -542,7 +544,7 @@ namespace docMini
         }
         private void panel3_Paint(object sender, PaintEventArgs e)
         {
-            SetRoundedPanel(panel_areaSearch, Color.Black, 3, 30, Color.Black);
+            SetRoundedPanel(panel_areaSearch, Color.White, 3, 30, Color.White);
 
         }
         private void panel_searchDoc_Paint(object sender, PaintEventArgs e)
