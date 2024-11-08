@@ -481,6 +481,7 @@ namespace docMini
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChangedButton;
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
             // button_Connect
