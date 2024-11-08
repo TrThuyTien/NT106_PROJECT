@@ -76,7 +76,7 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
-        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        private async void richTextBox_Content_TextChanged1(object sender, EventArgs e)
         {
             if (isBold && richTextBox_Content.SelectionLength == 0)
             {
@@ -114,23 +114,7 @@ namespace docMini
                 }
                 richTextBox_Content.Select(selectionStart, 0);
             }
-            if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
-            {
-                // Thời gian debounce - bỏ qua nếu chưa đến thời gian debounce
-                if (DateTime.Now - lastSendTime < debounceTime)
-                    return;
-
-                lastSendTime = DateTime.Now;
-
-                string updatedContent = richTextBox_Content.Rtf;
-                byte[] bufferContent = Encoding.UTF8.GetBytes(updatedContent);
-
-                using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
-                {
-                    writer.Write(bufferContent.Length); // Gửi độ dài nội dung
-                    writer.Write(bufferContent); // Gửi nội dung
-                }
-            }
+           
         }
         private void comboBox_size_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -407,7 +391,7 @@ namespace docMini
             }
         }
 
-/*        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
             if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
             {
@@ -426,7 +410,7 @@ namespace docMini
                     writer.Write(bufferContent); // Gửi nội dung
                 }
             }
-        }*/
+        }
 
         // ---------------------------------------------------------------------------------
 

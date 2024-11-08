@@ -481,6 +481,7 @@ namespace docMini
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged1;
             // 
             // button_Connect
             // 
@@ -579,28 +580,45 @@ namespace docMini
         }
         public class PagedRichTextBox : RichTextBox
         {
-            private const int MaxLinesPerPage = 28;
+            private const int MaxHeightPerPage = 500; // Chiều cao tối đa của nội dung
             private int currentPage = 1;
             private Form parentForm;
-
-            public PagedRichTextBox(Form parent)
+            private List<PagedRichTextBox> allPages;
+            public PagedRichTextBox(Form parent, List<PagedRichTextBox> pages)
             {
                 this.parentForm = parent;
+                this.allPages = pages;
+                this.allPages.Add(this);
                 this.TextChanged += new EventHandler(PagedRichTextBox_TextChanged);
+                this.ScrollBars = RichTextBoxScrollBars.None; // Tắt thanh cuộn
             }
 
             private void PagedRichTextBox_TextChanged(object sender, EventArgs e)
             {
-                if (this.Lines.Length > MaxLinesPerPage)
+                if (this.GetContentHeight() > MaxHeightPerPage)
                 {
                     CreateNewPage();
+                }
+                else
+                {
+                    AdjustPages();
+                }
+            }
+
+            private int GetContentHeight()
+            {
+                // Tính chiều cao của nội dung trong RichTextBox
+                using (Graphics g = this.CreateGraphics())
+                {
+                    SizeF size = g.MeasureString(this.Text, this.Font, this.Width);
+                    return (int)Math.Ceiling(size.Height);
                 }
             }
 
             private void CreateNewPage()
             {
                 currentPage++;
-                RichTextBox newPage = new PagedRichTextBox(this.parentForm)
+                PagedRichTextBox newPage = new PagedRichTextBox(this.parentForm, this.allPages)
                 {
                     Location = new Point(this.Location.X, this.Location.Y + this.Height + 10),
                     Size = this.Size
@@ -608,6 +626,36 @@ namespace docMini
                 this.parentForm.Controls.Add(newPage);
                 newPage.BringToFront();
                 newPage.Focus();
+            }
+
+            private void AdjustPages()
+            {
+                for (int i = 0; i < allPages.Count - 1; i++)
+                {
+                    PagedRichTextBox currentPage = allPages[i];
+                    PagedRichTextBox nextPage = allPages[i + 1];
+
+                    while (currentPage.GetContentHeight() < MaxHeightPerPage && nextPage.Text.Length > 0)
+                    {
+                        // Chuyển văn bản từ trang tiếp theo lên trang hiện tại
+                        string[] nextPageLines = nextPage.Lines;
+                        string lineToMove = nextPageLines[0];
+                        nextPage.Text = nextPage.Text.Substring(lineToMove.Length).TrimStart();
+                        currentPage.AppendText(lineToMove + Environment.NewLine);
+                    }
+                }
+            }
+
+            public static void SaveAllPagesRtf(List<PagedRichTextBox> pages, string filePath)
+            {
+                using (RichTextBox tempRichTextBox = new RichTextBox())
+                {
+                    foreach (var page in pages)
+                    {
+                        tempRichTextBox.AppendText(page.Rtf);
+                    }
+                    tempRichTextBox.SaveFile(filePath, RichTextBoxStreamType.RichText);
+                }
             }
         }
 
