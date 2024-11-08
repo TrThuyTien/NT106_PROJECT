@@ -306,6 +306,7 @@ namespace docMini
             button_Justify.Size = new Size(36, 35);
             button_Justify.TabIndex = 7;
             button_Justify.UseVisualStyleBackColor = true;
+            button_Justify.Click += button_Justify_Click;
             // 
             // button_AlignLeft
             // 
@@ -542,7 +543,7 @@ namespace docMini
         }
         private void panel3_Paint(object sender, PaintEventArgs e)
         {
-            SetRoundedPanel(panel_areaSearch, Color.Black, 3, 30, Color.Black);
+            SetRoundedPanel(panel_areaSearch, Color.White, 3, 30, Color.White);
 
         }
         private void panel_searchDoc_Paint(object sender, PaintEventArgs e)
