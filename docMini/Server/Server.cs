@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using System.IO.Compression;
 
 namespace Server
 {
@@ -17,9 +18,8 @@ namespace Server
         private static string sharedContent = ""; // Nội dung văn bản chung
         private static readonly object lockObject = new object();
         private static DateTime lastUpdateTime = DateTime.MinValue;
-        private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Tăng nhẹ thời gian debounce
+        private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Thời gian debounce
         private bool isListening = false;
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1); // Semaphore để kiểm soát truy cập
 
         private async void button_Listen_Click(object sender, EventArgs e)
         {
@@ -27,6 +27,7 @@ namespace Server
             listener.Start();
             richTextBox_Editor.Text = "Server đang chạy trên cổng 8080...";
             isListening = true;
+
             while (isListening)
             {
                 TcpClient client = await listener.AcceptTcpClientAsync();
@@ -45,19 +46,28 @@ namespace Server
             using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
             {
                 // Gửi nội dung hiện tại dưới dạng RTF tới client mới
-                byte[] contentBuffer = Encoding.UTF8.GetBytes(sharedContent);
+                byte[] contentBuffer = Compress(Encoding.UTF8.GetBytes(sharedContent));
                 writer.Write(contentBuffer.Length); // Gửi độ dài nội dung
                 writer.Write(contentBuffer); // Gửi nội dung
 
                 // Nhận các cập nhật từ client
                 while (client.Connected)
                 {
-                    int length = reader.ReadInt32(); // Đọc độ dài nội dung từ client
-                    byte[] buffer = reader.ReadBytes(length); // Đọc nội dung với độ dài đã cho
+                    try
+                    {
+                        int length = reader.ReadInt32(); // Đọc độ dài nội dung từ client
+                        byte[] buffer = reader.ReadBytes(length); // Đọc nội dung với độ dài đã cho
 
-                    // Chuyển đổi dữ liệu thành chuỗi RTF
-                    string update = Encoding.UTF8.GetString(buffer);
-                    await processUpdateAsync(update, client);
+                        // Giải nén dữ liệu nhận được
+                        string update = Encoding.UTF8.GetString(Decompress(buffer));
+                        await processUpdateAsync(update, client);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Xử lý ngoại lệ nếu có (Ví dụ: ngắt kết nối)
+                        /*Console.WriteLine($"Client disconnected: {ex.Message}");*/
+                        break;
+                    }
                 }
             }
 
@@ -80,15 +90,20 @@ namespace Server
 
                 sharedContent = update; // Cập nhật nội dung chung
                 lastUpdateTime = DateTime.Now; // Cập nhật thời gian
-                richTextBox_Editor.Rtf = update; // Cập nhật giao diện với RTF
             }
+
+            // Chỉ cập nhật giao diện người dùng sau khi đã xử lý xong
+            await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+            {
+                richTextBox_Editor.Rtf = sharedContent; // Cập nhật giao diện với RTF
+            })));
 
             await broadcastUpdateAsync(update, sender);
         }
 
         private static async Task broadcastUpdateAsync(string update, TcpClient sender)
         {
-            byte[] updateBuffer = Encoding.UTF8.GetBytes(update);
+            byte[] updateBuffer = Compress(Encoding.UTF8.GetBytes(update));
             List<TcpClient> clientsCopy;
 
             lock (clients)
@@ -105,7 +120,6 @@ namespace Server
                     NetworkStream stream = client.GetStream();
                     tasks.Add(Task.Run(async () =>
                     {
-                        await semaphore.WaitAsync(); // Đảm bảo rằng chỉ một client cập nhật tại một thời điểm
                         try
                         {
                             using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
@@ -114,15 +128,40 @@ namespace Server
                                 writer.Write(updateBuffer); // Gửi nội dung
                             }
                         }
-                        finally
+                        catch (Exception ex)
                         {
-                            semaphore.Release();
+                            /*Console.WriteLine($"Error sending update to client: {ex.Message}");*/
                         }
                     }));
                 }
             }
 
             await Task.WhenAll(tasks);
+        }
+
+        // Phương thức nén dữ liệu
+        private static byte[] Compress(byte[] data)
+        {
+            using (var outputStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
+                {
+                    gzipStream.Write(data, 0, data.Length);
+                }
+                return outputStream.ToArray();
+            }
+        }
+
+        // Phương thức giải nén dữ liệu
+        private static byte[] Decompress(byte[] compressedData)
+        {
+            using (var inputStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+            using (var outputStream = new MemoryStream())
+            {
+                gzipStream.CopyTo(outputStream);
+                return outputStream.ToArray();
+            }
         }
 
 
@@ -141,7 +180,7 @@ namespace Server
                 catch (Exception ex)
                 {
                     // Xử lý ngoại lệ nếu có
-                    Console.WriteLine($"Error closing stream: {ex.Message}");
+                    /*Console.WriteLine($"Error closing stream: {ex.Message}");*/
                 }
 
                 try
@@ -152,7 +191,7 @@ namespace Server
                 catch (Exception ex)
                 {
                     // Xử lý ngoại lệ nếu có
-                    Console.WriteLine($"Error closing TcpClient: {ex.Message}");
+                    /*Console.WriteLine($"Error closing TcpClient: {ex.Message}");*/
                 }
 
                 lock (clients)
