@@ -17,12 +17,12 @@ namespace docMini
         public mainDoc()
         {
             InitializeComponent();
-/*            PagedRichTextBox pagedRichTextBox = new PagedRichTextBox(this)
-            {
-                Location = new System.Drawing.Point(10, 10),
-                Size = new Size(531, 219)
-            };
-            this.Controls.Add(richTextBox_Content);*/
+            /*            PagedRichTextBox pagedRichTextBox = new PagedRichTextBox(this)
+                        {
+                            Location = new System.Drawing.Point(10, 10),
+                            Size = new Size(531, 219)
+                        };
+                        this.Controls.Add(richTextBox_Content);*/
 
         }
 
@@ -259,6 +259,11 @@ namespace docMini
                 string filePath = openFileDialog.FileName;
                 LoadRtf(filePath);
             }
+        }
+
+        private void pictureBox_add_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
