@@ -1,4 +1,5 @@
-using docMini;
+﻿using docMini;
+using Server;
 
 namespace docMini
 {
@@ -11,9 +12,23 @@ namespace docMini
 
         private void button_SignIn_Click(object sender, EventArgs e)
         {
-            this.Hide();
-            new mainDoc().ShowDialog();
-            this.Show();
+            string username = textbox_Username.Text;
+            string password = textbox_Password.Text;
+
+            DatabaseManager dbManager = new DatabaseManager();
+            bool isValidUser = dbManager.ValidateUser(username, password);
+
+            if (isValidUser)
+            {
+                MessageBox.Show("Đăng nhập thành công!");
+                this.Hide();
+                mainDoc mainForm = new mainDoc();
+                mainForm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng.");
+            }
         }
 
         private void label_ForgotPass_Click(object sender, EventArgs e)
