@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO.Compression;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -12,6 +14,9 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DocumentFormat.OpenXml.Packaging;
 using SixLabors.ImageSharp.ColorSpaces;
+using System.IO.Compression;
+using System.Drawing.Imaging;
+
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -318,6 +323,8 @@ namespace docMini
                 }
             }
         }
+
+
         private void SaveRtf(string filePath)
         {
             try
@@ -374,77 +381,165 @@ namespace docMini
         private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Thời gian debounce
         private DateTime lastSendTime = DateTime.MinValue;
         private bool isFormatting = false; // Cờ để kiểm soát việc định dạng
+        private StringBuilder pendingUpdates = new StringBuilder(); // Lưu trữ các thay đổi tạm thời
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         private async void button_Connect_Click(object sender, EventArgs e)
         {
-            tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync("127.0.0.1", 8080);
-            stream = tcpClient.GetStream();
-            isConnected = true;
-
-            // Nhận nội dung hiện tại từ server
-            _ = System.Threading.Tasks.Task.Run(() => ReceiveContentAsync());
-            richTextBox_Content.Enabled = true;
-        }
-
-        private async System.Threading.Tasks.Task ReceiveContentAsync()
-        {
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
+            try
             {
-                while (isConnected)
-                {
-                    int length = reader.ReadInt32(); // Đọc độ dài nội dung từ server
-                    byte[] buffer = reader.ReadBytes(length); // Đọc nội dung với độ dài đã cho
-                    string content = Encoding.UTF8.GetString(buffer); // Chuyển đổi dữ liệu thành chuỗi RTF
+                tcpClient = new TcpClient();
+                await tcpClient.ConnectAsync("127.0.0.1", 8080);
+                stream = tcpClient.GetStream();
+                isConnected = true;
 
-                    // Chỉ cập nhật nếu nội dung thực sự thay đổi
-                    if (content != lastReceivedContent)
-                    {
-                        lastReceivedContent = content;
-
-                        // Tạm thời tắt cờ để ngăn `TextChanged` khi cập nhật
-                        isFormatting = true;
-
-                        // Cập nhật RichTextBox trên luồng giao diện
-                        if (richTextBox_Content.InvokeRequired)
-                        {
-                            richTextBox_Content.Invoke((MethodInvoker)(() =>
-                            {
-                                richTextBox_Content.Rtf = content;
-                            }));
-                        }
-                        else
-                        {
-                            richTextBox_Content.Rtf = content;
-                        }
-
-                        isFormatting = false; // Bật lại sau khi cập nhật xong
-                    }
-                }
+                // Nhận nội dung hiện tại từ server
+                _ = System.Threading.Tasks.Task.Run(() => receiveContentAsync());
+                richTextBox_Content.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error connecting to server: {ex.Message}");
             }
         }
 
         private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
-            if (isConnected && !isFormatting) // Chỉ gửi khi không trong trạng thái định dạng
+            if (isConnected && !isFormatting)
             {
-                // Thời gian debounce - bỏ qua nếu chưa đến thời gian debounce
-                if (DateTime.Now - lastSendTime < debounceTime)
-                    return;
-
-                lastSendTime = DateTime.Now;
-
+                // Cập nhật nội dung trực tiếp lên RichTextBox cục bộ
                 string updatedContent = richTextBox_Content.Rtf;
-                byte[] bufferContent = Encoding.UTF8.GetBytes(updatedContent);
 
-                using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
+                // Nếu nội dung thay đổi so với lần cuối
+                if (updatedContent != lastReceivedContent)
                 {
-                    writer.Write(bufferContent.Length); // Gửi độ dài nội dung
-                    writer.Write(bufferContent); // Gửi nội dung
+                    // Lưu nội dung mới nhất vào lastReceivedContent để hiển thị cục bộ
+                    lastReceivedContent = updatedContent;
+
+                    // Thay vì gửi ngay, lưu nội dung vào pendingUpdates
+                    pendingUpdates.Clear();
+                    pendingUpdates.Append(updatedContent);
+
+                    // Thực hiện gửi sau khoảng debounce
+                    _ = debouncedSendAsync();
                 }
             }
         }
 
+        private async Task debouncedSendAsync()
+        {
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+
+            try
+            {
+                await Task.Delay(debounceTime, token);
+
+                if (pendingUpdates.Length > 0)
+                {
+                    byte[] bufferContent = Encoding.UTF8.GetBytes(pendingUpdates.ToString());
+                    byte[] compressedContent = Compress(bufferContent);
+
+                    try
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
+                        {
+                            writer.Write(compressedContent.Length);
+                            writer.Write(compressedContent);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error sending data: {ex.Message}");
+                        isConnected = false;
+                    }
+
+                    pendingUpdates.Clear();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Tác vụ bị hủy, không cần xử lý gì thêm
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in DebouncedSendAsync: {ex.Message}");
+            }
+        }
+
+        private async System.Threading.Tasks.Task receiveContentAsync()
+        {
+            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
+            {
+                while (isConnected)
+                {
+                    try
+                    {
+                        int length = reader.ReadInt32();
+                        byte[] buffer = reader.ReadBytes(length);
+
+                        // Giải nén dữ liệu nhận được
+                        string content = Encoding.UTF8.GetString(Decompress(buffer));
+
+                        // Chỉ cập nhật nếu nội dung thực sự thay đổi
+                        if (content != lastReceivedContent)
+                        {
+                            lastReceivedContent = content;
+
+                            // Tạm thời tắt cờ định dạng để tránh xung đột
+                            isFormatting = true;
+
+                            // Cập nhật RichTextBox trên luồng giao diện
+                            if (richTextBox_Content.InvokeRequired)
+                            {
+                                richTextBox_Content.Invoke((MethodInvoker)(() =>
+                                {
+                                    richTextBox_Content.Rtf = content;
+                                }));
+                            }
+                            else
+                            {
+                                richTextBox_Content.Rtf = content;
+                            }
+
+                            isFormatting = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error receiving data: {ex.Message}");
+                        isConnected = false;
+                        break; // Thoát khỏi vòng lặp nếu có lỗi
+                    }
+                }
+            }
+        }
+
+        // Phương thức nén dữ liệu
+        private static byte[] Compress(byte[] data)
+        {
+            using (var outputStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
+                {
+                    gzipStream.Write(data, 0, data.Length);
+                }
+                return outputStream.ToArray();
+            }
+        }
+
+        // Phương thức giải nén dữ liệu
+        private static byte[] Decompress(byte[] compressedData)
+        {
+            using (var inputStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+            using (var outputStream = new MemoryStream())
+            {
+                gzipStream.CopyTo(outputStream);
+                return outputStream.ToArray();
+            }
+        }
 
 
         // ---------------------------------------------------------------------------------
