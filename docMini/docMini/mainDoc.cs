@@ -229,13 +229,13 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
-       
+
 
         private void button_AlignLeft_Click(object sender, EventArgs e)
         {
 
             richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            
+
         }
 
         private void button_Center_Click(object sender, EventArgs e)
@@ -268,7 +268,7 @@ namespace docMini
         }
         private void button_Justify_Click(object sender, EventArgs e)
         {
-            int start = richTextBox_Content.SelectionStart; 
+            int start = richTextBox_Content.SelectionStart;
             int length = richTextBox_Content.SelectionLength;
             var rtbTemp = new System.Windows.Forms.RichTextBox();
             rtbTemp.Rtf = richTextBox_Content.SelectedRtf;
@@ -278,7 +278,7 @@ namespace docMini
             richTextBox_Content.SelectedRtf = rtbTemp.SelectedRtf;
             richTextBox_Content.Select(start, length);
         }
-        
+
         private void mainDoc_Load(object sender, EventArgs e)
         {
             // Điền danh sách các kiểu chữ vào ComboBox
