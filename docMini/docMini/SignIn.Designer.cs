@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SignIn));
             textBox2 = new TextBox();
-            textbox_Account = new TextBox();
+            textbox_Username = new TextBox();
             pictureBox1 = new PictureBox();
             textbox_Password = new TextBox();
             pictureBox2 = new PictureBox();
@@ -53,16 +53,16 @@
             textBox2.Size = new Size(445, 65);
             textBox2.TabIndex = 1;
             // 
-            // textbox_Account
+            // textbox_Username
             // 
-            textbox_Account.BackColor = SystemColors.Desktop;
-            textbox_Account.BorderStyle = BorderStyle.FixedSingle;
-            textbox_Account.Font = new Font("Segoe UI", 25.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textbox_Account.ForeColor = Color.White;
-            textbox_Account.Location = new Point(248, 411);
-            textbox_Account.Name = "textbox_Account";
-            textbox_Account.Size = new Size(380, 65);
-            textbox_Account.TabIndex = 2;
+            textbox_Username.BackColor = SystemColors.Desktop;
+            textbox_Username.BorderStyle = BorderStyle.FixedSingle;
+            textbox_Username.Font = new Font("Segoe UI", 25.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textbox_Username.ForeColor = Color.White;
+            textbox_Username.Location = new Point(248, 411);
+            textbox_Username.Name = "textbox_Username";
+            textbox_Username.Size = new Size(380, 65);
+            textbox_Username.TabIndex = 2;
             // 
             // pictureBox1
             // 
@@ -122,7 +122,7 @@
             checkbox_SaveAccount.ForeColor = Color.White;
             checkbox_SaveAccount.Location = new Point(183, 636);
             checkbox_SaveAccount.Name = "checkbox_SaveAccount";
-            checkbox_SaveAccount.Size = new Size(161, 28);
+            checkbox_SaveAccount.Size = new Size(163, 29);
             checkbox_SaveAccount.TabIndex = 7;
             checkbox_SaveAccount.Text = "Remember me";
             checkbox_SaveAccount.UseVisualStyleBackColor = false;
@@ -135,7 +135,7 @@
             label_ForgotPass.ForeColor = Color.FromArgb(255, 128, 128);
             label_ForgotPass.Location = new Point(446, 636);
             label_ForgotPass.Name = "label_ForgotPass";
-            label_ForgotPass.Size = new Size(180, 26);
+            label_ForgotPass.Size = new Size(182, 26);
             label_ForgotPass.TabIndex = 8;
             label_ForgotPass.Text = "Forgot Password?";
             label_ForgotPass.Click += label_ForgotPass_Click;
@@ -179,7 +179,7 @@
             Controls.Add(pictureBox2);
             Controls.Add(textbox_Password);
             Controls.Add(pictureBox1);
-            Controls.Add(textbox_Account);
+            Controls.Add(textbox_Username);
             Controls.Add(textBox2);
             MaximizeBox = false;
             Name = "SignIn";
@@ -194,7 +194,7 @@
         #endregion
 
         private TextBox textBox2;
-        private TextBox textbox_Account;
+        private TextBox textbox_Username;
         private PictureBox pictureBox1;
         private TextBox textbox_Password;
         private PictureBox pictureBox2;
