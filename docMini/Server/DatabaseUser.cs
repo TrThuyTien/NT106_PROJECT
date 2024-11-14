@@ -9,58 +9,83 @@ public class DatabaseManager
 
     public DatabaseManager()
     {
-        connectionString = "Data Source=DataUsers.db;Version=3;";
+        string dbFileName = "DataUsers.db";
+        string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbFileName);
+        connectionString = $"Data Source={dbPath};Version=3;";
+
         InitializeDatabase();
     }
 
     private void InitializeDatabase()
     {
+        // Check if the database file exists, and create it if it doesn’t
+        if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DataUsers.db")))
+        {
+            SQLiteConnection.CreateFile("DataUsers.db");
+        }
+
         using (var connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
-            string createTableQuery = @"
-                CREATE TABLE IF NOT EXISTS Users (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Username TEXT NOT NULL UNIQUE,
-                    Email TEXT NOT NULL,
-                    Password TEXT NOT NULL,
-                    Status INTEGER NOT NULL
-                )";
 
-
-            string createDocsTableQuery = @"
-                CREATE TABLE IF NOT EXISTS Docs (
-                    DocID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    LOpenTime TEXT
-                )";
-
-            string createUsersDocsTableQuery = @"
-                CREATE TABLE IF NOT EXISTS Users_Docs (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    UserId INTEGER NOT NULL,
-                    DocID INTEGER NOT NULL,
-                    EditStatus INTEGER NOT NULL,
-                    FOREIGN KEY(UserId) REFERENCES Users(Id),
-                    FOREIGN KEY(DocID) REFERENCES Docs(DocID)
-                )";
-
-            using (var command = new SQLiteCommand(createTableQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                // Xóa Users_Docs table (chỉ dùng để kiểm thử, chạy dự án thật sẽ xóa đi)
+                string dropUsersDocsTableQuery = "DROP TABLE IF EXISTS Users_Docs;";
+                using (var command = new SQLiteCommand(dropUsersDocsTableQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                // Tạo bảng Users
+                string createUsersTableQuery = @"
+                    CREATE TABLE IF NOT EXISTS Users (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Username TEXT NOT NULL UNIQUE,
+                        Email TEXT NOT NULL,
+                        Password TEXT NOT NULL,
+                        Status INTEGER NOT NULL
+                    )";
+                using (var command = new SQLiteCommand(createUsersTableQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                // Tạo bảng Docs
+                string createDocsTableQuery = @"
+                    CREATE TABLE IF NOT EXISTS Docs (
+                        DocID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Docname TEXT NOT NULL,
+                        Owner TEXT NOT NULL,
+                        LOpenTime TEXT,
+                        FOREIGN KEY(Owner) REFERENCES Users(Username)
+                    )";
+                using (var command = new SQLiteCommand(createDocsTableQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                // Tạo bảng Users_Docs
+                string createUsersDocsTableQuery = @"
+                    CREATE TABLE IF NOT EXISTS Users_Docs (
+                        UserId INTEGER NOT NULL,
+                        DocID INTEGER NOT NULL,
+                        EditStatus INTEGER NOT NULL CHECK(EditStatus IN (0, 1, 2)),
+                        PRIMARY KEY(UserId, DocID),
+                        FOREIGN KEY(UserId) REFERENCES Users(Id),
+                        FOREIGN KEY(DocID) REFERENCES Docs(DocID)
+                    )";
+                using (var command = new SQLiteCommand(createUsersDocsTableQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
-
-            using (var command = new SQLiteCommand(createDocsTableQuery, connection))
+            catch (Exception ex)
             {
-                command.ExecuteNonQuery();
-            }
-
-            using (var command = new SQLiteCommand(createUsersDocsTableQuery, connection))
-            {
-                command.ExecuteNonQuery();
+                Console.WriteLine("Error initializing database: " + ex.Message);
             }
         }
     }
-
     // Phương thức mã hóa mật khẩu
     private string HashPassword(string password)
     {
@@ -152,7 +177,8 @@ public class DatabaseManager
         {
             connection.Open();
 
-            string insertQuery = "INSERT INTO Users_Docs (UserId, DocID, EditStatus) VALUES (@UserId, @DocID, @EditStatus)";
+            // Sử dụng INSERT OR IGNORE để tránh chèn trùng
+            string insertQuery = "INSERT OR IGNORE INTO Users_Docs (UserId, DocID, EditStatus) VALUES (@UserId, @DocID, @EditStatus)";
             using (var command = new SQLiteCommand(insertQuery, connection))
             {
                 command.Parameters.AddWithValue("@UserId", userId);
