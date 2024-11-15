@@ -251,6 +251,7 @@ namespace docMini
             button_AddTable.Size = new Size(36, 35);
             button_AddTable.TabIndex = 11;
             button_AddTable.UseVisualStyleBackColor = true;
+            button_AddTable.Click += button_AddTable_Click;
             // 
             // button_AddPicture
             // 
@@ -481,7 +482,7 @@ namespace docMini
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
-            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChangedButton;
             // 
             // button_Connect
             // 

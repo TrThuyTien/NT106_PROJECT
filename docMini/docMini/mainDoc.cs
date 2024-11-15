@@ -1,22 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.IO.Compression;
-using System.IO;
-using System.Linq;
+﻿using System.IO.Compression;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DocumentFormat.OpenXml.Packaging;
-using SixLabors.ImageSharp.ColorSpaces;
-using System.IO.Compression;
-using System.Drawing.Imaging;
-
+using System.Runtime.InteropServices;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -87,7 +72,7 @@ namespace docMini
             if (isBold && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 1, 1);//g
+                richTextBox_Content.Select(selectionStart - 0, 1);//g
                 if (richTextBox_Content.SelectionFont != null)
                 {
                     System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
@@ -99,7 +84,7 @@ namespace docMini
             if (isItalic && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 1, 1);//u
+                richTextBox_Content.Select(selectionStart - 0, 1);//u
                 if (richTextBox_Content.SelectionFont != null)
                 {
                     System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
@@ -111,7 +96,7 @@ namespace docMini
             if (isUnderline && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 1, 1); //b
+                richTextBox_Content.Select(selectionStart - 0, 1); //b
                 if (richTextBox_Content.SelectionFont != null)
                 {
                     System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
@@ -237,19 +222,60 @@ namespace docMini
             richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Left;
 
         }
+        private const int EM_SETTYPOGRAPHYOPTIONS = 0x04CA;
+        private const int TO_ADVANCEDTYPOGRAPHY = 0x1;
+        private const int EM_SETPARAFORMAT = 0x447;
+        private const int PFM_ALIGNMENT = 0x0008;
+        private const int PFA_JUSTIFY = 0x4;
 
-        private void button_Center_Click(object sender, EventArgs e)
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private void button_Justify_Click(object sender, EventArgs e)
         {
-            System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Right)
-            {
-                richTextBox_Content.SelectionAlignment = previousAlignment;
-            }
-            else
-            {
-                previousAlignment = richTextBox_Content.SelectionAlignment;
-                richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
-            }
+            // Kích hoạt Typography Options cho RichTextBox
+            SendMessage(richTextBox_Content.Handle, EM_SETTYPOGRAPHYOPTIONS, (IntPtr)TO_ADVANCEDTYPOGRAPHY, IntPtr.Zero);
+
+            // Tạo cấu trúc PARAFORMAT2 và đặt căn lề hai bên
+            PARAFORMAT2 paraFormat = new PARAFORMAT2();
+            paraFormat.cbSize = (uint)Marshal.SizeOf(paraFormat);
+            paraFormat.dwMask = PFM_ALIGNMENT;
+            paraFormat.wAlignment = PFA_JUSTIFY;
+
+            // Áp dụng căn lề hai bên cho đoạn văn bản đang được bôi đen
+            IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(paraFormat));
+            Marshal.StructureToPtr(paraFormat, lParam, false);
+            SendMessage(richTextBox_Content.Handle, EM_SETPARAFORMAT, IntPtr.Zero, lParam);
+            Marshal.FreeHGlobal(lParam);
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PARAFORMAT2
+        {
+            public uint cbSize;
+            public uint dwMask;
+            public short wNumbering;
+            public short wEffects;
+            public int dxStartIndent;
+            public int dxRightIndent;
+            public int dxOffset;
+            public short wAlignment;
+            public short cTabCount;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+            public int[] rgxTabs;
+            public int dySpaceBefore;
+            public int dySpaceAfter;
+            public int dyLineSpacing;
+            public short sStyle;
+            public byte bLineSpacingRule;
+            public byte bOutlineLevel;
+            public short wShadingWeight;
+            public short wShadingStyle;
+            public short wNumberingStart;
+            public short wNumberingStyle;
+            public short wNumberingTab;
+            public short wBorderSpace;
+            public short wBorderWidth;
+            public short wBorders;
         }
 
 
@@ -266,17 +292,18 @@ namespace docMini
                 richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Right;
             }
         }
-        private void button_Justify_Click(object sender, EventArgs e)
+        private void button_Center_Click(object sender, EventArgs e)
         {
-            int start = richTextBox_Content.SelectionStart;
-            int length = richTextBox_Content.SelectionLength;
-            var rtbTemp = new System.Windows.Forms.RichTextBox();
-            rtbTemp.Rtf = richTextBox_Content.SelectedRtf;
-            rtbTemp.SelectAll();
-            rtbTemp.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            rtbTemp.SelectAll();
-            richTextBox_Content.SelectedRtf = rtbTemp.SelectedRtf;
-            richTextBox_Content.Select(start, length);
+            System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
+            if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Center)
+            {
+                richTextBox_Content.SelectionAlignment = previousAlignment;
+            }
+            else
+            {
+                previousAlignment = richTextBox_Content.SelectionAlignment;
+                richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
+            }
         }
 
         private void mainDoc_Load(object sender, EventArgs e)
@@ -298,7 +325,7 @@ namespace docMini
             comboBox_Size.SelectedIndex = comboBox_Size.FindString("12");
         }
 
-        private void button_AddPicture_Click(object sender, EventArgs e)
+        private async void button_AddPicture_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
@@ -539,6 +566,11 @@ namespace docMini
                 gzipStream.CopyTo(outputStream);
                 return outputStream.ToArray();
             }
+        }
+
+        private void button_AddTable_Click(object sender, EventArgs e)
+        {
+
         }
 
 
