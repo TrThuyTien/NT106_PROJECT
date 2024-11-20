@@ -479,6 +479,7 @@ namespace docMini
             richTextBox_Content.BorderStyle = BorderStyle.None;
             richTextBox_Content.Location = new Point(531, 219);
             richTextBox_Content.Name = "richTextBox_Content";
+            richTextBox_Content.ReadOnly = true;
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";

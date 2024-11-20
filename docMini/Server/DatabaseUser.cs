@@ -58,6 +58,7 @@ public class DatabaseManager
                         DocID INTEGER PRIMARY KEY AUTOINCREMENT,
                         Docname TEXT NOT NULL,
                         Owner TEXT NOT NULL,
+                        Content TEXT,
                         LOpenTime TEXT,
                         FOREIGN KEY(Owner) REFERENCES Users(Username)
                     )";
@@ -192,14 +193,66 @@ public class DatabaseManager
     // Lấy nội dung của Doc
     public async Task<string> GetDocumentContentByIdAsync(string docId)
     {
-        return "";
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT Content FROM Docs WHERE DocID = @DocID";
+            using (var command = new SQLiteCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@DocID", docId);
+                object result = command.ExecuteScalar();
+                return result != null ? result.ToString() : string.Empty;
+            }
+        }
     }
 
     // Cập nhập tài liệu
     public async Task<bool> UpdateDocumentContentAsync(string docId, string content)
     { 
-        return true;
-    }
+        if (string.IsNullOrEmpty(docId) || string.IsNullOrEmpty(content))
+        {
+            Console.WriteLine("DocID hoặc nội dung rỗng. Không thể cập nhật.");
+            return false;
+        }
+
+        try
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Câu lệnh SQL để cập nhật nội dung tài liệu
+                string query = "UPDATE Documents SET Content = @Content WHERE DocID = @DocID";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DocID", docId);
+                    command.Parameters.AddWithValue("@Content", content);
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+                    
+                    // Kiểm tra số dòng bị ảnh hưởng
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine($"Cập nhật thành công cho DocID: {docId}");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Không tìm thấy DocID: {docId} để cập nhật.");
+                        return false;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi khi cập nhật tài liệu: {ex.Message}");
+            return false;
+        }
+    }    
+
     // Gắn tài liệu với người dùng và cấp quyền
     public bool LinkUserToDoc(int userId, int docId, int editStatus)
     {
