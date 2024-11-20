@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class DatabaseManager
 {
@@ -154,6 +155,24 @@ public class DatabaseManager
         }
     }
 
+    // Lấy IdUser theo Username
+    public int GetUserIdByUsername(string username)
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT Id FROM Users WHERE Username = @Username";
+            using (var command = new SQLiteCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Username", username);
+
+                object result = command.ExecuteScalar();
+                return result != null ? Convert.ToInt32(result) : -1; // Trả về -1 nếu không tìm thấy
+            }
+        }
+    }
+
     // Thêm tài liệu mới
     public int InsertDoc(string lastOpenTime)
     {
@@ -170,6 +189,17 @@ public class DatabaseManager
         }
     }
 
+    // Lấy nội dung của Doc
+    public async Task<string> GetDocumentContentByIdAsync(string docId)
+    {
+        return "";
+    }
+
+    // Cập nhập tài liệu
+    public async Task<bool> UpdateDocumentContentAsync(string docId, string content)
+    { 
+        return true;
+    }
     // Gắn tài liệu với người dùng và cấp quyền
     public bool LinkUserToDoc(int userId, int docId, int editStatus)
     {
