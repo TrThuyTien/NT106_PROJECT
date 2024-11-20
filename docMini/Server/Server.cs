@@ -66,7 +66,7 @@ namespace Server
                         bytesRead = await stream.ReadAsync(buffer, 0, length);
                         string update = Encoding.UTF8.GetString(buffer);
 
-                        await ProcessRequestAsync(update, stream);
+                        await ProcessRequestAsync(update, stream, client);
                     }
                     catch (Exception ex)
                     {
@@ -83,7 +83,7 @@ namespace Server
             }
         }
 
-        private async Task ProcessRequestAsync(string update, NetworkStream stream)
+        private async Task ProcessRequestAsync(string update, NetworkStream stream, TcpClient client)
         {
             if (update.StartsWith("SIGN_IN|"))
             {
@@ -95,7 +95,7 @@ namespace Server
             }
             else
             {
-                /*await HandleEditDocumentAsync(update, stream);*/
+                await HandleEditDocumentAsync(update, stream, client);
             }
         }
 
@@ -167,7 +167,7 @@ namespace Server
             await stream.WriteAsync(lengthBuffer, 0, lengthBuffer.Length); // Gửi độ dài phản hồi
             await stream.WriteAsync(response, 0, response.Length); // Gửi phản hồi
         }
-        private async Task HandleEditDocumentAsync(string update, NetworkStream stream)
+        private async Task HandleEditDocumentAsync(string update, NetworkStream stream, TcpClient sender)
         {
             // Tách DocID từ chuỗi update
             string[] parts = update.Split('|');
@@ -181,14 +181,15 @@ namespace Server
             string newContent = await GetContentFromDatabaseAsync(docId); // Lấy nội dung hiện tại từ cơ sở dữ liệu
 
             // Gửi nội dung hiện tại dưới dạng RTF tới client mới
+
             byte[] contentBuffer = Encoding.UTF8.GetBytes(newContent);
             await SendResponseAsync(stream, contentBuffer);
 
             // Xử lý cập nhật
-            /*await ProcessUpdateAsync(update, sender, docId);*/
+            await ProcessUpdateAsync(update, sender, docId);
         }
 
-        /*private async Task ProcessUpdateAsync(string update, TcpClient sender, string docId)
+        private async Task ProcessUpdateAsync(string update, TcpClient sender, string docId)
         {
             lock (lockObject)
             {
@@ -208,7 +209,7 @@ namespace Server
             bool saveSuccess = await dbManager.UpdateDocumentContentAsync(docId, sharedContent);
             if (!saveSuccess)
             {
-                // Xử lý lỗi lưu dữ liệu (có thể gửi thông báo lỗi đến client)
+                Console.WriteLine($"Không thể lưu nội dung cho DocID: {docId}");
                 return;
             }
 
@@ -219,7 +220,7 @@ namespace Server
             })));
 
             await BroadcastUpdateAsync(update, sender);
-        }*/
+        }
 
         private static async Task BroadcastUpdateAsync(string update, TcpClient sender)
         {
@@ -262,7 +263,6 @@ namespace Server
         // Phương thức lấy nội dung từ cơ sở dữ liệu
         private async Task<string> GetContentFromDatabaseAsync(string docId)
         {
-            // Giả sử bạn có một phương thức trong DatabaseManager để lấy nội dung tài liệu
             DatabaseManager dbManager = new DatabaseManager();
             return await dbManager.GetDocumentContentByIdAsync(docId);
         }
