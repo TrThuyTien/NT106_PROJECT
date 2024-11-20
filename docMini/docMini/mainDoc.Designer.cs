@@ -118,7 +118,7 @@ namespace docMini
             // 
             label_DocumentName.AutoSize = true;
             label_DocumentName.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            label_DocumentName.Location = new Point(56, 25);
+            label_DocumentName.Location = new Point(56, 21);
             label_DocumentName.Name = "label_DocumentName";
             label_DocumentName.Size = new Size(252, 24);
             label_DocumentName.TabIndex = 6;
@@ -482,7 +482,7 @@ namespace docMini
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
-            richTextBox_Content.TextChanged += richTextBox_Content_TextChangedButton;
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
             // button_Connect
             // 

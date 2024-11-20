@@ -6,15 +6,13 @@ namespace docMini
 {
     public partial class mainDoc : Form
     {
-        public mainDoc()
+        int idUser;
+        string nameUser;
+        public mainDoc(int userID, string userName)
         {
             InitializeComponent();
-            /*            PagedRichTextBox pagedRichTextBox = new PagedRichTextBox(this)
-                        {
-                            Location = new System.Drawing.Point(10, 10),
-                            Size = new Size(531, 219)
-                        };
-                        this.Controls.Add(richTextBox_Content);*/
+            idUser = userID;
+            nameUser = userName;
 
         }
 
@@ -31,8 +29,8 @@ namespace docMini
 
         private void button_newFile_Click(object sender, EventArgs e)
         {
-            mainDoc mD = new mainDoc();
-            mD.Show();
+            /*mainDoc mD = new mainDoc();
+            mD.Show();*/
         }
 
         private void button_ShareDoc_Click(object sender, EventArgs e)
@@ -306,7 +304,7 @@ namespace docMini
             }
         }
 
-        private void mainDoc_Load(object sender, EventArgs e)
+        private void mainDoc_LoadFormat(object sender, EventArgs e)
         {
             // Điền danh sách các kiểu chữ vào ComboBox
             foreach (FontFamily font in FontFamily.Families)
@@ -400,6 +398,25 @@ namespace docMini
             }
         }
 
+        // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
+        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        {
+            richTextBox_Content_TextChangedButton(sender, e); // Gọi hàm xử lý định dạng
+            richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
+        }
+
+        private void mainDoc_Load(object sender, EventArgs e)
+        {
+            mainDoc_LoadFormat(sender, e); // Load defaut
+            mainDoc_LoadInfoUser(sender, e);
+        }
+
+        private void mainDoc_LoadInfoUser(object sender, EventArgs e)
+        {
+            label_NameAccount.Text = nameUser;
+        }
+
+        //------------------------------------------------------------------------------------
         // PHẦN KẾT NỐI VỚI SERVER -------------------------------------------------------------------------
         private TcpClient tcpClient;
         private NetworkStream stream;
@@ -430,7 +447,7 @@ namespace docMini
             }
         }
 
-        private async void richTextBox_Content_TextChanged(object sender, EventArgs e)
+        private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
         {
             if (isConnected && !isFormatting)
             {
