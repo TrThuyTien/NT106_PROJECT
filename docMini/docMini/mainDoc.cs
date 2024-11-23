@@ -585,11 +585,6 @@ namespace docMini
             }
         }
 
-        private void button_AddTable_Click(object sender, EventArgs e)
-        {
-
-        }
-
 
         // ---------------------------------------------------------------------------------
 

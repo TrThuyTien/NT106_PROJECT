@@ -36,34 +36,33 @@ namespace docMini
             try
             {
                 string serverResponse = await SendSignUpRequestAsync(username, email, password);
-                if (serverResponse.StartsWith("SUCCESS"))
+                if (serverResponse.StartsWith($"SIGN_UP|{username}|"))
                 {
-                    // Phân tích phản hồi từ server để lấy ID và tên người dùng
+                    // Phân tích gói tin phản hồi từ server để lấy ID nếu thành công
                     var responseParts = serverResponse.Split('|');
-                    if (responseParts.Length >= 2)
+                    if (responseParts[2] == "SUCCESS")
                     {
-                        string userId = responseParts[1];
+                        string userId = responseParts[3];
 
-                        MessageBox.Show($"Đăng ký thành công!\nUser ID: {userId}",
+                        MessageBox.Show($"Đăng ký thành công!",
                                         "Thông báo",
                                         MessageBoxButtons.OK,
                                         MessageBoxIcon.Information);
 
                         // Chuyển sang giao diện chính
                         this.Hide();
-                        new mainDoc(int.Parse(userId), username).ShowDialog();
+                        mainDoc mainForm = new mainDoc(int.Parse(userId), username);
+                        mainForm.ShowDialog();
                     }
                     else
                     {
-                        throw new Exception("Phản hồi từ server không hợp lệ.");
+                        MessageBox.Show(
+                            "Tên người dùng đã tồn tại hoặc có lỗi xảy ra.",
+                            "Lỗi",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
                     }
-                }
-                else
-                {
-                    MessageBox.Show("Tên người dùng đã tồn tại hoặc có lỗi xảy ra.",
-                                    "Lỗi",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
                 }
             }
             catch (SocketException ex)

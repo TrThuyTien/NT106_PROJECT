@@ -105,11 +105,10 @@ namespace docMini
             // 
             // label_NameAccount
             // 
-            label_NameAccount.AutoSize = true;
             label_NameAccount.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            label_NameAccount.Location = new Point(984, 14);
+            label_NameAccount.Location = new Point(933, 16);
             label_NameAccount.Name = "label_NameAccount";
-            label_NameAccount.Size = new Size(133, 24);
+            label_NameAccount.Size = new Size(184, 24);
             label_NameAccount.TabIndex = 4;
             label_NameAccount.Text = "Tên tài khoản";
             label_NameAccount.TextAlign = ContentAlignment.MiddleRight;
@@ -251,7 +250,6 @@ namespace docMini
             button_AddTable.Size = new Size(36, 35);
             button_AddTable.TabIndex = 11;
             button_AddTable.UseVisualStyleBackColor = true;
-            button_AddTable.Click += button_AddTable_Click;
             // 
             // button_AddPicture
             // 
@@ -479,7 +477,6 @@ namespace docMini
             richTextBox_Content.BorderStyle = BorderStyle.None;
             richTextBox_Content.Location = new Point(531, 219);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.ReadOnly = true;
             richTextBox_Content.Size = new Size(533, 609);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
