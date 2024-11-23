@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Data.SQLite;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -13,7 +15,7 @@ namespace docMini
             InitializeComponent();
             idUser = userID;
             nameUser = userName;
-
+            richTextBox_Content.ReadOnly= true;
         }
 
 
@@ -27,10 +29,91 @@ namespace docMini
             this.Close();
         }
 
-        private void button_newFile_Click(object sender, EventArgs e)
+        private async void button_newFile_Click(object sender, EventArgs e)
         {
-            /*mainDoc mD = new mainDoc();
-            mD.Show();*/
+            // Tạo form tạm thời
+            Form tempForm = new Form
+            {
+                Text = "Tạo Tài Liệu Mới",
+                Width = 400,
+                Height = 200,
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            // Tạo textbox để nhập tên tài liệu
+            TextBox textBox_FileName = new TextBox
+            {
+                PlaceholderText = "Nhập tên tài liệu...",
+                Dock = DockStyle.Top,
+                Margin = new Padding(10),
+            };
+
+            // Tạo nút "Tạo Tài Liệu"
+            Button button_Create = new Button
+            {
+                Text = "Tạo Tài Liệu",
+                Dock = DockStyle.Bottom,
+                Height = 40
+            };
+
+            // Thêm các điều khiển vào form tạm thời
+            tempForm.Controls.Add(textBox_FileName);
+            tempForm.Controls.Add(button_Create);
+
+            // Xử lý sự kiện nhấn nút "Tạo Tài Liệu"
+            button_Create.Click += async (s, args) =>
+            {
+                string fileName = textBox_FileName.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    MessageBox.Show("Tên tài liệu không được để trống!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                string request = $"NEWFILE|{fileName}|{idUser}";
+
+                try
+                {
+                    NetworkStream stream = tcpClient.GetStream();
+                    byte[] requestBuffer = Encoding.UTF8.GetBytes(request);
+                    await stream.WriteAsync(BitConverter.GetBytes(requestBuffer.Length), 0, sizeof(int));
+                    await stream.WriteAsync(requestBuffer, 0, requestBuffer.Length);
+
+                    // Đọc phản hồi từ server
+                    byte[] responseBuffer = new byte[1024];
+                    int responseLength = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
+                    string response = Encoding.UTF8.GetString(responseBuffer, 0, responseLength);
+
+                    if (response.StartsWith("SUCCESS"))
+                    {
+                        MessageBox.Show("Tạo tài liệu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        tempForm.Close();
+                        richTextBox_Content.ReadOnly = false;
+                    }
+                    else if (response.StartsWith("INVALID_USER"))
+                    {
+                        MessageBox.Show("Không tìm thấy người dùng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        textBox_FileName.Clear();
+                    }
+                    else if (response.StartsWith("DUPLICATE"))
+                    {
+                        MessageBox.Show("Tên tài liệu đã tồn tại. Vui lòng nhập tên khác!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        textBox_FileName.Clear();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Tạo tài liệu thất bại. Vui lòng thử lại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        textBox_FileName.Clear();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi kết nối server: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
+            tempForm.ShowDialog();
         }
 
         private void button_ShareDoc_Click(object sender, EventArgs e)
@@ -444,6 +527,20 @@ namespace docMini
             catch (Exception ex)
             {
                 MessageBox.Show($"Error connecting to server: {ex.Message}");
+            }
+        }
+        private void richTextBox_ListFile_TextChanged(object sender, EventArgs e)
+        {
+            DatabaseManager dbManager = new DatabaseManager();
+
+            // Gọi hàm lấy danh sách tài liệu mà người dùng đã tham gia
+            List<string> userDocs = dbManager.GetUserDocsByUsername(nameUser);
+
+            // Cập nhật danh sách tài liệu trong RichTextBox
+            richTextBox_ListFile.Clear(); // Xóa nội dung cũ
+            foreach (var doc in userDocs)
+            {
+                richTextBox_ListFile.AppendText(doc + Environment.NewLine);
             }
         }
 

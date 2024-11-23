@@ -93,6 +93,10 @@ namespace Server
             {
                 await HandleSignUpAsync(update, stream);
             }
+            else if (update.StartsWith("NEWFILE|"))
+            {
+                await HandleNewFileAsync(update, stream);
+            }
             /*else if(update.StartsWith("EDIT_DOC|"))
             {
                 await HandleEditDocumentAsync(update, stream, client);
@@ -100,6 +104,58 @@ namespace Server
             else
             {
                 await editDocAsync(client);
+            }
+        }
+
+        private async Task HandleNewFileAsync(string update, NetworkStream stream)
+        {
+            try
+            {
+                string[] parts = update.Split('|');
+                if (parts.Length == 3)
+                {
+                    string fileName = parts[1].Trim();
+                    int userId = int.Parse(parts[2]);
+
+                    DatabaseManager dbManager = new DatabaseManager();
+
+                    // Lấy tên người dùng (Owner) dựa trên userId
+                    string owner = dbManager.GetUsernameByUserId(userId);
+                    if (string.IsNullOrEmpty(owner))
+                    {
+                        // Gửi phản hồi khi userId không hợp lệ
+                        byte[] responses = Encoding.UTF8.GetBytes("INVALID_USER");
+                        await SendResponseAsync(stream, responses);
+                        return;
+                    }
+
+                    // Kiểm tra xem tài liệu có trùng tên hay không
+                    if (dbManager.IsDocumentExists(fileName, owner))
+                    {
+                        byte[] respons = Encoding.UTF8.GetBytes("DUPLICATE");
+                        await SendResponseAsync(stream, respons);
+                        return;
+                    }
+
+                    // Thêm tài liệu mới vào cơ sở dữ liệu
+                    bool success = dbManager.AddNewDocument(fileName, owner, userId);
+
+                    string responseMessage = success ? "SUCCESS" : "FAIL";
+                    byte[] response = Encoding.UTF8.GetBytes(responseMessage);
+                    await SendResponseAsync(stream, response);
+                }
+                else
+                {
+                    byte[] response = Encoding.UTF8.GetBytes("INVALID_REQUEST");
+                    await SendResponseAsync(stream, response);
+                }
+            }
+            catch (Exception ex)
+            {
+                byte[] response = Encoding.UTF8.GetBytes("ERROR");
+                await SendResponseAsync(stream, response);
+
+                Console.WriteLine($"Error in HandleNewFileAsync: {ex.Message}");
             }
         }
 
@@ -111,10 +167,8 @@ namespace Server
                 string username = parts[1];
                 string password = parts[2];
 
-                // Tạo đối tượng DatabaseManager để truy cập cơ sở dữ liệu
                 DatabaseManager dbManager = new DatabaseManager();
 
-                // Kiểm tra tính hợp lệ của người dùng
                 bool isValidUser = dbManager.ValidateUser(username, password);
 
                 if (isValidUser)
@@ -144,7 +198,6 @@ namespace Server
                 string email = parts[2];
                 string password = parts[3];
 
-                // Thêm người dùng vào cơ sở dữ liệu
                 DatabaseManager dbManager = new DatabaseManager();
                 bool success = dbManager.InsertUser(username, email, password);
 

@@ -54,6 +54,7 @@ namespace docMini
             button_Bold = new Button();
             pictureBox_Avatar = new PictureBox();
             panel_searchDoc = new Panel();
+            richTextBox_ListFile = new RichTextBox();
             panel_areaSearch = new Panel();
             button_searchDoc = new Button();
             textBox_searchDoc = new TextBox();
@@ -376,12 +377,23 @@ namespace docMini
             // panel_searchDoc
             // 
             panel_searchDoc.BackColor = Color.FromArgb(205, 236, 255);
+            panel_searchDoc.Controls.Add(richTextBox_ListFile);
             panel_searchDoc.Controls.Add(panel_areaSearch);
             panel_searchDoc.Location = new Point(43, 219);
             panel_searchDoc.Name = "panel_searchDoc";
             panel_searchDoc.Size = new Size(359, 362);
             panel_searchDoc.TabIndex = 11;
             panel_searchDoc.Paint += panel_searchDoc_Paint;
+            // 
+            // richTextBox_ListFile
+            // 
+            richTextBox_ListFile.BorderStyle = BorderStyle.None;
+            richTextBox_ListFile.Location = new Point(22, 91);
+            richTextBox_ListFile.Name = "richTextBox_ListFile";
+            richTextBox_ListFile.Size = new Size(318, 268);
+            richTextBox_ListFile.TabIndex = 4;
+            richTextBox_ListFile.Text = "";
+            richTextBox_ListFile.TextChanged += richTextBox_ListFile_TextChanged;
             // 
             // panel_areaSearch
             // 
@@ -729,5 +741,6 @@ namespace docMini
         private RichTextBox richTextBox_Content;
         private Button button_Open;
         private Button button_Connect;
+        private RichTextBox richTextBox_ListFile;
     }
 }
