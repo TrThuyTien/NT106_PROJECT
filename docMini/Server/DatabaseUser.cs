@@ -31,13 +31,6 @@ public class DatabaseManager
 
             try
             {
-                // Xóa Users_Docs table (chỉ dùng để kiểm thử, chạy dự án thật sẽ xóa đi)
-                string dropUsersDocsTableQuery = "DROP TABLE IF EXISTS Users_Docs;";
-                using (var command = new SQLiteCommand(dropUsersDocsTableQuery, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-
                 // Tạo bảng Users
                 string createUsersTableQuery = @"
                     CREATE TABLE IF NOT EXISTS Users (
@@ -72,7 +65,7 @@ public class DatabaseManager
                     CREATE TABLE IF NOT EXISTS Users_Docs (
                         UserId INTEGER NOT NULL,
                         DocID INTEGER NOT NULL,
-                        EditStatus INTEGER NOT NULL CHECK(EditStatus IN (0, 1, 2)),
+                        EditStatus INTEGER NOT NULL CHECK(EditStatus IN (0, 1)),
                         PRIMARY KEY(UserId, DocID),
                         FOREIGN KEY(UserId) REFERENCES Users(Id),
                         FOREIGN KEY(DocID) REFERENCES Docs(DocID)
@@ -173,19 +166,100 @@ public class DatabaseManager
             }
         }
     }
-
-    // Thêm tài liệu mới
-    public int InsertDoc(string lastOpenTime)
+    // Lấy Username theo UserId
+    public string GetUsernameByUserId(int userId)
     {
         using (var connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
 
-            string insertQuery = "INSERT INTO Docs (LOpenTime) VALUES (@LOpenTime); SELECT last_insert_rowid();";
-            using (var command = new SQLiteCommand(insertQuery, connection))
+            string query = "SELECT Username FROM Users WHERE Id = @Id";
+            using (var command = new SQLiteCommand(query, connection))
             {
-                command.Parameters.AddWithValue("@LOpenTime", lastOpenTime);
-                return Convert.ToInt32(command.ExecuteScalar());
+                command.Parameters.AddWithValue("@Id", userId);
+
+                object result = command.ExecuteScalar();
+                return result != null ? result.ToString() : null; // Trả về null nếu không tìm thấy
+            }
+        }
+    }
+
+    // Thêm tài liệu mới
+    public bool AddNewDocument(string docName, string owner, int userId)
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            // Kiểm tra xem tài liệu đã tồn tại chưa
+            string checkDocQuery = "SELECT COUNT(*) FROM Docs WHERE Docname = @Docname AND Owner = @Owner";
+            using (var checkCommand = new SQLiteCommand(checkDocQuery, connection))
+            {
+                checkCommand.Parameters.AddWithValue("@Docname", docName);
+                checkCommand.Parameters.AddWithValue("@Owner", owner);
+
+                var count = Convert.ToInt32(checkCommand.ExecuteScalar());
+                if (count > 0)
+                {
+                    return false; // Tài liệu đã tồn tại
+                }
+            }
+
+            string currentTime = DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
+
+            // Thêm tài liệu mới vào bảng Docs
+            string insertDocQuery = @"
+            INSERT INTO Docs (Docname, Owner, Content, LOpenTime)
+            VALUES (@Docname, @Owner, '', @LOpenTime)";
+            using (var insertCommand = new SQLiteCommand(insertDocQuery, connection))
+            {
+                insertCommand.Parameters.AddWithValue("@Docname", docName);
+                insertCommand.Parameters.AddWithValue("@Owner", owner);
+                insertCommand.Parameters.AddWithValue("@LOpenTime", currentTime);
+                insertCommand.ExecuteNonQuery();
+            }
+
+            // Lấy ID của tài liệu vừa được thêm
+            string getDocIdQuery = "SELECT last_insert_rowid()";
+            int docId;
+            using (var getDocIdCommand = new SQLiteCommand(getDocIdQuery, connection))
+            {
+                docId = Convert.ToInt32(getDocIdCommand.ExecuteScalar());
+            }
+
+            // Thêm liên kết vào bảng Users_Docs
+            string insertUserDocQuery = @"
+            INSERT INTO Users_Docs (UserId, DocID, EditStatus)
+            VALUES (@UserId, @DocID, 1)";
+            using (var insertUserDocCommand = new SQLiteCommand(insertUserDocQuery, connection))
+            {
+                insertUserDocCommand.Parameters.AddWithValue("@UserId", userId);
+                insertUserDocCommand.Parameters.AddWithValue("@DocID", docId);
+                insertUserDocCommand.ExecuteNonQuery();
+            }
+
+            return true;
+        }
+    }
+
+    public bool IsDocumentExists(string docName, string owner)
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT COUNT(*) FROM Docs WHERE Docname = @Docname AND owner = @Owner";
+            using (var command = new SQLiteCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Docname", docName);
+                command.Parameters.AddWithValue("@Owner", owner);
+
+                object result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int count))
+                {
+                    return count > 0; // Trả về true nếu tồn tại
+                }
+                return false; // Trả về false nếu không tồn tại
             }
         }
     }
@@ -223,7 +297,7 @@ public class DatabaseManager
                 await connection.OpenAsync();
 
                 // Câu lệnh SQL để cập nhật nội dung tài liệu
-                string query = "UPDATE Documents SET Content = @Content WHERE DocID = @DocID";
+                string query = "UPDATE Docs SET Content = @Content WHERE DocID = @DocID";
 
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
@@ -308,6 +382,55 @@ public class DatabaseManager
                 return result != null ? Convert.ToInt32(result) : -1;
             }
         }
+    }
+
+    public List<string> GetUserDocsByUsername(string username)
+    {
+        List<string> docNames = new List<string>();
+
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            // Lấy Id của người dùng từ Username
+            string getUserIdQuery = "SELECT Id FROM Users WHERE Username = @Username";
+            int userId = -1;
+            using (var command = new SQLiteCommand(getUserIdQuery, connection))
+            {
+                command.Parameters.AddWithValue("@Username", username);
+                object result = command.ExecuteScalar();
+                if (result != null)
+                {
+                    userId = Convert.ToInt32(result);
+                }
+            }
+
+            if (userId != -1)
+            {
+                // Truy vấn danh sách DocID mà người dùng tham gia
+                string getDocsQuery = @"
+                SELECT Docs.Docname 
+                FROM Docs 
+                INNER JOIN Users_Docs ON Docs.DocID = Users_Docs.DocID
+                WHERE Users_Docs.UserId = @Id";
+
+                using (var command = new SQLiteCommand(getDocsQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string docName = reader.GetString(0);
+                            docNames.Add(docName);
+                        }
+                    }
+                }
+            }
+        }
+
+        return docNames;
     }
 
 }
