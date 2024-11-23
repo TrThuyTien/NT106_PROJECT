@@ -446,7 +446,6 @@ namespace Server
             }
         }
 
-
         private void CloseClientConnection(TcpClient client)
         {
             if (client != null)
