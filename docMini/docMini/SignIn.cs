@@ -21,23 +21,26 @@ namespace docMini
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Vui lòng nhập đầy đủ thông tin.", 
+                    "Thông báo", 
+                    MessageBoxButtons.OK, 
+                    MessageBoxIcon.Warning
+                );
                 return;
             }
 
             try
             {
                 string serverResponse = await SendSignInRequestAsync(username, password);
-                if (serverResponse.StartsWith("SUCCESS"))
-                {
-                    // Phân tích phản hồi từ server để lấy ID và tên người dùng
+                if (serverResponse.StartsWith($"SIGN_IN|{username}|")) {
+                    // Phân tích gói tin phản hồi từ server để lấy ID nếu thành công
                     var responseParts = serverResponse.Split('|');
-                    MessageBox.Show(serverResponse);
-                    if (responseParts.Length >= 2)
+                    if (responseParts[2] == "SUCCESS")
                     {
-                        string userId = responseParts[1];
+                        string userId = responseParts[3];
 
-                        MessageBox.Show($"Đăng nhập thành công!\nUser ID: {userId}\nUsername: {username}",
+                        MessageBox.Show($"Đăng nhập thành công!",
                                         "Thông báo",
                                         MessageBoxButtons.OK,
                                         MessageBoxIcon.Information);
@@ -49,15 +52,15 @@ namespace docMini
                     }
                     else
                     {
-                        throw new Exception("Phản hồi từ server không hợp lệ.");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng.",
+                        MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng.",
                                     "Lỗi",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
+                    }
+                } 
+                else
+                {
+                    MessageBox.Show("Day khong phai la phan hoi dung can nhan");
                 }
             }
             catch (SocketException ex)
