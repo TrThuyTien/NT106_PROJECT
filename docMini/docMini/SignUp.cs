@@ -135,5 +135,10 @@ namespace docMini
             return Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            mainDoc mainDoc = new mainDoc(1, "admin");
+            mainDoc.Show();
+        }
     }
 }

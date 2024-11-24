@@ -38,6 +38,8 @@ namespace docMini
             pictureBox_Logo = new PictureBox();
             panel_ToolbarBorder = new Panel();
             panel_Toolbar = new Panel();
+            button_LineCounter = new Button();
+            button_LineSpace = new Button();
             comboBox_Size = new ComboBox();
             comboBox_Font = new ComboBox();
             pictureBox_add = new PictureBox();
@@ -68,6 +70,8 @@ namespace docMini
             richTextBox_Content = new RichTextBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            toolStripTextBox1 = new ToolStripTextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -76,6 +80,7 @@ namespace docMini
             panel_searchDoc.SuspendLayout();
             panel_areaSearch.SuspendLayout();
             panel3.SuspendLayout();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // button_Exit
@@ -151,6 +156,8 @@ namespace docMini
             // panel_Toolbar
             // 
             panel_Toolbar.BackColor = Color.White;
+            panel_Toolbar.Controls.Add(button_LineCounter);
+            panel_Toolbar.Controls.Add(button_LineSpace);
             panel_Toolbar.Controls.Add(comboBox_Size);
             panel_Toolbar.Controls.Add(comboBox_Font);
             panel_Toolbar.Controls.Add(pictureBox_add);
@@ -171,6 +178,26 @@ namespace docMini
             panel_Toolbar.Size = new Size(1234, 85);
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
+            // 
+            // button_LineCounter
+            // 
+            button_LineCounter.Location = new Point(941, 35);
+            button_LineCounter.Name = "button_LineCounter";
+            button_LineCounter.Size = new Size(28, 25);
+            button_LineCounter.TabIndex = 16;
+            button_LineCounter.Text = "Line Counter";
+            button_LineCounter.UseVisualStyleBackColor = true;
+            button_LineCounter.Click += button_LineCounter_Click;
+            // 
+            // button_LineSpace
+            // 
+            button_LineSpace.Location = new Point(885, 34);
+            button_LineSpace.Name = "button_LineSpace";
+            button_LineSpace.Size = new Size(28, 25);
+            button_LineSpace.TabIndex = 16;
+            button_LineSpace.Text = "LineSapce";
+            button_LineSpace.UseVisualStyleBackColor = true;
+            button_LineSpace.Click += button_LineSpace_Click;
             // 
             // comboBox_Size
             // 
@@ -194,9 +221,9 @@ namespace docMini
             // 
             pictureBox_add.BackColor = Color.FromArgb(205, 236, 255);
             pictureBox_add.Image = (Image)resources.GetObject("pictureBox_add.Image");
-            pictureBox_add.Location = new Point(937, 30);
+            pictureBox_add.Location = new Point(1012, 34);
             pictureBox_add.Name = "pictureBox_add";
-            pictureBox_add.Size = new Size(34, 41);
+            pictureBox_add.Size = new Size(24, 30);
             pictureBox_add.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox_add.TabIndex = 12;
             pictureBox_add.TabStop = false;
@@ -205,9 +232,9 @@ namespace docMini
             // 
             button_NewFile.BackColor = Color.FromArgb(205, 236, 255);
             button_NewFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            button_NewFile.Location = new Point(925, 25);
+            button_NewFile.Location = new Point(1003, 27);
             button_NewFile.Name = "button_NewFile";
-            button_NewFile.Size = new Size(156, 46);
+            button_NewFile.Size = new Size(118, 42);
             button_NewFile.TabIndex = 12;
             button_NewFile.Text = "     New file";
             button_NewFile.UseVisualStyleBackColor = false;
@@ -223,9 +250,9 @@ namespace docMini
             button_ShareDoc.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
             button_ShareDoc.Image = Properties.Resources.file;
             button_ShareDoc.ImageAlign = ContentAlignment.MiddleLeft;
-            button_ShareDoc.Location = new Point(1108, 13);
+            button_ShareDoc.Location = new Point(1127, 27);
             button_ShareDoc.Name = "button_ShareDoc";
-            button_ShareDoc.Size = new Size(111, 61);
+            button_ShareDoc.Size = new Size(104, 40);
             button_ShareDoc.TabIndex = 13;
             button_ShareDoc.Text = "      Share";
             button_ShareDoc.UseVisualStyleBackColor = false;
@@ -238,7 +265,7 @@ namespace docMini
             button_AddLink.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddLink.FlatStyle = FlatStyle.Flat;
             button_AddLink.Image = Properties.Resources.link_button;
-            button_AddLink.Location = new Point(865, 27);
+            button_AddLink.Location = new Point(843, 29);
             button_AddLink.Name = "button_AddLink";
             button_AddLink.Size = new Size(36, 35);
             button_AddLink.TabIndex = 12;
@@ -252,7 +279,7 @@ namespace docMini
             button_AddTable.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddTable.FlatStyle = FlatStyle.Flat;
             button_AddTable.Image = Properties.Resources.table;
-            button_AddTable.Location = new Point(810, 27);
+            button_AddTable.Location = new Point(788, 29);
             button_AddTable.Name = "button_AddTable";
             button_AddTable.Size = new Size(36, 35);
             button_AddTable.TabIndex = 11;
@@ -266,7 +293,7 @@ namespace docMini
             button_AddPicture.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddPicture.FlatStyle = FlatStyle.Flat;
             button_AddPicture.Image = Properties.Resources.image;
-            button_AddPicture.Location = new Point(749, 27);
+            button_AddPicture.Location = new Point(727, 29);
             button_AddPicture.Name = "button_AddPicture";
             button_AddPicture.Size = new Size(36, 35);
             button_AddPicture.TabIndex = 10;
@@ -280,7 +307,7 @@ namespace docMini
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
             button_Center.Image = Properties.Resources.format;
-            button_Center.Location = new Point(569, 27);
+            button_Center.Location = new Point(547, 29);
             button_Center.Name = "button_Center";
             button_Center.Size = new Size(36, 35);
             button_Center.TabIndex = 9;
@@ -294,7 +321,7 @@ namespace docMini
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
             button_AlignRight.Image = Properties.Resources.align_right;
-            button_AlignRight.Location = new Point(627, 27);
+            button_AlignRight.Location = new Point(605, 29);
             button_AlignRight.Name = "button_AlignRight";
             button_AlignRight.Size = new Size(36, 35);
             button_AlignRight.TabIndex = 8;
@@ -308,7 +335,7 @@ namespace docMini
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
             button_Justify.Image = Properties.Resources.justify;
-            button_Justify.Location = new Point(688, 27);
+            button_Justify.Location = new Point(666, 29);
             button_Justify.Name = "button_Justify";
             button_Justify.Size = new Size(36, 35);
             button_Justify.TabIndex = 7;
@@ -322,7 +349,7 @@ namespace docMini
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
             button_AlignLeft.Image = Properties.Resources.align_left1;
-            button_AlignLeft.Location = new Point(509, 27);
+            button_AlignLeft.Location = new Point(487, 29);
             button_AlignLeft.Name = "button_AlignLeft";
             button_AlignLeft.Size = new Size(36, 35);
             button_AlignLeft.TabIndex = 6;
@@ -336,7 +363,7 @@ namespace docMini
             button_Italic.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Italic.FlatStyle = FlatStyle.Flat;
             button_Italic.Image = Properties.Resources.italic_button;
-            button_Italic.Location = new Point(375, 25);
+            button_Italic.Location = new Point(369, 29);
             button_Italic.Name = "button_Italic";
             button_Italic.Size = new Size(36, 35);
             button_Italic.TabIndex = 5;
@@ -350,7 +377,7 @@ namespace docMini
             button_Underline.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Underline.FlatStyle = FlatStyle.Flat;
             button_Underline.Image = Properties.Resources.underline_text;
-            button_Underline.Location = new Point(435, 25);
+            button_Underline.Location = new Point(429, 29);
             button_Underline.Name = "button_Underline";
             button_Underline.Size = new Size(36, 35);
             button_Underline.TabIndex = 4;
@@ -364,7 +391,7 @@ namespace docMini
             button_Bold.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Bold.FlatStyle = FlatStyle.Flat;
             button_Bold.Image = Properties.Resources.bold_button;
-            button_Bold.Location = new Point(316, 25);
+            button_Bold.Location = new Point(310, 29);
             button_Bold.Name = "button_Bold";
             button_Bold.Size = new Size(36, 35);
             button_Bold.TabIndex = 3;
@@ -517,6 +544,20 @@ namespace docMini
             contextMenu_Table.Name = "contextMenuStrip1";
             contextMenu_Table.Size = new Size(61, 4);
             // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripTextBox1 });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(161, 33);
+            contextMenuStrip1.Opening += contextMenuStrip1_Opening;
+            // 
+            // toolStripTextBox1
+            // 
+            toolStripTextBox1.Name = "toolStripTextBox1";
+            toolStripTextBox1.Size = new Size(100, 27);
+            toolStripTextBox1.Click += toolStripTextBox1_Click;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
@@ -553,6 +594,8 @@ namespace docMini
             panel_areaSearch.ResumeLayout(false);
             panel_areaSearch.PerformLayout();
             panel3.ResumeLayout(false);
+            contextMenuStrip1.ResumeLayout(false);
+            contextMenuStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -819,5 +862,9 @@ namespace docMini
         private Button button_Connect;
         private RichTextBox richTextBox_ListFile;
         private ContextMenuStrip contextMenu_Table;
+        private Button button_LineCounter;
+        private Button button_LineSpace;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripTextBox toolStripTextBox1;
     }
 }
