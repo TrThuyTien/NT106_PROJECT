@@ -55,7 +55,6 @@ namespace docMini
             button_Bold = new Button();
             pictureBox_Avatar = new PictureBox();
             panel_searchDoc = new Panel();
-            richTextBox_ListFile = new RichTextBox();
             panel_areaSearch = new Panel();
             button_searchDoc = new Button();
             textBox_searchDoc = new TextBox();
@@ -66,6 +65,7 @@ namespace docMini
             button_Save = new Button();
             button_Open = new Button();
             richTextBox_Content = new RichTextBox();
+            listBox_Docs = new ListBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
@@ -382,23 +382,13 @@ namespace docMini
             // panel_searchDoc
             // 
             panel_searchDoc.BackColor = Color.FromArgb(205, 236, 255);
-            panel_searchDoc.Controls.Add(richTextBox_ListFile);
+            panel_searchDoc.Controls.Add(listBox_Docs);
             panel_searchDoc.Controls.Add(panel_areaSearch);
             panel_searchDoc.Location = new Point(43, 219);
             panel_searchDoc.Name = "panel_searchDoc";
             panel_searchDoc.Size = new Size(359, 362);
             panel_searchDoc.TabIndex = 11;
             panel_searchDoc.Paint += panel_searchDoc_Paint;
-            // 
-            // richTextBox_ListFile
-            // 
-            richTextBox_ListFile.BorderStyle = BorderStyle.None;
-            richTextBox_ListFile.Location = new Point(22, 91);
-            richTextBox_ListFile.Name = "richTextBox_ListFile";
-            richTextBox_ListFile.Size = new Size(318, 268);
-            richTextBox_ListFile.TabIndex = 4;
-            richTextBox_ListFile.Text = "";
-            richTextBox_ListFile.TextChanged += richTextBox_ListFile_TextChanged;
             // 
             // panel_areaSearch
             // 
@@ -499,15 +489,16 @@ namespace docMini
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
-            // button_Connect
+            // listBox_Docs
             // 
-            button_Connect.Location = new Point(77, 643);
-            button_Connect.Name = "button_Connect";
-            button_Connect.Size = new Size(257, 56);
-            button_Connect.TabIndex = 21;
-            button_Connect.Text = "Mở tài liệu";
-            button_Connect.UseVisualStyleBackColor = true;
-            button_Connect.Click += button_Connect_Click;
+            listBox_Docs.Font = new Font("Tahoma", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            listBox_Docs.FormattingEnabled = true;
+            listBox_Docs.ItemHeight = 22;
+            listBox_Docs.Location = new Point(19, 86);
+            listBox_Docs.Name = "listBox_Docs";
+            listBox_Docs.Size = new Size(321, 246);
+            listBox_Docs.TabIndex = 21;
+            listBox_Docs.DoubleClick += listBox_Docs_DoubleClick;
             // 
             // contextMenu_Table
             // 
@@ -521,7 +512,6 @@ namespace docMini
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1254, 840);
-            Controls.Add(button_Connect);
             Controls.Add(button_Open);
             Controls.Add(button_Save);
             Controls.Add(panel4);
@@ -814,8 +804,8 @@ namespace docMini
         private Button button_Save;
         private RichTextBox richTextBox_Content;
         private Button button_Open;
+        private ListBox listBox_Docs;
         private Button button_Connect;
-        private RichTextBox richTextBox_ListFile;
         private ContextMenuStrip contextMenu_Table;
     }
 }
