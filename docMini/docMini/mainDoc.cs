@@ -9,6 +9,7 @@ using Task = System.Threading.Tasks.Task;
 using Server;
 using System.Windows.Controls;
 using System.Drawing.Printing;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Menu;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -1187,6 +1188,59 @@ namespace docMini
                 gzipStream.CopyTo(outputStream);
                 return outputStream.ToArray();
             }
+        }
+
+        private void button_LineSpace_Click(object sender, EventArgs e)
+        {
+            string input = Microsoft.VisualBasic.Interaction.InputBox("Nhập chỉ số cách dòng:", "Cài đặt khoảng cách dòng", "1", -1, -1);
+
+            // Kiểm tra giá trị nhập vào có hợp lệ không
+            if (float.TryParse(input, out float lineSpacing))
+            {
+                SetLineSpacing(richTextBox_Content, lineSpacing);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng nhập một số hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void SetLineSpacing(System.Windows.Forms.RichTextBox richTextBox, float lineSpacing)
+        {
+            richTextBox.SuspendLayout();
+
+            // Lấy toàn bộ nội dung của RichTextBox
+            richTextBox.SelectAll();
+
+            // Thiết lập khoảng cách dòng thông qua thuộc tính SelectionCharOffset
+            float emHeight = richTextBox.SelectionFont.GetHeight(richTextBox.CreateGraphics());
+            int lineSpacingInPixels = (int)(emHeight * (lineSpacing - 1));
+
+            richTextBox.SelectionCharOffset = lineSpacingInPixels;
+
+            // Đặt lại vùng chọn ban đầu
+            richTextBox.DeselectAll();
+            richTextBox.ResumeLayout();
+        }
+        private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+
+        }
+
+        private void toolStripTextBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button_LineCounter_Click(object sender, EventArgs e)
+        {
+            string[] lines = richTextBox_Content.Lines;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < lines.Length-1; i++)
+            {
+                sb.Append(i + 1).Append(". ").Append(lines[i]).Append("\n");
+            }
+            richTextBox_Content.Text = sb.ToString();
+            richTextBox_Content.ResumeLayout();
         }
 
         

@@ -39,6 +39,7 @@
             label_ForgotPass = new Label();
             label1 = new Label();
             label_SwitchSignUp = new Label();
+            button1 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
@@ -122,7 +123,7 @@
             checkbox_SaveAccount.ForeColor = Color.White;
             checkbox_SaveAccount.Location = new Point(183, 636);
             checkbox_SaveAccount.Name = "checkbox_SaveAccount";
-            checkbox_SaveAccount.Size = new Size(163, 29);
+            checkbox_SaveAccount.Size = new Size(161, 28);
             checkbox_SaveAccount.TabIndex = 7;
             checkbox_SaveAccount.Text = "Remember me";
             checkbox_SaveAccount.UseVisualStyleBackColor = false;
@@ -135,7 +136,7 @@
             label_ForgotPass.ForeColor = Color.FromArgb(255, 128, 128);
             label_ForgotPass.Location = new Point(446, 636);
             label_ForgotPass.Name = "label_ForgotPass";
-            label_ForgotPass.Size = new Size(182, 26);
+            label_ForgotPass.Size = new Size(180, 26);
             label_ForgotPass.TabIndex = 8;
             label_ForgotPass.Text = "Forgot Password?";
             label_ForgotPass.Click += label_ForgotPass_Click;
@@ -165,12 +166,23 @@
             label_SwitchSignUp.Text = "Sign Up";
             label_SwitchSignUp.Click += label_SwitchSignUp_Click;
             // 
+            // button1
+            // 
+            button1.Location = new Point(534, 711);
+            button1.Name = "button1";
+            button1.Size = new Size(94, 29);
+            button1.TabIndex = 13;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
             // SignIn
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
             ClientSize = new Size(794, 961);
+            Controls.Add(button1);
             Controls.Add(label_SwitchSignUp);
             Controls.Add(label1);
             Controls.Add(label_ForgotPass);
@@ -203,5 +215,6 @@
         private Label label_ForgotPass;
         private Label label1;
         private Label label_SwitchSignUp;
+        private Button button1;
     }
 }
