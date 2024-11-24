@@ -539,13 +539,11 @@ namespace docMini
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripTextBox1 });
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(161, 33);
-            contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // toolStripTextBox1
             // 
             toolStripTextBox1.Name = "toolStripTextBox1";
             toolStripTextBox1.Size = new Size(100, 27);
-            toolStripTextBox1.Click += toolStripTextBox1_Click;
             // 
             // mainDoc
             // 
