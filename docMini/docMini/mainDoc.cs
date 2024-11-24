@@ -4,6 +4,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Data.SQLite;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Drawing.Printing;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -13,12 +14,96 @@ namespace docMini
         public mainDoc(int userID, string userName)
         {
             InitializeComponent();
+            InitializeTableContextMenu();
+            richTextBox_Content.LinkClicked += new LinkClickedEventHandler(richTextBox_Content_LinkClicked);
             idUser = userID;
             nameUser = userName;
-            richTextBox_Content.ReadOnly= true;
+            richTextBox_Content.ReadOnly = true;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        public struct FORMATRANGE
+        {
+            public IntPtr hdc;       // HDC để vẽ nội dung
+            public IntPtr hdcTarget; // HDC mục tiêu (là máy in)
+            public RECT rc;          // Kích thước vùng vẽ
+            public RECT rcPage;      // Kích thước toàn bộ trang
+            public int chrg_cpMin;   // Vị trí ký tự bắt đầu
+            public int chrg_cpMax;   // Vị trí ký tự kết thúc
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private const int EM_FORMATRANGE = 0x0439; // Mã thông điệp EM_FORMATRANGE
+        private void SaveRichTextBoxAsPdf(RichTextBox richTextBox, string outputPdfPath)
+        {
+            using (PrintDocument printDoc = new PrintDocument())
+            {
+                // Chọn máy in "Microsoft Print to PDF"
+                printDoc.PrinterSettings.PrinterName = "Microsoft Print to PDF";
+                printDoc.PrinterSettings.PrintToFile = true;
+                printDoc.PrinterSettings.PrintFileName = outputPdfPath;
+
+                printDoc.PrintPage += (sender, e) =>
+                {
+                    // Lấy HDC từ máy in
+                    IntPtr hdc = e.Graphics.GetHdc();
+
+                    // Cấu hình FORMATRANGE
+                    FORMATRANGE formatRange = new FORMATRANGE
+                    {
+                        hdc = hdc,
+                        hdcTarget = hdc,
+                        rc = new RECT
+                        {
+                            Left = 0,
+                            Top = 0,
+                            Right = (int)(e.PageBounds.Width * 14.4),  // Đơn vị TWIPS
+                            Bottom = (int)(e.PageBounds.Height * 14.4) // Đơn vị TWIPS
+                        },
+                        rcPage = new RECT
+                        {
+                            Left = 0,
+                            Top = 0,
+                            Right = (int)(e.PageBounds.Width * 14.4),
+                            Bottom = (int)(e.PageBounds.Height * 14.4)
+                        },
+                        chrg_cpMin = 0,  // Vị trí bắt đầu in
+                        chrg_cpMax = -1  // In toàn bộ nội dung
+                    };
+
+                    // Gửi thông điệp EM_FORMATRANGE để vẽ nội dung
+                    IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(formatRange));
+                    Marshal.StructureToPtr(formatRange, lParam, false);
+                    SendMessage(richTextBox.Handle, EM_FORMATRANGE, (IntPtr)1, lParam);
+
+                    // Kết thúc in và giải phóng tài nguyên
+                    SendMessage(richTextBox.Handle, EM_FORMATRANGE, IntPtr.Zero, IntPtr.Zero);
+                    Marshal.FreeHGlobal(lParam);
+                    e.Graphics.ReleaseHdc(hdc);
+                };
+
+                // Bắt đầu in
+                try
+                {
+                    printDoc.Print();
+                    MessageBox.Show("Lưu file PDF thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi lưu file PDF: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
         private void button_Minimize_Click(object sender, EventArgs e)
         {
             this.WindowState = FormWindowState.Minimized;
@@ -126,97 +211,100 @@ namespace docMini
         private bool isBold = false;
         private bool isItalic = false;
         private bool isUnderline = false;
-        private void button_Bold_Click(object sender, EventArgs e)
-        {
-            isBold = !isBold; // Toggle the bold state
-
-            if (richTextBox_Content.SelectionLength > 0)
-            {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
-
-                for (int i = 0; i < selectionLength; i++)
-                {
-                    richTextBox_Content.Select(selectionStart + i, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Bold;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                    }
-                }
-                richTextBox_Content.Select(selectionStart, selectionLength);
-            }
-        }
         private void richTextBox_Content_TextChangedButton(object sender, EventArgs e)
         {
             if (isBold && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 0, 1);//g
-                if (richTextBox_Content.SelectionFont != null)
+
+                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
                 {
-                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    // Lấy ký tự trước đó
+                    richTextBox_Content.Select(selectionStart - 1, 1);
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    }
+
+                    // Đặt lại con trỏ
+                    richTextBox_Content.Select(selectionStart, 0);
                 }
-                richTextBox_Content.Select(selectionStart, 0);
             }
             if (isItalic && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 0, 1);//u
-                if (richTextBox_Content.SelectionFont != null)
+
+                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
                 {
-                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    // Lấy ký tự trước đó
+                    richTextBox_Content.Select(selectionStart - 1, 1);
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    }
+
+                    // Đặt lại con trỏ
+                    richTextBox_Content.Select(selectionStart, 0);
                 }
-                richTextBox_Content.Select(selectionStart, 0);
             }
             if (isUnderline && richTextBox_Content.SelectionLength == 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 0, 1); //b
-                if (richTextBox_Content.SelectionFont != null)
-                {
-                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                }
-                richTextBox_Content.Select(selectionStart, 0);
-            }
-        }
-        private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (richTextBox_Content.SelectionLength > 0)
-            {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
-                string selectedFont = comboBox_Font.SelectedItem.ToString();
 
-                for (int i = 0; i < selectionLength; i++)
+                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
+                    // Lấy ký tự trước đó
+                    richTextBox_Content.Select(selectionStart - 1, 1);
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        float newSize = float.Parse(comboBox_Size.SelectedItem.ToString());
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, newSize, currentFont.Style);
+                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
                     }
+
+                    // Đặt lại con trỏ
+                    richTextBox_Content.Select(selectionStart, 0);
                 }
-                richTextBox_Content.Select(selectionStart, selectionLength);
             }
-            if (richTextBox_Content.SelectionLength == 0)
+
+        }
+        private System.Drawing.Font ApplyFontSizeToSelection(System.Drawing.Font originalFont, float newSize)
+        {
+            if (originalFont != null)
             {
+                return new System.Drawing.Font(originalFont.FontFamily, newSize, originalFont.Style);
+            }
+            return new System.Drawing.Font("Tahoma", newSize); // Font mặc định nếu không có font
+        }
+        private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            float newSize;
+            if (!float.TryParse(comboBox_Size.SelectedItem.ToString(), out newSize))
+                return; // Thoát nếu không thể chuyển đổi kích thước
+
+            if (richTextBox_Content.SelectionLength > 0)
+            {
+                // Áp dụng kích thước mới cho vùng chọn
                 int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 0, 1);
+                int selectionLength = richTextBox_Content.SelectionLength;
+
+                richTextBox_Content.SelectionFont = ApplyFontSizeToSelection(richTextBox_Content.SelectionFont, newSize);
+                richTextBox_Content.Select(selectionStart, selectionLength); // Đặt lại vùng chọn
+            }
+            else
+            {
+                // Không có vùng chọn, áp dụng font mới cho ký tự tiếp theo
+                int selectionStart = richTextBox_Content.SelectionStart;
+
                 if (richTextBox_Content.SelectionFont != null)
                 {
                     System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFontSize, currentFont.Style);
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, newSize, currentFont.Style);
                 }
-                richTextBox_Content.Select(selectionStart, 0);
             }
         }
         private void comboBox_Font_SelectedIndexChanged(object sender, EventArgs e)
@@ -252,46 +340,106 @@ namespace docMini
                 richTextBox_Content.Select(selectionStart, 0);
             }
         }
-        private void button_Italic_Click(object sender, EventArgs e)
+        private void button_Bold_Click(object sender, EventArgs e)
         {
-            isItalic = !isItalic;
+            isBold = !isBold; // Toggle trạng thái in đậm
 
             if (richTextBox_Content.SelectionLength > 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
 
+                // Lặp qua từng ký tự được chọn
                 for (int i = 0; i < selectionLength; i++)
                 {
                     richTextBox_Content.Select(selectionStart + i, 1);
+
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Italic;
+                        System.Drawing.FontStyle newFontStyle;
+
+                        // Thêm hoặc loại bỏ FontStyle.Bold
+                        if (currentFont.Bold)
+                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Bold; // Loại bỏ Bold
+                        else
+                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold; // Thêm Bold
+
+                        // Cập nhật font mới
                         richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
                     }
                 }
+
+                // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
-        private void button_Underline_Click(object sender, EventArgs e)
+        private void button_Italic_Click(object sender, EventArgs e)
         {
-            isUnderline = !isUnderline;
+            isItalic = !isItalic; // Toggle trạng thái in đậm
+
             if (richTextBox_Content.SelectionLength > 0)
             {
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
 
+                // Lặp qua từng ký tự được chọn
                 for (int i = 0; i < selectionLength; i++)
                 {
                     richTextBox_Content.Select(selectionStart + i, 1);
+
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style ^ System.Drawing.FontStyle.Underline;
+                        System.Drawing.FontStyle newFontStyle;
+
+                        // Thêm hoặc loại bỏ FontStyle.Bold
+                        if (currentFont.Italic)
+                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; // Loại bỏ Bold
+                        else
+                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; // Thêm Bold
+
+                        // Cập nhật font mới
                         richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
                     }
                 }
+
+                // Đặt lại vùng chọn ban đầu
+                richTextBox_Content.Select(selectionStart, selectionLength);
+            }
+        }
+
+        private void button_Underline_Click(object sender, EventArgs e)
+        {
+            isUnderline = !isUnderline; // Toggle trạng thái in đậm
+
+            if (richTextBox_Content.SelectionLength > 0)
+            {
+                int selectionStart = richTextBox_Content.SelectionStart;
+                int selectionLength = richTextBox_Content.SelectionLength;
+
+                // Lặp qua từng ký tự được chọn
+                for (int i = 0; i < selectionLength; i++)
+                {
+                    richTextBox_Content.Select(selectionStart + i, 1);
+
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        System.Drawing.FontStyle newFontStyle;
+
+                        // Thêm hoặc loại bỏ FontStyle.Bold
+                        if (currentFont.Underline)
+                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; // Loại bỏ Bold
+                        else
+                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; // Thêm Bold
+
+                        // Cập nhật font mới
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                    }
+                }
+
+                // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
         }
@@ -309,8 +457,7 @@ namespace docMini
         private const int PFM_ALIGNMENT = 0x0008;
         private const int PFA_JUSTIFY = 0x4;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
 
         private void button_Justify_Click(object sender, EventArgs e)
         {
@@ -400,10 +547,6 @@ namespace docMini
             {
                 comboBox_Size.Items.Add(i);
             }
-
-            // Đặt giá trị mặc định cho ComboBox
-            comboBox_Font.SelectedIndex = comboBox_Font.FindString("Tahoma");
-            comboBox_Size.SelectedIndex = comboBox_Size.FindString("12");
         }
 
         private async void button_AddPicture_Click(object sender, EventArgs e)
@@ -431,8 +574,69 @@ namespace docMini
                 }
             }
         }
+        private static string InsertTableInRichTextBox(int rows, int cols, int width)
+        {
+            StringBuilder stringTableRtf = new StringBuilder();
+            stringTableRtf.Append(@"{\rtf1\ansi\deff0 ");
 
+            for (int i = 0; i < rows; i++)
+            {
+                stringTableRtf.Append(@"\trowd");  // Start a new row
 
+                for (int j = 0; j < cols; j++)
+                {
+                    int cellWidth = (j + 1) * width;  // Define cell width
+                    stringTableRtf.Append(@"\clbrdrt\brdrth\brdrw20"); // Top border
+                    stringTableRtf.Append(@"\clbrdrl\brdrth\brdrw20"); // Left border
+                    stringTableRtf.Append(@"\clbrdrb\brdrth\brdrw20"); // Bottom border
+                    stringTableRtf.Append(@"\clbrdrr\brdrth\brdrw20"); // Right border
+                    stringTableRtf.Append(@"\cellx" + cellWidth.ToString());
+                }
+
+                // End the row and cell
+                stringTableRtf.Append(@"\intbl \cell \row");
+            }
+
+            stringTableRtf.Append(@"\pard");
+            stringTableRtf.Append(@"}");
+
+            return stringTableRtf.ToString();
+        }
+        private void button_AddTable_Click(object sender, EventArgs e)
+        {
+            contextMenu_Table.Show(button_AddTable, 0, button_AddTable.Height);
+
+        }
+        private void button_AddLink_Click(object sender, EventArgs e)
+        {
+            string selectedText = richTextBox_Content.SelectedText; // Lấy đoạn văn bản được chọn
+            addLink insertLinkForm = new addLink(selectedText); // Mở form nhập liên kết
+
+            if (insertLinkForm.ShowDialog() == DialogResult.OK)
+            {
+                string linkText = insertLinkForm.LinkText; // Văn bản hiển thị
+                string linkAddress = insertLinkForm.LinkAddress; // Địa chỉ liên kết
+
+                if (!string.IsNullOrEmpty(selectedText))
+                {
+                    // Thay thế văn bản được chọn bằng liên kết
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
+                    string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
+                    richTextBox_Content.SelectedRtf = rtfLink;
+                    richTextBox_Content.SelectionStart = selectionStart; // Đặt lại con trỏ
+                    richTextBox_Content.SelectionLength = selectionLength;
+                }
+                else
+                {
+                    // Thêm liên kết tại vị trí con trỏ
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
+                    richTextBox_Content.SelectedRtf = rtfLink;
+                    richTextBox_Content.SelectionStart = selectionStart + linkText.Length; // Đặt con trỏ sau liên kết
+                }
+            }
+        }
         private void SaveRtf(string filePath)
         {
             try
@@ -447,11 +651,43 @@ namespace docMini
         }
         private void button_Save_Click(object sender, EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "Rich Text Format|*.rtf";
-            if (sfd.ShowDialog() == DialogResult.OK)
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                SaveRtf(sfd.FileName);
+                saveFileDialog.Filter = "Portable Document Format (*.pdf)|*.pdf|Rich Text Format (*.rtf)|*.rtf";
+                saveFileDialog.Title = "Save File";
+
+                saveFileDialog.FileName = "Document";
+                if (saveFileDialog.FilterIndex == 1)
+                {
+                    saveFileDialog.FileName += ".pdf";
+                }
+                else
+                {
+                    saveFileDialog.FileName += ".rtf";
+                }
+
+                if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    string filePath = saveFileDialog.FileName;
+
+                    try
+                    {
+                        if (Path.GetExtension(filePath).ToLower() == ".pdf")
+                        {
+                            SaveRichTextBoxAsPdf(richTextBox_Content, filePath);
+                        }
+                        else
+                        {
+                            SaveRtf(filePath);
+                        }
+
+                        MessageBox.Show("File saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
             }
         }
         private void LoadRtf(string filePath)

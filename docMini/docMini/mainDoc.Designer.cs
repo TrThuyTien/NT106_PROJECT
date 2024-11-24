@@ -29,6 +29,7 @@ namespace docMini
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainDoc));
             button_Exit = new Button();
             button_Minimize = new Button();
@@ -66,6 +67,7 @@ namespace docMini
             button_Open = new Button();
             richTextBox_Content = new RichTextBox();
             button_Connect = new Button();
+            contextMenu_Table = new ContextMenuStrip(components);
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -176,6 +178,7 @@ namespace docMini
             comboBox_Size.Name = "comboBox_Size";
             comboBox_Size.Size = new Size(54, 26);
             comboBox_Size.TabIndex = 15;
+            comboBox_Size.SelectedIndexChanged += comboBox_Size_SelectedIndexChanged;
             // 
             // comboBox_Font
             // 
@@ -184,6 +187,7 @@ namespace docMini
             comboBox_Font.Name = "comboBox_Font";
             comboBox_Font.Size = new Size(156, 26);
             comboBox_Font.TabIndex = 14;
+            comboBox_Font.SelectedIndexChanged += comboBox_Font_SelectedIndexChanged;
             // 
             // pictureBox_add
             // 
@@ -238,6 +242,7 @@ namespace docMini
             button_AddLink.Size = new Size(36, 35);
             button_AddLink.TabIndex = 12;
             button_AddLink.UseVisualStyleBackColor = true;
+            button_AddLink.Click += button_AddLink_Click;
             // 
             // button_AddTable
             // 
@@ -453,7 +458,7 @@ namespace docMini
             panel3.Controls.Add(panel2);
             panel3.Location = new Point(531, 157);
             panel3.Name = "panel3";
-            panel3.Size = new Size(533, 63);
+            panel3.Size = new Size(533, 75);
             panel3.TabIndex = 17;
             // 
             // panel4
@@ -487,9 +492,9 @@ namespace docMini
             // richTextBox_Content
             // 
             richTextBox_Content.BorderStyle = BorderStyle.None;
-            richTextBox_Content.Location = new Point(531, 219);
+            richTextBox_Content.Location = new Point(531, 231);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(533, 609);
+            richTextBox_Content.Size = new Size(533, 597);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
@@ -503,6 +508,12 @@ namespace docMini
             button_Connect.Text = "Mở tài liệu";
             button_Connect.UseVisualStyleBackColor = true;
             button_Connect.Click += button_Connect_Click;
+            // 
+            // contextMenu_Table
+            // 
+            contextMenu_Table.ImageScalingSize = new Size(20, 20);
+            contextMenu_Table.Name = "contextMenuStrip1";
+            contextMenu_Table.Size = new Size(61, 4);
             // 
             // mainDoc
             // 
@@ -557,6 +568,14 @@ namespace docMini
             SetRoundedPanel(panel_areaSearch, Color.White, 3, 30, Color.White);
 
         }
+        private void richTextBox_Content_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = e.LinkText,
+                UseShellExecute = true
+            });
+        }
         private void panel_searchDoc_Paint(object sender, PaintEventArgs e)
         {
             Panel panel = sender as Panel;
@@ -567,6 +586,61 @@ namespace docMini
                                     borderColor, borderWidth, ButtonBorderStyle.Solid,
                                     borderColor, borderWidth, ButtonBorderStyle.Solid,
                                     borderColor, borderWidth, ButtonBorderStyle.Solid);
+        }
+        private void InsertRtfAtCursor(RichTextBox richTextBox, string rtf)
+        {
+            // Lưu vị trí con trỏ hiện tại
+            int selectionStart = richTextBox.SelectionStart;
+
+            // Chèn RTF tại vị trí con trỏ
+            richTextBox.SelectedRtf = rtf;
+
+            // Đặt lại vị trí con trỏ sau khi chèn
+            richTextBox.SelectionStart = selectionStart + rtf.Length;
+        }
+        private void InitializeTableContextMenu()
+        {
+            contextMenu_Table = new ContextMenuStrip();
+            contextMenu_Table.RenderMode = ToolStripRenderMode.System;
+
+            // Thêm sự kiện xử lý cho menu
+            button_AddTable.Click += (s, e) =>
+            {
+                contextMenu_Table.Items.Clear();
+
+                // Thêm các mục chọn số cột
+                for (int cols = 1; cols <= 8; cols++) // Giới hạn số cột
+                {
+                    ToolStripMenuItem colItem = new ToolStripMenuItem($"{cols} Columns");
+
+                    // Thêm menu con cho số hàng
+                    for (int rows = 1; rows <= 8; rows++) // Giới hạn số hàng
+                    {
+                        ToolStripMenuItem rowItem = new ToolStripMenuItem($"{cols} x {rows}");
+                        rowItem.Tag = new Tuple<int, int>(rows, cols);
+
+                        // Sự kiện khi mục hàng được chọn
+                        rowItem.Click += (sender, args) =>
+                        {
+                            if (rowItem.Tag is Tuple<int, int> size)
+                            {
+                                int selectedRows = size.Item1;
+                                int selectedCols = size.Item2;
+
+                                // Chèn bảng vào vị trí con trỏ
+                                string newTableRtf = InsertTableInRichTextBox(selectedRows, selectedCols, 500);
+                                InsertRtfAtCursor(this.richTextBox_Content, newTableRtf);
+                            }
+                        };
+
+                        colItem.DropDownItems.Add(rowItem);
+                    }
+                    contextMenu_Table.Items.Add(colItem);
+                }
+
+                // Hiển thị menu dưới nút
+                contextMenu_Table.Show(button_AddTable, 0, button_AddTable.Height);
+            };
         }
         public class RoundedButton : Button
         {
@@ -742,5 +816,6 @@ namespace docMini
         private Button button_Open;
         private Button button_Connect;
         private RichTextBox richTextBox_ListFile;
+        private ContextMenuStrip contextMenu_Table;
     }
 }
