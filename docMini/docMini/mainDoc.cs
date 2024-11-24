@@ -1221,32 +1221,19 @@ namespace docMini
             richTextBox.DeselectAll();
             richTextBox.ResumeLayout();
         }
-        private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-
-        }
-
-        private void toolStripTextBox1_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void button_LineCounter_Click(object sender, EventArgs e)
         {
             string[] lines = richTextBox_Content.Lines;
+            var nonEmptyLines = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            for (int i = 0; i < lines.Length-1; i++)
+            for (int i = 0; i < nonEmptyLines.Length; i++)
             {
-                sb.Append(i + 1).Append(". ").Append(lines[i]).Append("\n");
+                sb.Append(i + 1).Append(". ").Append(nonEmptyLines[i]).Append("\n");
             }
             richTextBox_Content.Text = sb.ToString();
             richTextBox_Content.ResumeLayout();
         }
-
-        
-
-        
-
         // ---------------------------------------------------------------------------------
 
     }
