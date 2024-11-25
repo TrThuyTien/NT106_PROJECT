@@ -10,6 +10,16 @@ namespace docMini
         public SignIn()
         {
             InitializeComponent();
+            textbox_Username.KeyDown += TextBox_KeyDown;
+            textbox_Password.KeyDown += TextBox_KeyDown;
+        }
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) // Kiểm tra nếu nhấn phím Enter
+            {
+                e.SuppressKeyPress = true; // Ngăn tiếng 'bíp' khi nhấn Enter
+                button_SignIn_Click(button_SignIn, EventArgs.Empty); // Gọi sự kiện Click
+            }
         }
 
         TcpClient client;

@@ -1,15 +1,10 @@
-﻿using System.IO.Compression;
+﻿using System.Drawing.Printing;
+using System.IO.Compression;
 using System.Net.Sockets;
-using System.Text;
 using System.Runtime.InteropServices;
-using System.Data.SQLite;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using Microsoft.Office.Interop.Word;
+using System.Text;
+using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
-using Server;
-using System.Windows.Controls;
-using System.Drawing.Printing;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Menu;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -22,6 +17,7 @@ namespace docMini
         {
             InitializeComponent();
             InitializeTableContextMenu();
+            SetRichTextBoxPadding(richTextBox_Content, 65, 65, 65, 65);
             richTextBox_Content.LinkClicked += new LinkClickedEventHandler(richTextBox_Content_LinkClicked);
             idUser = userID;
             nameUser = userName;
@@ -32,21 +28,27 @@ namespace docMini
         {
             public IntPtr hdc;       // HDC để vẽ nội dung
             public IntPtr hdcTarget; // HDC mục tiêu (là máy in)
-            public RECT rc;          // Kích thước vùng vẽ
-            public RECT rcPage;      // Kích thước toàn bộ trang
+            public RECT1 rc;          // Kích thước vùng vẽ
+            public RECT1 rcPage;      // Kích thước toàn bộ trang
             public int chrg_cpMin;   // Vị trí ký tự bắt đầu
             public int chrg_cpMax;   // Vị trí ký tự kết thúc
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
+        public struct RECT1
         {
             public int Left;
             public int Top;
             public int Right;
             public int Bottom;
         }
-
+        private struct RECT2
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
@@ -70,14 +72,14 @@ namespace docMini
                     {
                         hdc = hdc,
                         hdcTarget = hdc,
-                        rc = new RECT
+                        rc = new RECT1
                         {
                             Left = 0,
                             Top = 0,
                             Right = (int)(e.PageBounds.Width * 14.4),  // Đơn vị TWIPS
                             Bottom = (int)(e.PageBounds.Height * 14.4) // Đơn vị TWIPS
                         },
-                        rcPage = new RECT
+                        rcPage = new RECT1
                         {
                             Left = 0,
                             Top = 0,
@@ -110,6 +112,23 @@ namespace docMini
                     MessageBox.Show($"Lỗi khi lưu file PDF: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+        private const int EM_SETRECT = 0xB3;
+        private void SetRichTextBoxPadding(RichTextBox rtb, int left, int top, int right, int bottom)
+        {
+            var rect = new RECT2
+            {
+                Left = left,
+                Top = top,
+                Right = rtb.Width - right,
+                Bottom = rtb.Height - bottom
+            };
+
+            // Gửi thông điệp EM_SETRECT để thiết lập vùng chỉnh sửa
+            IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(rect));
+            Marshal.StructureToPtr(rect, lParam, true);
+            SendMessage(rtb.Handle, EM_SETRECT, IntPtr.Zero, lParam);
+            Marshal.FreeHGlobal(lParam);
         }
         private void button_Minimize_Click(object sender, EventArgs e)
         {
@@ -313,22 +332,45 @@ namespace docMini
 
             if (richTextBox_Content.SelectionLength > 0)
             {
-                // Áp dụng kích thước mới cho vùng chọn
                 int selectionStart = richTextBox_Content.SelectionStart;
                 int selectionLength = richTextBox_Content.SelectionLength;
 
-                richTextBox_Content.SelectionFont = ApplyFontSizeToSelection(richTextBox_Content.SelectionFont, newSize);
-                richTextBox_Content.Select(selectionStart, selectionLength); // Đặt lại vùng chọn
+                // Áp dụng kích thước mới cho từng ký tự trong vùng chọn
+                for (int i = 0; i < selectionLength; i++)
+                {
+                    richTextBox_Content.Select(selectionStart + i, 1); // Chọn từng ký tự
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                            currentFont.FontFamily, newSize, currentFont.Style
+                        );
+                    }
+                }
+
+                // Đặt lại vùng chọn ban đầu
+                richTextBox_Content.Select(selectionStart, selectionLength);
             }
             else
             {
-                // Không có vùng chọn, áp dụng font mới cho ký tự tiếp theo
-                int selectionStart = richTextBox_Content.SelectionStart;
-
+                // Không có vùng chọn, áp dụng font mới cho văn bản nhập sau này
                 if (richTextBox_Content.SelectionFont != null)
                 {
                     System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, newSize, currentFont.Style);
+
+                    // Áp dụng cỡ chữ mới và loại bỏ các định dạng nếu cần
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                        currentFont.FontFamily,
+                        newSize,
+                        System.Drawing.FontStyle.Regular // Đặt về định dạng cơ bản (không in đậm, in nghiêng)
+                    );
+                }
+                else
+                {
+                    // Trường hợp không có SelectionFont, đặt font mặc định
+                    richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                        "Tahoma", newSize, System.Drawing.FontStyle.Regular
+                    );
                 }
             }
         }
@@ -572,6 +614,8 @@ namespace docMini
             {
                 comboBox_Size.Items.Add(i);
             }
+            comboBox_Font.SelectedIndex = comboBox_Font.FindString("Tahoma");
+            comboBox_Size.SelectedIndex = comboBox_Size.FindString("8");
         }
 
         private void button_AddPicture_Click(object sender, EventArgs e)
@@ -662,6 +706,134 @@ namespace docMini
                 }
             }
         }
+        private void button_LineSpace_Click(object sender, EventArgs e)
+        {
+            string input = Microsoft.VisualBasic.Interaction.InputBox("Nhập chỉ số cách dòng:", "Cài đặt khoảng cách dòng", "1", -1, -1);
+
+            // Kiểm tra giá trị nhập vào có hợp lệ không
+            if (float.TryParse(input, out float lineSpacing))
+            {
+                SetLineSpacing(richTextBox_Content, lineSpacing);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng nhập một số hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void SetLineSpacing(System.Windows.Forms.RichTextBox richTextBox, float lineSpacing)
+        {
+            richTextBox.SuspendLayout();
+
+            // Lấy toàn bộ nội dung của RichTextBox
+            richTextBox.SelectAll();
+
+            // Thiết lập khoảng cách dòng thông qua thuộc tính SelectionCharOffset
+            float emHeight = richTextBox.SelectionFont.GetHeight(richTextBox.CreateGraphics());
+            int lineSpacingInPixels = (int)(emHeight * (lineSpacing - 1));
+
+            richTextBox.SelectionCharOffset = lineSpacingInPixels;
+
+            // Đặt lại vùng chọn ban đầu
+            richTextBox.DeselectAll();
+            richTextBox.ResumeLayout();
+        }
+
+        private const int EM_GETCHARFORMAT = 0x043A;
+        private const int EM_SETCHARFORMAT = 0x0444;
+        private const int SCF_SELECTION = 0x0001;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CHARFORMAT2
+        {
+            public uint cbSize;
+            public uint dwMask;
+            public uint dwEffects;
+            public int yHeight;
+            public int yOffset;
+            public uint crTextColor;
+            public byte bCharSet;
+            public byte bPitchAndFamily;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string szFaceName;
+            public ushort wWeight;
+            public short sSpacing;
+            public int crBackColor;
+            public int lcid;
+            public int dwReserved;
+            public short sStyle;
+            public short wKerning;
+            public byte bUnderlineType;
+            public byte bAnimation;
+            public byte bRevAuthor;
+            public byte bReserved1;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref CHARFORMAT2 lParam);
+
+        public static void ApplyBulletPoints(RichTextBox richTextBox)
+        {
+            int selectionStart = richTextBox.SelectionStart;
+            int selectionLength = richTextBox.SelectionLength;
+
+            string[] lines = richTextBox.SelectedText.Split(new[] { '\n' }, StringSplitOptions.None);
+
+            int currentPosition = selectionStart;
+
+            foreach (var line in lines)
+            {
+                // Lấy định dạng hiện tại của dòng
+                var charFormat = new CHARFORMAT2();
+                charFormat.cbSize = (uint)Marshal.SizeOf(charFormat);
+
+                IntPtr result = SendMessage(richTextBox.Handle, EM_GETCHARFORMAT, new IntPtr(SCF_SELECTION), ref charFormat);
+                if (result == IntPtr.Zero)
+                {
+                    System.Windows.Forms.MessageBox.Show("Lỗi khi lấy định dạng.");
+                    return;
+                }
+
+                // Thêm số thứ tự
+                string bullet = $"{Array.IndexOf(lines, line) + 1}. ";
+                richTextBox.Select(currentPosition, 0);
+                richTextBox.SelectedText = bullet;
+
+                // Áp dụng lại định dạng gốc
+                currentPosition += bullet.Length;
+                richTextBox.Select(currentPosition, line.Length);
+                SendMessage(richTextBox.Handle, EM_SETCHARFORMAT, new IntPtr(SCF_SELECTION), ref charFormat);
+
+                // Cập nhật vị trí tiếp theo
+                currentPosition += line.Length + 1; // +1 cho ký tự xuống dòng
+            }
+        }
+        private void button_LineCounter_Click(object sender, EventArgs e)
+        {
+            ApplyBulletPoints(richTextBox_Content);
+        }
+
+        private void button_textColor_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog colorDialog = new ColorDialog())
+            {
+                if (colorDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Áp dụng màu chữ cho đoạn văn bản được chọn
+                    richTextBox_Content.SelectionColor = colorDialog.Color;
+                }
+            }
+        }
+        private void button_HighLight_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog colorDialog = new ColorDialog())
+            {
+                if (colorDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Áp dụng màu nền cho đoạn văn bản được chọn
+                    richTextBox_Content.SelectionBackColor = colorDialog.Color;
+                }
+            }
+        }
         private void SaveRtf(string filePath)
         {
             try
@@ -681,7 +853,7 @@ namespace docMini
                 saveFileDialog.Filter = "Portable Document Format (*.pdf)|*.pdf|Rich Text Format (*.rtf)|*.rtf";
                 saveFileDialog.Title = "Save File";
 
-                saveFileDialog.FileName = "Document";
+                saveFileDialog.FileName = "newFile";
                 if (saveFileDialog.FilterIndex == 1)
                 {
                     saveFileDialog.FileName += ".pdf";
@@ -1376,56 +1548,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
-        private void button_LineSpace_Click(object sender, EventArgs e)
-        {
-            string input = Microsoft.VisualBasic.Interaction.InputBox("Nhập chỉ số cách dòng:", "Cài đặt khoảng cách dòng", "1", -1, -1);
-
-            // Kiểm tra giá trị nhập vào có hợp lệ không
-            if (float.TryParse(input, out float lineSpacing))
-            {
-                SetLineSpacing(richTextBox_Content, lineSpacing);
-            }
-            else
-            {
-                MessageBox.Show("Vui lòng nhập một số hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void SetLineSpacing(System.Windows.Forms.RichTextBox richTextBox, float lineSpacing)
-        {
-            richTextBox.SuspendLayout();
-
-            // Lấy toàn bộ nội dung của RichTextBox
-            richTextBox.SelectAll();
-
-            // Thiết lập khoảng cách dòng thông qua thuộc tính SelectionCharOffset
-            float emHeight = richTextBox.SelectionFont.GetHeight(richTextBox.CreateGraphics());
-            int lineSpacingInPixels = (int)(emHeight * (lineSpacing - 1));
-
-            richTextBox.SelectionCharOffset = lineSpacingInPixels;
-
-            // Đặt lại vùng chọn ban đầu
-            richTextBox.DeselectAll();
-            richTextBox.ResumeLayout();
-        }
-
-        private void button_LineCounter_Click(object sender, EventArgs e)
-        {
-            string[] lines = richTextBox_Content.Lines;
-            var nonEmptyLines = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            for (int i = 0; i < nonEmptyLines.Length; i++)
-            {
-                sb.Append(i + 1).Append(". ").Append(nonEmptyLines[i]).Append("\n");
-            }
-            richTextBox_Content.Text = sb.ToString();
-            richTextBox_Content.ResumeLayout();
-        }
-
-
-
-
-
         // ---------------------------------------------------------------------------------
 
     }
