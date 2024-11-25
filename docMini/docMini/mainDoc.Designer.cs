@@ -38,6 +38,8 @@ namespace docMini
             pictureBox_Logo = new PictureBox();
             panel_ToolbarBorder = new Panel();
             panel_Toolbar = new Panel();
+            button_HighLight = new Button();
+            button_textColor = new Button();
             button_Download = new Button();
             button_LineCounter = new Button();
             button_LineSpace = new Button();
@@ -57,24 +59,16 @@ namespace docMini
             button_Bold = new Button();
             pictureBox_Avatar = new PictureBox();
             listBox_Docs = new ListBox();
-            panel1 = new Panel();
-            panel5 = new Panel();
-            panel6 = new Panel();
-            panel3 = new Panel();
-            panel4 = new Panel();
             richTextBox_Content = new RichTextBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripTextBox1 = new ToolStripTextBox();
-            panel2 = new Panel();
             label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
-            panel1.SuspendLayout();
-            panel5.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -150,6 +144,8 @@ namespace docMini
             // panel_Toolbar
             // 
             panel_Toolbar.BackColor = Color.White;
+            panel_Toolbar.Controls.Add(button_HighLight);
+            panel_Toolbar.Controls.Add(button_textColor);
             panel_Toolbar.Controls.Add(button_Download);
             panel_Toolbar.Controls.Add(button_LineCounter);
             panel_Toolbar.Controls.Add(button_LineSpace);
@@ -172,6 +168,29 @@ namespace docMini
             panel_Toolbar.Size = new Size(1389, 85);
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
+            // 
+            // button_HighLight
+            // 
+            button_HighLight.BackgroundImage = (Image)resources.GetObject("button_HighLight.BackgroundImage");
+            button_HighLight.BackgroundImageLayout = ImageLayout.Stretch;
+            button_HighLight.Image = (Image)resources.GetObject("button_HighLight.Image");
+            button_HighLight.Location = new Point(893, 27);
+            button_HighLight.Name = "button_HighLight";
+            button_HighLight.Size = new Size(35, 35);
+            button_HighLight.TabIndex = 23;
+            button_HighLight.UseVisualStyleBackColor = true;
+            button_HighLight.Click += button_HighLight_Click;
+            // 
+            // button_textColor
+            // 
+            button_textColor.BackgroundImage = (Image)resources.GetObject("button_textColor.BackgroundImage");
+            button_textColor.BackgroundImageLayout = ImageLayout.Stretch;
+            button_textColor.Location = new Point(1061, 28);
+            button_textColor.Name = "button_textColor";
+            button_textColor.Size = new Size(35, 34);
+            button_textColor.TabIndex = 24;
+            button_textColor.UseVisualStyleBackColor = true;
+            button_textColor.Click += button_textColor_Click;
             // 
             // button_Download
             // 
@@ -197,7 +216,7 @@ namespace docMini
             button_LineCounter.FlatAppearance.BorderSize = 0;
             button_LineCounter.FlatStyle = FlatStyle.Flat;
             button_LineCounter.Image = (Image)resources.GetObject("button_LineCounter.Image");
-            button_LineCounter.Location = new Point(859, 25);
+            button_LineCounter.Location = new Point(849, 25);
             button_LineCounter.Name = "button_LineCounter";
             button_LineCounter.Size = new Size(37, 36);
             button_LineCounter.TabIndex = 16;
@@ -209,7 +228,7 @@ namespace docMini
             button_LineSpace.FlatAppearance.BorderSize = 0;
             button_LineSpace.FlatStyle = FlatStyle.Flat;
             button_LineSpace.Image = (Image)resources.GetObject("button_LineSpace.Image");
-            button_LineSpace.Location = new Point(817, 24);
+            button_LineSpace.Location = new Point(807, 22);
             button_LineSpace.Name = "button_LineSpace";
             button_LineSpace.Size = new Size(36, 36);
             button_LineSpace.TabIndex = 16;
@@ -437,55 +456,13 @@ namespace docMini
             listBox_Docs.TabIndex = 21;
             listBox_Docs.DoubleClick += listBox_Docs_DoubleClick;
             // 
-            // panel1
-            // 
-            panel1.BackColor = Color.White;
-            panel1.Controls.Add(panel5);
-            panel1.Location = new Point(467, 149);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(74, 766);
-            panel1.TabIndex = 15;
-            // 
-            // panel5
-            // 
-            panel5.BackColor = Color.White;
-            panel5.Controls.Add(panel6);
-            panel5.Location = new Point(74, 737);
-            panel5.Name = "panel5";
-            panel5.Size = new Size(533, 29);
-            panel5.TabIndex = 22;
-            // 
-            // panel6
-            // 
-            panel6.BackColor = Color.White;
-            panel6.Location = new Point(539, 3);
-            panel6.Name = "panel6";
-            panel6.Size = new Size(73, 671);
-            panel6.TabIndex = 16;
-            // 
-            // panel3
-            // 
-            panel3.BackColor = Color.White;
-            panel3.Location = new Point(541, 149);
-            panel3.Name = "panel3";
-            panel3.Size = new Size(612, 68);
-            panel3.TabIndex = 17;
-            // 
-            // panel4
-            // 
-            panel4.BackColor = Color.White;
-            panel4.Location = new Point(1153, 149);
-            panel4.Name = "panel4";
-            panel4.Size = new Size(76, 766);
-            panel4.TabIndex = 18;
-            // 
             // richTextBox_Content
             // 
             richTextBox_Content.BackColor = Color.White;
             richTextBox_Content.BorderStyle = BorderStyle.None;
-            richTextBox_Content.Location = new Point(541, 215);
+            richTextBox_Content.Location = new Point(480, 166);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(612, 668);
+            richTextBox_Content.Size = new Size(796, 737);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
@@ -515,14 +492,6 @@ namespace docMini
             toolStripTextBox1.Name = "toolStripTextBox1";
             toolStripTextBox1.Size = new Size(100, 27);
             // 
-            // panel2
-            // 
-            panel2.BackColor = Color.White;
-            panel2.Location = new Point(541, 882);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(612, 33);
-            panel2.TabIndex = 18;
-            // 
             // label1
             // 
             label1.AutoSize = true;
@@ -540,11 +509,7 @@ namespace docMini
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1404, 935);
             Controls.Add(label1);
-            Controls.Add(panel2);
             Controls.Add(listBox_Docs);
-            Controls.Add(panel4);
-            Controls.Add(panel3);
-            Controls.Add(panel1);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
             Controls.Add(panel_ToolbarBorder);
@@ -563,8 +528,6 @@ namespace docMini
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).EndInit();
-            panel1.ResumeLayout(false);
-            panel5.ResumeLayout(false);
             contextMenuStrip1.ResumeLayout(false);
             contextMenuStrip1.PerformLayout();
             ResumeLayout(false);
@@ -896,9 +859,6 @@ namespace docMini
         private Button button_ShareDoc;
         private ComboBox comboBox_Size;
         private ComboBox comboBox_Font;
-        private Panel panel1;
-        private Panel panel3;
-        private Panel panel4;
         private RichTextBox richTextBox_Content;
         private ListBox listBox_Docs;
         private Button button_Connect;
@@ -909,9 +869,8 @@ namespace docMini
         private ToolStripTextBox toolStripTextBox1;
         private Button button_NewFile;
         private Button button_Download;
-        private Panel panel5;
-        private Panel panel6;
-        private Panel panel2;
         private Label label1;
+        private Button button_HighLight;
+        private Button button_textColor;
     }
 }
