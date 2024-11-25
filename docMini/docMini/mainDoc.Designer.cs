@@ -57,6 +57,7 @@ namespace docMini
             button_Bold = new Button();
             pictureBox_Avatar = new PictureBox();
             panel_searchDoc = new Panel();
+            listBox_Docs = new ListBox();
             panel_areaSearch = new Panel();
             button_searchDoc = new Button();
             textBox_searchDoc = new TextBox();
@@ -67,7 +68,6 @@ namespace docMini
             button_Save = new Button();
             button_Open = new Button();
             richTextBox_Content = new RichTextBox();
-            listBox_Docs = new ListBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
             contextMenuStrip1 = new ContextMenuStrip(components);
@@ -255,6 +255,7 @@ namespace docMini
             button_ShareDoc.TabIndex = 13;
             button_ShareDoc.Text = "      Share";
             button_ShareDoc.UseVisualStyleBackColor = false;
+            button_ShareDoc.Click += button_ShareDoc_Click_1;
             button_ShareDoc.Paint += button_ShareDoc_Paint;
             // 
             // button_AddLink
@@ -417,6 +418,17 @@ namespace docMini
             panel_searchDoc.TabIndex = 11;
             panel_searchDoc.Paint += panel_searchDoc_Paint;
             // 
+            // listBox_Docs
+            // 
+            listBox_Docs.Font = new Font("Tahoma", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            listBox_Docs.FormattingEnabled = true;
+            listBox_Docs.ItemHeight = 22;
+            listBox_Docs.Location = new Point(19, 86);
+            listBox_Docs.Name = "listBox_Docs";
+            listBox_Docs.Size = new Size(321, 246);
+            listBox_Docs.TabIndex = 21;
+            listBox_Docs.DoubleClick += listBox_Docs_DoubleClick;
+            // 
             // panel_areaSearch
             // 
             panel_areaSearch.BackColor = Color.White;
@@ -516,16 +528,12 @@ namespace docMini
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
-            // listBox_Docs
+            // button_Connect
             // 
-            listBox_Docs.Font = new Font("Tahoma", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            listBox_Docs.FormattingEnabled = true;
-            listBox_Docs.ItemHeight = 22;
-            listBox_Docs.Location = new Point(19, 86);
-            listBox_Docs.Name = "listBox_Docs";
-            listBox_Docs.Size = new Size(321, 246);
-            listBox_Docs.TabIndex = 21;
-            listBox_Docs.DoubleClick += listBox_Docs_DoubleClick;
+            button_Connect.Location = new Point(0, 0);
+            button_Connect.Name = "button_Connect";
+            button_Connect.Size = new Size(75, 23);
+            button_Connect.TabIndex = 0;
             // 
             // contextMenu_Table
             // 

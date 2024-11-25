@@ -101,13 +101,85 @@ namespace Server
             else if (update.StartsWith("EDIT_DOC|"))
             {
                 await HandleEditDocumentAsync(update, stream, client);
-               
             }
             else if (update.StartsWith("GET_ALL_FILE|"))
             {
                 await HandleGetAllFileAsync(update, stream);
             }
+            else if (update.StartsWith("SHARE_FILE|"))
+            {
+                await HandleShareDocumentAsync(update, stream);
+            }
         }
+
+        private async Task HandleShareDocumentAsync(string update, NetworkStream stream)
+        {
+            try
+            {
+                string[] parts = update.Split('|');
+                if (parts.Length == 4)
+                {
+                    string userName = parts[1].Trim();
+                    string fileName = parts[2].Trim();
+                    string mode = parts[3].Trim();
+
+                    // "Chỉnh sửa" -> editStatus = 0, "Xem" -> editStatus = 1
+                    int editStatus = mode.Equals("Chỉnh sửa", StringComparison.OrdinalIgnoreCase) ? 0 : 1;
+
+                    DatabaseManager dbManager = new DatabaseManager();
+
+                    // Lấy ID người dùng
+                    int userId = dbManager.GetUserIdByUsername(userName);
+                    if (userId == -1)
+                    {
+                        byte[] response = Encoding.UTF8.GetBytes($"SHARE_FILE|{userName}|FAIL|USER_NOT_FOUND");
+                        await SendResponseAsync(stream, response);
+                        return;
+                    }
+
+                    // Thêm tài liệu mới vào cơ sở dữ liệu
+                    int idDoc = dbManager.AddNewDocument(fileName, userName, userId);
+
+                    if (idDoc > 0)
+                    {
+                        // Gắn tài liệu với người dùng và cấp quyền
+                        bool linked = dbManager.LinkUserToDoc(userId, idDoc, editStatus);
+
+                        if (linked)
+                        {
+                            string responseMessage = $"SHARE_FILE|{userName}|SUCCESS|{idDoc}";
+                            byte[] response = Encoding.UTF8.GetBytes(responseMessage);
+                            await SendResponseAsync(stream, response);
+                        }
+                        else
+                        {
+                            string responseMessage = $"SHARE_FILE|{userName}|FAIL|LINK_FAILED";
+                            byte[] response = Encoding.UTF8.GetBytes(responseMessage);
+                            await SendResponseAsync(stream, response);
+                        }
+                    }
+                    else
+                    {
+                        string responseMessage = $"SHARE_FILE|{userName}|FAIL|ADD_FAILED";
+                        byte[] response = Encoding.UTF8.GetBytes(responseMessage);
+                        await SendResponseAsync(stream, response);
+                    }
+                }
+                else
+                {
+                    byte[] response = Encoding.UTF8.GetBytes("ERROR|INVALID_FORMAT");
+                    await SendResponseAsync(stream, response);
+                }
+            }
+            catch (Exception ex)
+            {
+                byte[] response = Encoding.UTF8.GetBytes("ERROR");
+                await SendResponseAsync(stream, response);
+
+                Console.WriteLine($"Error in HandleShareDocumentAsync: {ex.Message}");
+            }
+        }
+
 
         private async Task HandleNewFileAsync(string update, NetworkStream stream)
         {

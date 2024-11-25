@@ -743,8 +743,154 @@ namespace docMini
         }
 
 
+        private void button_ShareDoc_Click_1(object sender, EventArgs e)
+        {
+            // Tạo form tạm thời
+            Form tempForm = new Form
+            {
+                Text = "Chia sẻ tài liệu",
+                Width = 400,
+                Height = 250,
+                StartPosition = FormStartPosition.CenterParent
+            };
 
-        
+            // Tạo TextBox để nhập tên người dùng
+            System.Windows.Forms.TextBox textBox_UserName = new System.Windows.Forms.TextBox
+            {
+                PlaceholderText = "Nhập tên người dùng...",
+                Dock = DockStyle.Top,
+                Margin = new Padding(10),
+            };
+
+            // Tạo ComboBox để chọn chế độ chia sẻ
+            System.Windows.Forms.ComboBox comboBox_Mode = new System.Windows.Forms.ComboBox
+            {
+                Dock = DockStyle.Top,
+                Margin = new Padding(10),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+            };
+
+            // Thêm các tùy chọn vào ComboBox
+            comboBox_Mode.Items.Add("Chỉnh sửa");
+            comboBox_Mode.Items.Add("Xem");
+            comboBox_Mode.SelectedIndex = 0; // Mặc định chọn "Chỉnh sửa"
+
+            // Tạo nút "Chia sẻ Tài Liệu"
+            System.Windows.Forms.Button button_Share = new System.Windows.Forms.Button
+            {
+                Text = "Chia sẻ",
+                Dock = DockStyle.Bottom,
+                Height = 40
+            };
+
+            // Thêm các điều khiển vào form tạm thời
+            tempForm.Controls.Add(textBox_UserName);
+            tempForm.Controls.Add(comboBox_Mode);
+            tempForm.Controls.Add(button_Share);
+
+            // Xử lý sự kiện nhấn nút "Chia sẻ tài liệu"
+            button_Share.Click += async (s, args) =>
+            {
+                string username = textBox_UserName.Text.Trim();
+                string mode = comboBox_Mode.SelectedItem.ToString();
+
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    MessageBox.Show("Tên người dùng không được để trống!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                try
+                {
+                    // Tạo gói tin gửi đi với chế độ được chọn
+                    string serverResponse = await SendShareFileAsync(username, mode);
+                    if (serverResponse.StartsWith("SHARE_FILE|"))
+                    {
+                        var responseParts = serverResponse.Split('|');
+                        if (responseParts.Length >= 4)
+                        {
+                            string status = responseParts[2];
+                            switch (status)
+                            {
+                                case "SUCCESS":
+                                    idDoc = int.Parse(responseParts[3]);
+                                    MessageBox.Show(
+                                        "Chia sẻ tài liệu thành công!",
+                                        "Thông báo",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Information
+                                    );
+                                    tempForm.Close();
+                                    break;
+
+                                case "FAIL":
+                                    string reason = responseParts.Length > 3 ? responseParts[3] : "UNKNOWN_ERROR";
+                                    string errorMessage = reason switch
+                                    {
+                                        "USER_NOT_FOUND" => "Người dùng không tồn tại. Vui lòng kiểm tra lại.",
+                                        "DUPLICATE" => "Tài liệu đã tồn tại. Không thể chia sẻ trùng lặp.",
+                                        "LINK_FAILED" => "Không thể liên kết tài liệu với người dùng.",
+                                        "ADD_FAILED" => "Không thể thêm tài liệu vào cơ sở dữ liệu.",
+                                        _ => "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau."
+                                    };
+                                    MessageBox.Show(
+                                        errorMessage,
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error
+                                    );
+                                    textBox_UserName.Clear();
+                                    break;
+
+                                default:
+                                    MessageBox.Show(
+                                        "Phản hồi từ server không hợp lệ.",
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error
+                                    );
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                "Phản hồi từ server không đầy đủ.",
+                                "Lỗi",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error
+                            );
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "Phản hồi không hợp lệ từ server.",
+                            "Lỗi",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (SocketException ex)
+                {
+                    MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
+                                    "Lỗi",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
+                                    "Lỗi",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                }
+            };
+
+            tempForm.ShowDialog();
+        }
+
 
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
@@ -930,7 +1076,7 @@ namespace docMini
             }
         }
 
-        
+
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
         {
             try
@@ -949,7 +1095,7 @@ namespace docMini
         }
 
         // Lấy tất cả file Doc của người dùng
-        
+
         private async Task<string> SendGetAllFileRequestAsync()
         {
             using (tcpClient = new TcpClient())
@@ -978,6 +1124,25 @@ namespace docMini
                     // Gửi yêu cầu tạo file
                     string message = $"NEW_FILE|{idUser}|{fileName}";
                     await SendDataAsync(message);
+                    // Nhận phản hồi từ server
+                    string serverResponse = await ReceiveDataAsync();
+                    return serverResponse;
+                }
+            }
+        }
+
+        // Gửi yêu cầu chia sẻ file cho người dùng khác
+        private async Task<string> SendShareFileAsync(string username, string mode)
+        {
+            using (tcpClient = new TcpClient())
+            {
+                await tcpClient.ConnectAsync(serverIP, serverPort);
+                using (stream = tcpClient.GetStream())
+                {
+                    // Gửi yêu cầu chia sẻ file với chế độ được chọn
+                    string message = $"SHARE_FILE|{nameUser}|{username}|{mode}";
+                    await SendDataAsync(message);
+
                     // Nhận phản hồi từ server
                     string serverResponse = await ReceiveDataAsync();
                     return serverResponse;
@@ -1142,7 +1307,7 @@ namespace docMini
                         {
                             var responseParts = responseMessage.Split('|');
                             if (responseParts.Length == 3)
-                            { 
+                            {
                                 string content = responseParts[2];
                                 if (richTextBox_Content.InvokeRequired)
                                 {
@@ -1234,6 +1399,7 @@ namespace docMini
             richTextBox_Content.Text = sb.ToString();
             richTextBox_Content.ResumeLayout();
         }
+
         // ---------------------------------------------------------------------------------
 
     }
