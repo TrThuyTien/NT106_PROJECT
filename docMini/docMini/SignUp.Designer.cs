@@ -39,48 +39,49 @@
             // 
             // textbox_Username
             // 
-            textbox_Username.BackColor = Color.Black;
-            textbox_Username.BorderStyle = BorderStyle.FixedSingle;
-            textbox_Username.Font = new Font("Segoe UI", 25.8000011F);
-            textbox_Username.ForeColor = Color.White;
-            textbox_Username.Location = new Point(189, 377);
+            textbox_Username.BackColor = Color.White;
+            textbox_Username.BorderStyle = BorderStyle.None;
+            textbox_Username.Font = new Font("Segoe UI", 16.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textbox_Username.ForeColor = Color.Black;
+            textbox_Username.Location = new Point(166, 287);
             textbox_Username.Name = "textbox_Username";
-            textbox_Username.Size = new Size(449, 65);
+            textbox_Username.Size = new Size(363, 38);
             textbox_Username.TabIndex = 0;
             // 
             // textbox_Email
             // 
-            textbox_Email.BackColor = Color.Black;
-            textbox_Email.BorderStyle = BorderStyle.FixedSingle;
-            textbox_Email.Font = new Font("Segoe UI", 25.8000011F);
-            textbox_Email.ForeColor = Color.White;
-            textbox_Email.Location = new Point(189, 516);
+            textbox_Email.BackColor = Color.White;
+            textbox_Email.BorderStyle = BorderStyle.None;
+            textbox_Email.Font = new Font("Segoe UI", 16.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textbox_Email.ForeColor = Color.Black;
+            textbox_Email.Location = new Point(166, 391);
             textbox_Email.Name = "textbox_Email";
-            textbox_Email.Size = new Size(449, 65);
+            textbox_Email.Size = new Size(363, 38);
             textbox_Email.TabIndex = 1;
             // 
             // textbox_Password
             // 
-            textbox_Password.BackColor = Color.Black;
-            textbox_Password.BorderStyle = BorderStyle.FixedSingle;
-            textbox_Password.Font = new Font("Segoe UI", 25.8000011F);
-            textbox_Password.ForeColor = Color.White;
-            textbox_Password.Location = new Point(189, 654);
+            textbox_Password.BackColor = Color.White;
+            textbox_Password.BorderStyle = BorderStyle.None;
+            textbox_Password.Font = new Font("Segoe UI", 16.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textbox_Password.ForeColor = Color.Black;
+            textbox_Password.Location = new Point(166, 495);
             textbox_Password.Name = "textbox_Password";
-            textbox_Password.Size = new Size(449, 65);
+            textbox_Password.Size = new Size(363, 38);
             textbox_Password.TabIndex = 2;
             // 
             // button_SignUp
             // 
             button_SignUp.AutoSize = true;
-            button_SignUp.BackColor = Color.Black;
+            button_SignUp.BackColor = Color.Transparent;
             button_SignUp.FlatAppearance.BorderColor = Color.Black;
+            button_SignUp.FlatAppearance.BorderSize = 0;
             button_SignUp.FlatStyle = FlatStyle.Flat;
-            button_SignUp.Font = new Font("Sitka Small", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button_SignUp.Font = new Font("Sitka Small", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             button_SignUp.ForeColor = Color.White;
-            button_SignUp.Location = new Point(312, 782);
+            button_SignUp.Location = new Point(262, 585);
             button_SignUp.Name = "button_SignUp";
-            button_SignUp.Size = new Size(201, 46);
+            button_SignUp.Size = new Size(172, 36);
             button_SignUp.TabIndex = 7;
             button_SignUp.Text = "SIGN UP";
             button_SignUp.UseMnemonic = false;
@@ -93,7 +94,7 @@
             label1.BackColor = Color.Transparent;
             label1.Font = new Font("Sitka Small", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.White;
-            label1.Location = new Point(189, 867);
+            label1.Location = new Point(157, 632);
             label1.Name = "label1";
             label1.Size = new Size(252, 26);
             label1.TabIndex = 10;
@@ -104,8 +105,8 @@
             label_SwitchSignIn.AutoSize = true;
             label_SwitchSignIn.BackColor = Color.Transparent;
             label_SwitchSignIn.Font = new Font("Sitka Small", 10.8F, FontStyle.Bold);
-            label_SwitchSignIn.ForeColor = Color.DeepSkyBlue;
-            label_SwitchSignIn.Location = new Point(447, 867);
+            label_SwitchSignIn.ForeColor = Color.DarkBlue;
+            label_SwitchSignIn.Location = new Point(415, 632);
             label_SwitchSignIn.Name = "label_SwitchSignIn";
             label_SwitchSignIn.Size = new Size(80, 26);
             label_SwitchSignIn.TabIndex = 11;
@@ -117,7 +118,8 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
-            ClientSize = new Size(794, 961);
+            BackgroundImageLayout = ImageLayout.Stretch;
+            ClientSize = new Size(682, 753);
             Controls.Add(label_SwitchSignIn);
             Controls.Add(label1);
             Controls.Add(button_SignUp);
@@ -125,6 +127,8 @@
             Controls.Add(textbox_Email);
             Controls.Add(textbox_Username);
             MaximizeBox = false;
+            MaximumSize = new Size(700, 800);
+            MinimumSize = new Size(700, 800);
             Name = "SignUp";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Sign Up";
