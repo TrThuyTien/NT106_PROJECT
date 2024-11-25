@@ -81,6 +81,7 @@ public class DatabaseManager
             }
         }
     }
+
     // Phương thức mã hóa mật khẩu
     private string HashPassword(string password)
     {
@@ -268,7 +269,6 @@ public class DatabaseManager
         }
     }
 
-
     // Lấy nội dung của Doc
     public async Task<string> GetDocumentContentByIdAsync(int docID, int userID)
     {
@@ -297,8 +297,6 @@ public class DatabaseManager
             }
         }
     }
-
-
 
     // Cập nhập tài liệu
     public async Task<bool> UpdateDocumentContentAsync(int docId, string content)
@@ -440,7 +438,5 @@ public class DatabaseManager
 
         return documents;
     }
-
-
 
 }
