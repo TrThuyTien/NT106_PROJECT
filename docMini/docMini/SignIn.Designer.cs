@@ -87,7 +87,7 @@
             checkbox_SaveAccount.ForeColor = Color.White;
             checkbox_SaveAccount.Location = new Point(152, 475);
             checkbox_SaveAccount.Name = "checkbox_SaveAccount";
-            checkbox_SaveAccount.Size = new Size(163, 29);
+            checkbox_SaveAccount.Size = new Size(161, 28);
             checkbox_SaveAccount.TabIndex = 7;
             checkbox_SaveAccount.Text = "Remember me";
             checkbox_SaveAccount.UseVisualStyleBackColor = false;
@@ -100,7 +100,7 @@
             label_ForgotPass.ForeColor = Color.Coral;
             label_ForgotPass.Location = new Point(345, 475);
             label_ForgotPass.Name = "label_ForgotPass";
-            label_ForgotPass.Size = new Size(182, 26);
+            label_ForgotPass.Size = new Size(180, 26);
             label_ForgotPass.TabIndex = 8;
             label_ForgotPass.Text = "Forgot Password?";
             label_ForgotPass.Click += label_ForgotPass_Click;

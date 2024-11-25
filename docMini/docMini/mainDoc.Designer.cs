@@ -38,12 +38,12 @@ namespace docMini
             pictureBox_Logo = new PictureBox();
             panel_ToolbarBorder = new Panel();
             panel_Toolbar = new Panel();
+            button_Download = new Button();
             button_LineCounter = new Button();
             button_LineSpace = new Button();
             comboBox_Size = new ComboBox();
+            button_NewFile = new Button();
             comboBox_Font = new ComboBox();
-            pictureBox_add = new PictureBox();
-            button_NewFile = new RoundedButton();
             button_ShareDoc = new Button();
             button_AddLink = new Button();
             button_AddTable = new Button();
@@ -56,30 +56,25 @@ namespace docMini
             button_Underline = new Button();
             button_Bold = new Button();
             pictureBox_Avatar = new PictureBox();
-            panel_searchDoc = new Panel();
             listBox_Docs = new ListBox();
-            panel_areaSearch = new Panel();
-            button_searchDoc = new Button();
-            textBox_searchDoc = new TextBox();
             panel1 = new Panel();
-            panel2 = new Panel();
+            panel5 = new Panel();
+            panel6 = new Panel();
             panel3 = new Panel();
             panel4 = new Panel();
-            button_Save = new Button();
-            button_Open = new Button();
             richTextBox_Content = new RichTextBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripTextBox1 = new ToolStripTextBox();
+            panel2 = new Panel();
+            label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox_add).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
-            panel_searchDoc.SuspendLayout();
-            panel_areaSearch.SuspendLayout();
-            panel3.SuspendLayout();
+            panel1.SuspendLayout();
+            panel5.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -90,7 +85,7 @@ namespace docMini
             button_Exit.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Exit.FlatStyle = FlatStyle.Flat;
             button_Exit.Image = Properties.Resources.exit_32px;
-            button_Exit.Location = new Point(1209, 11);
+            button_Exit.Location = new Point(1365, 4);
             button_Exit.Name = "button_Exit";
             button_Exit.Size = new Size(36, 35);
             button_Exit.TabIndex = 1;
@@ -104,7 +99,7 @@ namespace docMini
             button_Minimize.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Minimize.FlatStyle = FlatStyle.Flat;
             button_Minimize.Image = Properties.Resources.minimize;
-            button_Minimize.Location = new Point(1167, 11);
+            button_Minimize.Location = new Point(1323, 4);
             button_Minimize.Name = "button_Minimize";
             button_Minimize.Size = new Size(36, 35);
             button_Minimize.TabIndex = 2;
@@ -114,7 +109,7 @@ namespace docMini
             // label_NameAccount
             // 
             label_NameAccount.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            label_NameAccount.Location = new Point(933, 16);
+            label_NameAccount.Location = new Point(1092, 10);
             label_NameAccount.Name = "label_NameAccount";
             label_NameAccount.Size = new Size(184, 24);
             label_NameAccount.TabIndex = 4;
@@ -125,17 +120,17 @@ namespace docMini
             // 
             label_DocumentName.AutoSize = true;
             label_DocumentName.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            label_DocumentName.Location = new Point(56, 21);
+            label_DocumentName.Location = new Point(38, 9);
             label_DocumentName.Name = "label_DocumentName";
-            label_DocumentName.Size = new Size(252, 24);
+            label_DocumentName.Size = new Size(133, 24);
             label_DocumentName.TabIndex = 6;
-            label_DocumentName.Text = "Tên tài liệu đang chỉnh sửa";
+            label_DocumentName.Text = "* Tạo file mới";
             label_DocumentName.TextAlign = ContentAlignment.MiddleRight;
             // 
             // pictureBox_Logo
             // 
             pictureBox_Logo.Image = Properties.Resources.doc;
-            pictureBox_Logo.Location = new Point(12, 14);
+            pictureBox_Logo.Location = new Point(-1, 2);
             pictureBox_Logo.Name = "pictureBox_Logo";
             pictureBox_Logo.Size = new Size(38, 35);
             pictureBox_Logo.SizeMode = PictureBoxSizeMode.CenterImage;
@@ -146,21 +141,21 @@ namespace docMini
             // 
             panel_ToolbarBorder.BackColor = Color.RoyalBlue;
             panel_ToolbarBorder.Controls.Add(panel_Toolbar);
-            panel_ToolbarBorder.Location = new Point(5, 55);
+            panel_ToolbarBorder.Location = new Point(6, 43);
             panel_ToolbarBorder.Name = "panel_ToolbarBorder";
-            panel_ToolbarBorder.Size = new Size(1240, 91);
+            panel_ToolbarBorder.Size = new Size(1395, 91);
             panel_ToolbarBorder.TabIndex = 7;
             panel_ToolbarBorder.Paint += panel1_Paint;
             // 
             // panel_Toolbar
             // 
             panel_Toolbar.BackColor = Color.White;
+            panel_Toolbar.Controls.Add(button_Download);
             panel_Toolbar.Controls.Add(button_LineCounter);
             panel_Toolbar.Controls.Add(button_LineSpace);
             panel_Toolbar.Controls.Add(comboBox_Size);
-            panel_Toolbar.Controls.Add(comboBox_Font);
-            panel_Toolbar.Controls.Add(pictureBox_add);
             panel_Toolbar.Controls.Add(button_NewFile);
+            panel_Toolbar.Controls.Add(comboBox_Font);
             panel_Toolbar.Controls.Add(button_ShareDoc);
             panel_Toolbar.Controls.Add(button_AddLink);
             panel_Toolbar.Controls.Add(button_AddTable);
@@ -174,70 +169,91 @@ namespace docMini
             panel_Toolbar.Controls.Add(button_Bold);
             panel_Toolbar.Location = new Point(3, 3);
             panel_Toolbar.Name = "panel_Toolbar";
-            panel_Toolbar.Size = new Size(1234, 85);
+            panel_Toolbar.Size = new Size(1389, 85);
             panel_Toolbar.TabIndex = 8;
             panel_Toolbar.Paint += panel2_Paint;
             // 
+            // button_Download
+            // 
+            button_Download.BackColor = Color.FromArgb(175, 219, 255);
+            button_Download.FlatAppearance.BorderSize = 0;
+            button_Download.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
+            button_Download.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
+            button_Download.FlatStyle = FlatStyle.Flat;
+            button_Download.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
+            button_Download.Image = (Image)resources.GetObject("button_Download.Image");
+            button_Download.ImageAlign = ContentAlignment.MiddleLeft;
+            button_Download.Location = new Point(1228, 23);
+            button_Download.Name = "button_Download";
+            button_Download.Size = new Size(145, 40);
+            button_Download.TabIndex = 22;
+            button_Download.Text = "      Download";
+            button_Download.UseVisualStyleBackColor = false;
+            button_Download.Click += button_Save_Click;
+            button_Download.Paint += button_Download_Paint;
+            // 
             // button_LineCounter
             // 
-            button_LineCounter.Location = new Point(941, 35);
+            button_LineCounter.FlatAppearance.BorderSize = 0;
+            button_LineCounter.FlatStyle = FlatStyle.Flat;
+            button_LineCounter.Image = (Image)resources.GetObject("button_LineCounter.Image");
+            button_LineCounter.Location = new Point(859, 25);
             button_LineCounter.Name = "button_LineCounter";
-            button_LineCounter.Size = new Size(28, 25);
+            button_LineCounter.Size = new Size(37, 36);
             button_LineCounter.TabIndex = 16;
-            button_LineCounter.Text = "Line Counter";
             button_LineCounter.UseVisualStyleBackColor = true;
             button_LineCounter.Click += button_LineCounter_Click;
             // 
             // button_LineSpace
             // 
-            button_LineSpace.Location = new Point(885, 34);
+            button_LineSpace.FlatAppearance.BorderSize = 0;
+            button_LineSpace.FlatStyle = FlatStyle.Flat;
+            button_LineSpace.Image = (Image)resources.GetObject("button_LineSpace.Image");
+            button_LineSpace.Location = new Point(817, 24);
             button_LineSpace.Name = "button_LineSpace";
-            button_LineSpace.Size = new Size(28, 25);
+            button_LineSpace.Size = new Size(36, 36);
             button_LineSpace.TabIndex = 16;
-            button_LineSpace.Text = "LineSapce";
             button_LineSpace.UseVisualStyleBackColor = true;
             button_LineSpace.Click += button_LineSpace_Click;
             // 
             // comboBox_Size
             // 
+            comboBox_Size.Font = new Font("Tahoma", 12F);
             comboBox_Size.FormattingEnabled = true;
-            comboBox_Size.Location = new Point(226, 34);
+            comboBox_Size.Location = new Point(349, 27);
             comboBox_Size.Name = "comboBox_Size";
-            comboBox_Size.Size = new Size(54, 26);
+            comboBox_Size.Size = new Size(54, 32);
             comboBox_Size.TabIndex = 15;
             comboBox_Size.SelectedIndexChanged += comboBox_Size_SelectedIndexChanged;
             // 
-            // comboBox_Font
-            // 
-            comboBox_Font.FormattingEnabled = true;
-            comboBox_Font.Location = new Point(48, 34);
-            comboBox_Font.Name = "comboBox_Font";
-            comboBox_Font.Size = new Size(156, 26);
-            comboBox_Font.TabIndex = 14;
-            comboBox_Font.SelectedIndexChanged += comboBox_Font_SelectedIndexChanged;
-            // 
-            // pictureBox_add
-            // 
-            pictureBox_add.BackColor = Color.FromArgb(205, 236, 255);
-            pictureBox_add.Image = (Image)resources.GetObject("pictureBox_add.Image");
-            pictureBox_add.Location = new Point(1012, 34);
-            pictureBox_add.Name = "pictureBox_add";
-            pictureBox_add.Size = new Size(24, 30);
-            pictureBox_add.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox_add.TabIndex = 12;
-            pictureBox_add.TabStop = false;
-            // 
             // button_NewFile
             // 
-            button_NewFile.BackColor = Color.FromArgb(205, 236, 255);
-            button_NewFile.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            button_NewFile.Location = new Point(1003, 27);
+            button_NewFile.BackColor = Color.FromArgb(175, 219, 255);
+            button_NewFile.FlatAppearance.BorderSize = 0;
+            button_NewFile.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
+            button_NewFile.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
+            button_NewFile.FlatStyle = FlatStyle.Flat;
+            button_NewFile.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
+            button_NewFile.Image = (Image)resources.GetObject("button_NewFile.Image");
+            button_NewFile.ImageAlign = ContentAlignment.MiddleLeft;
+            button_NewFile.Location = new Point(14, 22);
             button_NewFile.Name = "button_NewFile";
-            button_NewFile.Size = new Size(118, 42);
-            button_NewFile.TabIndex = 12;
-            button_NewFile.Text = "     New file";
+            button_NewFile.Size = new Size(135, 40);
+            button_NewFile.TabIndex = 21;
+            button_NewFile.Text = "      New File";
             button_NewFile.UseVisualStyleBackColor = false;
             button_NewFile.Click += button_newFile_Click;
+            button_NewFile.Paint += button_NewFile_Paint;
+            // 
+            // comboBox_Font
+            // 
+            comboBox_Font.Font = new Font("Tahoma", 12F);
+            comboBox_Font.FormattingEnabled = true;
+            comboBox_Font.Location = new Point(185, 27);
+            comboBox_Font.Name = "comboBox_Font";
+            comboBox_Font.Size = new Size(156, 32);
+            comboBox_Font.TabIndex = 14;
+            comboBox_Font.SelectedIndexChanged += comboBox_Font_SelectedIndexChanged;
             // 
             // button_ShareDoc
             // 
@@ -249,7 +265,7 @@ namespace docMini
             button_ShareDoc.Font = new Font("Tahoma", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 163);
             button_ShareDoc.Image = Properties.Resources.file;
             button_ShareDoc.ImageAlign = ContentAlignment.MiddleLeft;
-            button_ShareDoc.Location = new Point(1127, 27);
+            button_ShareDoc.Location = new Point(1118, 23);
             button_ShareDoc.Name = "button_ShareDoc";
             button_ShareDoc.Size = new Size(104, 40);
             button_ShareDoc.TabIndex = 13;
@@ -265,9 +281,9 @@ namespace docMini
             button_AddLink.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddLink.FlatStyle = FlatStyle.Flat;
             button_AddLink.Image = Properties.Resources.link_button;
-            button_AddLink.Location = new Point(843, 29);
+            button_AddLink.Location = new Point(1019, 25);
             button_AddLink.Name = "button_AddLink";
-            button_AddLink.Size = new Size(36, 35);
+            button_AddLink.Size = new Size(36, 36);
             button_AddLink.TabIndex = 12;
             button_AddLink.UseVisualStyleBackColor = true;
             button_AddLink.Click += button_AddLink_Click;
@@ -279,9 +295,9 @@ namespace docMini
             button_AddTable.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddTable.FlatStyle = FlatStyle.Flat;
             button_AddTable.Image = Properties.Resources.table;
-            button_AddTable.Location = new Point(788, 29);
+            button_AddTable.Location = new Point(976, 27);
             button_AddTable.Name = "button_AddTable";
-            button_AddTable.Size = new Size(36, 35);
+            button_AddTable.Size = new Size(36, 36);
             button_AddTable.TabIndex = 11;
             button_AddTable.UseVisualStyleBackColor = true;
             // 
@@ -292,9 +308,9 @@ namespace docMini
             button_AddPicture.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddPicture.FlatStyle = FlatStyle.Flat;
             button_AddPicture.Image = Properties.Resources.image;
-            button_AddPicture.Location = new Point(727, 29);
+            button_AddPicture.Location = new Point(934, 25);
             button_AddPicture.Name = "button_AddPicture";
-            button_AddPicture.Size = new Size(36, 35);
+            button_AddPicture.Size = new Size(36, 36);
             button_AddPicture.TabIndex = 10;
             button_AddPicture.UseVisualStyleBackColor = true;
             button_AddPicture.Click += button_AddPicture_Click;
@@ -306,9 +322,9 @@ namespace docMini
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
             button_Center.Image = Properties.Resources.format;
-            button_Center.Location = new Point(547, 29);
+            button_Center.Location = new Point(659, 24);
             button_Center.Name = "button_Center";
-            button_Center.Size = new Size(36, 35);
+            button_Center.Size = new Size(36, 36);
             button_Center.TabIndex = 9;
             button_Center.UseVisualStyleBackColor = true;
             button_Center.Click += button_Center_Click;
@@ -320,9 +336,9 @@ namespace docMini
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
             button_AlignRight.Image = Properties.Resources.align_right;
-            button_AlignRight.Location = new Point(605, 29);
+            button_AlignRight.Location = new Point(701, 24);
             button_AlignRight.Name = "button_AlignRight";
-            button_AlignRight.Size = new Size(36, 35);
+            button_AlignRight.Size = new Size(36, 36);
             button_AlignRight.TabIndex = 8;
             button_AlignRight.UseVisualStyleBackColor = true;
             button_AlignRight.Click += button_AlignRight_Click;
@@ -334,9 +350,9 @@ namespace docMini
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
             button_Justify.Image = Properties.Resources.justify;
-            button_Justify.Location = new Point(666, 29);
+            button_Justify.Location = new Point(744, 24);
             button_Justify.Name = "button_Justify";
-            button_Justify.Size = new Size(36, 35);
+            button_Justify.Size = new Size(36, 36);
             button_Justify.TabIndex = 7;
             button_Justify.UseVisualStyleBackColor = true;
             button_Justify.Click += button_Justify_Click;
@@ -348,9 +364,9 @@ namespace docMini
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
             button_AlignLeft.Image = Properties.Resources.align_left1;
-            button_AlignLeft.Location = new Point(487, 29);
+            button_AlignLeft.Location = new Point(617, 24);
             button_AlignLeft.Name = "button_AlignLeft";
-            button_AlignLeft.Size = new Size(36, 35);
+            button_AlignLeft.Size = new Size(36, 36);
             button_AlignLeft.TabIndex = 6;
             button_AlignLeft.UseVisualStyleBackColor = true;
             button_AlignLeft.Click += button_AlignLeft_Click;
@@ -362,9 +378,9 @@ namespace docMini
             button_Italic.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Italic.FlatStyle = FlatStyle.Flat;
             button_Italic.Image = Properties.Resources.italic_button;
-            button_Italic.Location = new Point(369, 29);
+            button_Italic.Location = new Point(490, 24);
             button_Italic.Name = "button_Italic";
-            button_Italic.Size = new Size(36, 35);
+            button_Italic.Size = new Size(36, 36);
             button_Italic.TabIndex = 5;
             button_Italic.UseVisualStyleBackColor = true;
             button_Italic.Click += button_Italic_Click;
@@ -376,9 +392,9 @@ namespace docMini
             button_Underline.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Underline.FlatStyle = FlatStyle.Flat;
             button_Underline.Image = Properties.Resources.underline_text;
-            button_Underline.Location = new Point(429, 29);
+            button_Underline.Location = new Point(532, 24);
             button_Underline.Name = "button_Underline";
-            button_Underline.Size = new Size(36, 35);
+            button_Underline.Size = new Size(36, 36);
             button_Underline.TabIndex = 4;
             button_Underline.UseVisualStyleBackColor = true;
             button_Underline.Click += button_Underline_Click;
@@ -390,9 +406,9 @@ namespace docMini
             button_Bold.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Bold.FlatStyle = FlatStyle.Flat;
             button_Bold.Image = Properties.Resources.bold_button;
-            button_Bold.Location = new Point(310, 29);
+            button_Bold.Location = new Point(448, 24);
             button_Bold.Name = "button_Bold";
-            button_Bold.Size = new Size(36, 35);
+            button_Bold.Size = new Size(36, 36);
             button_Bold.TabIndex = 3;
             button_Bold.UseVisualStyleBackColor = true;
             button_Bold.Click += button_Bold_Click;
@@ -400,130 +416,76 @@ namespace docMini
             // pictureBox_Avatar
             // 
             pictureBox_Avatar.Image = Properties.Resources.user;
-            pictureBox_Avatar.Location = new Point(1123, 11);
+            pictureBox_Avatar.Location = new Point(1279, 5);
             pictureBox_Avatar.Name = "pictureBox_Avatar";
             pictureBox_Avatar.Size = new Size(38, 35);
             pictureBox_Avatar.SizeMode = PictureBoxSizeMode.CenterImage;
             pictureBox_Avatar.TabIndex = 9;
             pictureBox_Avatar.TabStop = false;
             // 
-            // panel_searchDoc
-            // 
-            panel_searchDoc.BackColor = Color.FromArgb(205, 236, 255);
-            panel_searchDoc.Controls.Add(listBox_Docs);
-            panel_searchDoc.Controls.Add(panel_areaSearch);
-            panel_searchDoc.Location = new Point(43, 219);
-            panel_searchDoc.Name = "panel_searchDoc";
-            panel_searchDoc.Size = new Size(359, 362);
-            panel_searchDoc.TabIndex = 11;
-            panel_searchDoc.Paint += panel_searchDoc_Paint;
-            // 
             // listBox_Docs
             // 
-            listBox_Docs.Font = new Font("Tahoma", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
+            listBox_Docs.BorderStyle = BorderStyle.FixedSingle;
+            listBox_Docs.Font = new Font("Tahoma", 12F, FontStyle.Regular, GraphicsUnit.Point, 163);
             listBox_Docs.FormattingEnabled = true;
-            listBox_Docs.ItemHeight = 22;
-            listBox_Docs.Location = new Point(19, 86);
+            listBox_Docs.IntegralHeight = false;
+            listBox_Docs.ItemHeight = 24;
+            listBox_Docs.Location = new Point(38, 276);
+            listBox_Docs.Margin = new Padding(8);
             listBox_Docs.Name = "listBox_Docs";
-            listBox_Docs.Size = new Size(321, 246);
+            listBox_Docs.Size = new Size(321, 547);
             listBox_Docs.TabIndex = 21;
             listBox_Docs.DoubleClick += listBox_Docs_DoubleClick;
-            // 
-            // panel_areaSearch
-            // 
-            panel_areaSearch.BackColor = Color.White;
-            panel_areaSearch.Controls.Add(button_searchDoc);
-            panel_areaSearch.Controls.Add(textBox_searchDoc);
-            panel_areaSearch.Location = new Point(19, 16);
-            panel_areaSearch.Name = "panel_areaSearch";
-            panel_areaSearch.Size = new Size(322, 69);
-            panel_areaSearch.TabIndex = 3;
-            panel_areaSearch.Paint += panel3_Paint;
-            // 
-            // button_searchDoc
-            // 
-            button_searchDoc.BackColor = Color.White;
-            button_searchDoc.BackgroundImage = (Image)resources.GetObject("button_searchDoc.BackgroundImage");
-            button_searchDoc.BackgroundImageLayout = ImageLayout.Zoom;
-            button_searchDoc.FlatAppearance.BorderSize = 0;
-            button_searchDoc.FlatStyle = FlatStyle.Flat;
-            button_searchDoc.Location = new Point(15, 20);
-            button_searchDoc.Name = "button_searchDoc";
-            button_searchDoc.Size = new Size(38, 36);
-            button_searchDoc.TabIndex = 2;
-            button_searchDoc.UseVisualStyleBackColor = false;
-            // 
-            // textBox_searchDoc
-            // 
-            textBox_searchDoc.BackColor = Color.White;
-            textBox_searchDoc.BorderStyle = BorderStyle.None;
-            textBox_searchDoc.Font = new Font("Tahoma", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 163);
-            textBox_searchDoc.Location = new Point(59, 20);
-            textBox_searchDoc.Multiline = true;
-            textBox_searchDoc.Name = "textBox_searchDoc";
-            textBox_searchDoc.PlaceholderText = "Search";
-            textBox_searchDoc.Size = new Size(262, 35);
-            textBox_searchDoc.TabIndex = 1;
             // 
             // panel1
             // 
             panel1.BackColor = Color.White;
-            panel1.Location = new Point(457, 157);
+            panel1.Controls.Add(panel5);
+            panel1.Location = new Point(467, 149);
             panel1.Name = "panel1";
-            panel1.Size = new Size(74, 671);
+            panel1.Size = new Size(74, 766);
             panel1.TabIndex = 15;
             // 
-            // panel2
+            // panel5
             // 
-            panel2.BackColor = Color.White;
-            panel2.Location = new Point(539, 3);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(73, 671);
-            panel2.TabIndex = 16;
+            panel5.BackColor = Color.White;
+            panel5.Controls.Add(panel6);
+            panel5.Location = new Point(74, 737);
+            panel5.Name = "panel5";
+            panel5.Size = new Size(533, 29);
+            panel5.TabIndex = 22;
+            // 
+            // panel6
+            // 
+            panel6.BackColor = Color.White;
+            panel6.Location = new Point(539, 3);
+            panel6.Name = "panel6";
+            panel6.Size = new Size(73, 671);
+            panel6.TabIndex = 16;
             // 
             // panel3
             // 
             panel3.BackColor = Color.White;
-            panel3.Controls.Add(panel2);
-            panel3.Location = new Point(531, 157);
+            panel3.Location = new Point(541, 149);
             panel3.Name = "panel3";
-            panel3.Size = new Size(533, 75);
+            panel3.Size = new Size(612, 68);
             panel3.TabIndex = 17;
             // 
             // panel4
             // 
             panel4.BackColor = Color.White;
-            panel4.Location = new Point(1064, 157);
+            panel4.Location = new Point(1153, 149);
             panel4.Name = "panel4";
-            panel4.Size = new Size(76, 671);
+            panel4.Size = new Size(76, 766);
             panel4.TabIndex = 18;
-            // 
-            // button_Save
-            // 
-            button_Save.Location = new Point(43, 160);
-            button_Save.Name = "button_Save";
-            button_Save.Size = new Size(116, 44);
-            button_Save.TabIndex = 19;
-            button_Save.Text = "Save";
-            button_Save.UseVisualStyleBackColor = true;
-            button_Save.Click += button_Save_Click;
-            // 
-            // button_Open
-            // 
-            button_Open.Location = new Point(210, 160);
-            button_Open.Name = "button_Open";
-            button_Open.Size = new Size(116, 44);
-            button_Open.TabIndex = 20;
-            button_Open.Text = "Open";
-            button_Open.UseVisualStyleBackColor = true;
-            button_Open.Click += button_Open_Click;
             // 
             // richTextBox_Content
             // 
+            richTextBox_Content.BackColor = Color.White;
             richTextBox_Content.BorderStyle = BorderStyle.None;
-            richTextBox_Content.Location = new Point(531, 231);
+            richTextBox_Content.Location = new Point(541, 215);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(533, 597);
+            richTextBox_Content.Size = new Size(612, 668);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
@@ -553,18 +515,36 @@ namespace docMini
             toolStripTextBox1.Name = "toolStripTextBox1";
             toolStripTextBox1.Size = new Size(100, 27);
             // 
+            // panel2
+            // 
+            panel2.BackColor = Color.White;
+            panel2.Location = new Point(541, 882);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(612, 33);
+            panel2.TabIndex = 18;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Cambria", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 163);
+            label1.Location = new Point(106, 241);
+            label1.Name = "label1";
+            label1.Size = new Size(193, 27);
+            label1.TabIndex = 22;
+            label1.Text = "Danh sách các file";
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
-            ClientSize = new Size(1254, 840);
-            Controls.Add(button_Open);
-            Controls.Add(button_Save);
+            ClientSize = new Size(1404, 935);
+            Controls.Add(label1);
+            Controls.Add(panel2);
+            Controls.Add(listBox_Docs);
             Controls.Add(panel4);
             Controls.Add(panel3);
             Controls.Add(panel1);
-            Controls.Add(panel_searchDoc);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
             Controls.Add(panel_ToolbarBorder);
@@ -582,16 +562,18 @@ namespace docMini
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).EndInit();
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox_add).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).EndInit();
-            panel_searchDoc.ResumeLayout(false);
-            panel_areaSearch.ResumeLayout(false);
-            panel_areaSearch.PerformLayout();
-            panel3.ResumeLayout(false);
+            panel1.ResumeLayout(false);
+            panel5.ResumeLayout(false);
             contextMenuStrip1.ResumeLayout(false);
             contextMenuStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
+        }
+
+        private void ButtonDownload_Paint(object sender, PaintEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -602,11 +584,6 @@ namespace docMini
         {
             SetRoundedPanel(panel_Toolbar, Color.White, 3, 30, Color.White);
         }
-        private void panel3_Paint(object sender, PaintEventArgs e)
-        {
-            SetRoundedPanel(panel_areaSearch, Color.White, 3, 30, Color.White);
-
-        }
         private void richTextBox_Content_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -614,17 +591,6 @@ namespace docMini
                 FileName = e.LinkText,
                 UseShellExecute = true
             });
-        }
-        private void panel_searchDoc_Paint(object sender, PaintEventArgs e)
-        {
-            Panel panel = sender as Panel;
-            Color borderColor = Color.Black; // Màu viền bạn muốn
-
-            int borderWidth = 5; // Độ dày của viền
-            ControlPaint.DrawBorder(e.Graphics, panel.ClientRectangle, borderColor, borderWidth, ButtonBorderStyle.Solid,
-                                    borderColor, borderWidth, ButtonBorderStyle.Solid,
-                                    borderColor, borderWidth, ButtonBorderStyle.Solid,
-                                    borderColor, borderWidth, ButtonBorderStyle.Solid);
         }
         private void InsertRtfAtCursor(RichTextBox richTextBox, string rtf)
         {
@@ -817,6 +783,96 @@ namespace docMini
             TextRenderer.DrawText(e.Graphics, button.Text, button.Font, button.ClientRectangle, button.ForeColor,
                                   TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
+        private void button_NewFile_Paint(object sender, PaintEventArgs e)
+        {
+            Button button = (Button)sender;
+            int borderRadius = 20; // Bán kính bo góc
+
+            // Tạo GraphicsPath để vẽ hình bo góc
+            GraphicsPath path = new GraphicsPath();
+            path.StartFigure();
+            path.AddArc(new Rectangle(0, 0, borderRadius, borderRadius), 180, 90);
+            path.AddArc(new Rectangle(button.Width - borderRadius, 0, borderRadius, borderRadius), 270, 90);
+            path.AddArc(new Rectangle(button.Width - borderRadius, button.Height - borderRadius, borderRadius, borderRadius), 0, 90);
+            path.AddArc(new Rectangle(0, button.Height - borderRadius, borderRadius, borderRadius), 90, 90);
+            path.CloseFigure();
+
+            // Thiết lập vùng của nút
+            button.Region = new Region(path);
+
+            // Thiết lập chế độ vẽ
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Vẽ nền nút
+            using (SolidBrush brush = new SolidBrush(button.BackColor))
+            {
+                e.Graphics.FillPath(brush, path);
+            }
+
+            // Vẽ viền nếu cần (tùy chọn)
+            using (Pen pen = new Pen(button.FlatAppearance.BorderColor, button.FlatAppearance.BorderSize))
+            {
+                e.Graphics.DrawPath(pen, path);
+            }
+
+            // Vẽ hình ảnh nếu có
+            if (button.Image != null)
+            {
+                // Xác định vị trí của hình ảnh
+                Rectangle imageRect = new Rectangle(8, (button.Height - button.Image.Height) / 2, button.Image.Width, button.Image.Height); // Điều chỉnh tọa độ nếu cần
+                e.Graphics.DrawImage(button.Image, imageRect);
+            }
+
+            // Vẽ text của nút
+            TextRenderer.DrawText(e.Graphics, button.Text, button.Font, button.ClientRectangle, button.ForeColor,
+                                  TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        }
+        private void button_Download_Paint(object sender, PaintEventArgs e)
+        {
+            Button button = (Button)sender;
+            int borderRadius = 20; // Bán kính bo góc
+
+            // Tạo GraphicsPath để vẽ hình bo góc
+            GraphicsPath path = new GraphicsPath();
+            path.StartFigure();
+            path.AddArc(new Rectangle(0, 0, borderRadius, borderRadius), 180, 90);
+            path.AddArc(new Rectangle(button.Width - borderRadius, 0, borderRadius, borderRadius), 270, 90);
+            path.AddArc(new Rectangle(button.Width - borderRadius, button.Height - borderRadius, borderRadius, borderRadius), 0, 90);
+            path.AddArc(new Rectangle(0, button.Height - borderRadius, borderRadius, borderRadius), 90, 90);
+            path.CloseFigure();
+
+            // Thiết lập vùng của nút
+            button.Region = new Region(path);
+
+            // Thiết lập chế độ vẽ
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Vẽ nền nút
+            using (SolidBrush brush = new SolidBrush(button.BackColor))
+            {
+                e.Graphics.FillPath(brush, path);
+            }
+
+            // Vẽ viền nếu cần (tùy chọn)
+            using (Pen pen = new Pen(button.FlatAppearance.BorderColor, button.FlatAppearance.BorderSize))
+            {
+                e.Graphics.DrawPath(pen, path);
+            }
+
+            // Vẽ hình ảnh nếu có
+            if (button.Image != null)
+            {
+                // Xác định vị trí của hình ảnh
+                Rectangle imageRect = new Rectangle(8, (button.Height - button.Image.Height) / 2, button.Image.Width, button.Image.Height); // Điều chỉnh tọa độ nếu cần
+                e.Graphics.DrawImage(button.Image, imageRect);
+            }
+
+            // Vẽ text của nút
+            TextRenderer.DrawText(e.Graphics, button.Text, button.Font, button.ClientRectangle, button.ForeColor,
+                                  TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        }
+
+
         #endregion
 
         private Button button_Exit;
@@ -838,21 +894,12 @@ namespace docMini
         private Button button_Italic;
         private Button button_Underline;
         private Button button_ShareDoc;
-        private Panel panel_searchDoc;
-        private TextBox textBox_searchDoc;
-        private Panel panel_areaSearch;
-        private Button button_searchDoc;
-        private PictureBox pictureBox_add;
-        private RoundedButton button_NewFile;
         private ComboBox comboBox_Size;
         private ComboBox comboBox_Font;
         private Panel panel1;
-        private Panel panel2;
         private Panel panel3;
         private Panel panel4;
-        private Button button_Save;
         private RichTextBox richTextBox_Content;
-        private Button button_Open;
         private ListBox listBox_Docs;
         private Button button_Connect;
         private ContextMenuStrip contextMenu_Table;
@@ -860,5 +907,11 @@ namespace docMini
         private Button button_LineSpace;
         private ContextMenuStrip contextMenuStrip1;
         private ToolStripTextBox toolStripTextBox1;
+        private Button button_NewFile;
+        private Button button_Download;
+        private Panel panel5;
+        private Panel panel6;
+        private Panel panel2;
+        private Label label1;
     }
 }
