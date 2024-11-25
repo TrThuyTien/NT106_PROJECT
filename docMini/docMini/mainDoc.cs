@@ -727,20 +727,7 @@ namespace docMini
                 MessageBox.Show("Error: " + ex.Message);
             }
         }
-        private void button_Open_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "Rich Text Format|*.rtf",
-                Title = "Open a Rich Text File"
-            };
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                string filePath = openFileDialog.FileName;
-                LoadRtf(filePath);
-            }
-        }
 
 
         private void button_ShareDoc_Click_1(object sender, EventArgs e)
@@ -905,6 +892,41 @@ namespace docMini
             mainDoc_LoadInfoUser(sender, e); // Load userName in mainDoc
             mainDoc_LoadConnection(sender, e); // Mở kết nối
             mainDoc_LoadGetAllFile(sender, e); // Load tất cả các file
+
+            // Custome list file
+            listBox_Docs.DrawMode = DrawMode.OwnerDrawFixed;
+            listBox_Docs.ItemHeight = 50; // Tăng chiều cao hàng
+
+            // Sự kiện vẽ item
+            listBox_Docs.DrawItem += (s, e) =>
+            {
+                e.DrawBackground();
+                if (e.Index >= 0)
+                {
+                    // Thêm icon và căn giữa theo chiều dọc
+                    System.Drawing.Image icon = Properties.Resources.doc;
+                    int iconSize = 32; // Kích thước icon
+                    int iconTop = e.Bounds.Top + (e.Bounds.Height - iconSize) / 2; // Căn giữa icon theo chiều dọc
+                    e.Graphics.DrawImage(icon, e.Bounds.Left + 5, iconTop, iconSize, iconSize);
+
+                    // Lấy chỉ trường Text
+                    dynamic item = listBox_Docs.Items[e.Index];
+                    string displayText = item.Text; // Chỉ lấy giá trị từ Text
+
+                    // Vẽ text
+                    e.Graphics.DrawString(
+                        displayText,
+                        e.Font,
+                        Brushes.Black,
+                        e.Bounds.Left + iconSize + 10, // Dịch sang phải sau icon
+                        e.Bounds.Top + (e.Bounds.Height - e.Font.Height) / 2 // Căn giữa text theo chiều dọc
+                    );
+                }
+                e.DrawFocusRectangle();
+            };
+
+
+
         }
 
         private void mainDoc_LoadGetAllFile(object sender, EventArgs e)
@@ -1399,6 +1421,10 @@ namespace docMini
             richTextBox_Content.Text = sb.ToString();
             richTextBox_Content.ResumeLayout();
         }
+
+
+
+
 
         // ---------------------------------------------------------------------------------
 
