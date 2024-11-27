@@ -173,6 +173,8 @@ namespace docMini
             // 
             button_HighLight.BackgroundImage = (Image)resources.GetObject("button_HighLight.BackgroundImage");
             button_HighLight.BackgroundImageLayout = ImageLayout.Stretch;
+            button_HighLight.FlatAppearance.BorderSize = 0;
+            button_HighLight.FlatStyle = FlatStyle.Flat;
             button_HighLight.Image = (Image)resources.GetObject("button_HighLight.Image");
             button_HighLight.Location = new Point(893, 27);
             button_HighLight.Name = "button_HighLight";
@@ -185,7 +187,9 @@ namespace docMini
             // 
             button_textColor.BackgroundImage = (Image)resources.GetObject("button_textColor.BackgroundImage");
             button_textColor.BackgroundImageLayout = ImageLayout.Stretch;
-            button_textColor.Location = new Point(1061, 28);
+            button_textColor.FlatAppearance.BorderSize = 0;
+            button_textColor.FlatStyle = FlatStyle.Flat;
+            button_textColor.Location = new Point(843, 28);
             button_textColor.Name = "button_textColor";
             button_textColor.Size = new Size(35, 34);
             button_textColor.TabIndex = 24;
@@ -216,7 +220,7 @@ namespace docMini
             button_LineCounter.FlatAppearance.BorderSize = 0;
             button_LineCounter.FlatStyle = FlatStyle.Flat;
             button_LineCounter.Image = (Image)resources.GetObject("button_LineCounter.Image");
-            button_LineCounter.Location = new Point(849, 25);
+            button_LineCounter.Location = new Point(784, 26);
             button_LineCounter.Name = "button_LineCounter";
             button_LineCounter.Size = new Size(37, 36);
             button_LineCounter.TabIndex = 16;
@@ -228,7 +232,7 @@ namespace docMini
             button_LineSpace.FlatAppearance.BorderSize = 0;
             button_LineSpace.FlatStyle = FlatStyle.Flat;
             button_LineSpace.Image = (Image)resources.GetObject("button_LineSpace.Image");
-            button_LineSpace.Location = new Point(807, 22);
+            button_LineSpace.Location = new Point(742, 23);
             button_LineSpace.Name = "button_LineSpace";
             button_LineSpace.Size = new Size(36, 36);
             button_LineSpace.TabIndex = 16;
@@ -239,7 +243,7 @@ namespace docMini
             // 
             comboBox_Size.Font = new Font("Tahoma", 12F);
             comboBox_Size.FormattingEnabled = true;
-            comboBox_Size.Location = new Point(349, 27);
+            comboBox_Size.Location = new Point(330, 26);
             comboBox_Size.Name = "comboBox_Size";
             comboBox_Size.Size = new Size(54, 32);
             comboBox_Size.TabIndex = 15;
@@ -268,7 +272,7 @@ namespace docMini
             // 
             comboBox_Font.Font = new Font("Tahoma", 12F);
             comboBox_Font.FormattingEnabled = true;
-            comboBox_Font.Location = new Point(185, 27);
+            comboBox_Font.Location = new Point(166, 26);
             comboBox_Font.Name = "comboBox_Font";
             comboBox_Font.Size = new Size(156, 32);
             comboBox_Font.TabIndex = 14;
@@ -290,7 +294,7 @@ namespace docMini
             button_ShareDoc.TabIndex = 13;
             button_ShareDoc.Text = "      Share";
             button_ShareDoc.UseVisualStyleBackColor = false;
-            button_ShareDoc.Click += button_ShareDoc_Click_1;
+            button_ShareDoc.Click += button_ShareDoc_Click;
             button_ShareDoc.Paint += button_ShareDoc_Paint;
             // 
             // button_AddLink
@@ -300,7 +304,7 @@ namespace docMini
             button_AddLink.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddLink.FlatStyle = FlatStyle.Flat;
             button_AddLink.Image = Properties.Resources.link_button;
-            button_AddLink.Location = new Point(1019, 25);
+            button_AddLink.Location = new Point(1050, 25);
             button_AddLink.Name = "button_AddLink";
             button_AddLink.Size = new Size(36, 36);
             button_AddLink.TabIndex = 12;
@@ -314,7 +318,7 @@ namespace docMini
             button_AddTable.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddTable.FlatStyle = FlatStyle.Flat;
             button_AddTable.Image = Properties.Resources.table;
-            button_AddTable.Location = new Point(976, 27);
+            button_AddTable.Location = new Point(1007, 27);
             button_AddTable.Name = "button_AddTable";
             button_AddTable.Size = new Size(36, 36);
             button_AddTable.TabIndex = 11;
@@ -327,7 +331,7 @@ namespace docMini
             button_AddPicture.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AddPicture.FlatStyle = FlatStyle.Flat;
             button_AddPicture.Image = Properties.Resources.image;
-            button_AddPicture.Location = new Point(934, 25);
+            button_AddPicture.Location = new Point(965, 25);
             button_AddPicture.Name = "button_AddPicture";
             button_AddPicture.Size = new Size(36, 36);
             button_AddPicture.TabIndex = 10;
@@ -341,7 +345,7 @@ namespace docMini
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
             button_Center.Image = Properties.Resources.format;
-            button_Center.Location = new Point(659, 24);
+            button_Center.Location = new Point(594, 25);
             button_Center.Name = "button_Center";
             button_Center.Size = new Size(36, 36);
             button_Center.TabIndex = 9;
@@ -355,7 +359,7 @@ namespace docMini
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
             button_AlignRight.Image = Properties.Resources.align_right;
-            button_AlignRight.Location = new Point(701, 24);
+            button_AlignRight.Location = new Point(636, 25);
             button_AlignRight.Name = "button_AlignRight";
             button_AlignRight.Size = new Size(36, 36);
             button_AlignRight.TabIndex = 8;
@@ -369,7 +373,7 @@ namespace docMini
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
             button_Justify.Image = Properties.Resources.justify;
-            button_Justify.Location = new Point(744, 24);
+            button_Justify.Location = new Point(679, 25);
             button_Justify.Name = "button_Justify";
             button_Justify.Size = new Size(36, 36);
             button_Justify.TabIndex = 7;
@@ -383,7 +387,7 @@ namespace docMini
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
             button_AlignLeft.Image = Properties.Resources.align_left1;
-            button_AlignLeft.Location = new Point(617, 24);
+            button_AlignLeft.Location = new Point(552, 25);
             button_AlignLeft.Name = "button_AlignLeft";
             button_AlignLeft.Size = new Size(36, 36);
             button_AlignLeft.TabIndex = 6;
@@ -397,7 +401,7 @@ namespace docMini
             button_Italic.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Italic.FlatStyle = FlatStyle.Flat;
             button_Italic.Image = Properties.Resources.italic_button;
-            button_Italic.Location = new Point(490, 24);
+            button_Italic.Location = new Point(452, 25);
             button_Italic.Name = "button_Italic";
             button_Italic.Size = new Size(36, 36);
             button_Italic.TabIndex = 5;
@@ -411,7 +415,7 @@ namespace docMini
             button_Underline.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Underline.FlatStyle = FlatStyle.Flat;
             button_Underline.Image = Properties.Resources.underline_text;
-            button_Underline.Location = new Point(532, 24);
+            button_Underline.Location = new Point(494, 25);
             button_Underline.Name = "button_Underline";
             button_Underline.Size = new Size(36, 36);
             button_Underline.TabIndex = 4;
@@ -425,7 +429,7 @@ namespace docMini
             button_Bold.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Bold.FlatStyle = FlatStyle.Flat;
             button_Bold.Image = Properties.Resources.bold_button;
-            button_Bold.Location = new Point(448, 24);
+            button_Bold.Location = new Point(410, 25);
             button_Bold.Name = "button_Bold";
             button_Bold.Size = new Size(36, 36);
             button_Bold.TabIndex = 3;
@@ -462,7 +466,7 @@ namespace docMini
             richTextBox_Content.BorderStyle = BorderStyle.None;
             richTextBox_Content.Location = new Point(480, 166);
             richTextBox_Content.Name = "richTextBox_Content";
-            richTextBox_Content.Size = new Size(796, 737);
+            richTextBox_Content.Size = new Size(781, 737);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;

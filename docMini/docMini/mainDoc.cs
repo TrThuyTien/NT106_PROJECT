@@ -9,10 +9,10 @@ namespace docMini
 {
     public partial class mainDoc : Form
     {
-        int idUser;
-        int idDoc;
-        string nameUser;
-        string nameDoc;
+        int idUser = 0;
+        int idDoc = 0;
+        string nameUser = "";
+        string nameDoc = "";
         public mainDoc(int userID, string userName)
         {
             InitializeComponent();
@@ -140,7 +140,7 @@ namespace docMini
             this.Close();
         }
 
-        private async void button_newFile_Click(object sender, EventArgs e)
+        private void button_newFile_Click(object sender, EventArgs e)
         {
             // Tạo form tạm thời
             Form tempForm = new Form
@@ -245,10 +245,6 @@ namespace docMini
             tempForm.ShowDialog();
         }
 
-        private void button_ShareDoc_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private string currentFont = "Tahoma";
         private float currentFontSize = 12f;
@@ -901,8 +897,7 @@ namespace docMini
         }
 
 
-
-        private void button_ShareDoc_Click_1(object sender, EventArgs e)
+        private void button_ShareDoc_Click(object sender, EventArgs e)
         {
             // Tạo form tạm thời
             Form tempForm = new Form
@@ -950,10 +945,10 @@ namespace docMini
             // Xử lý sự kiện nhấn nút "Chia sẻ tài liệu"
             button_Share.Click += async (s, args) =>
             {
-                string username = textBox_UserName.Text.Trim();
+                string userToAdd = textBox_UserName.Text.Trim();
                 string mode = comboBox_Mode.SelectedItem.ToString();
 
-                if (string.IsNullOrWhiteSpace(username))
+                if (string.IsNullOrWhiteSpace(userToAdd))
                 {
                     MessageBox.Show("Tên người dùng không được để trống!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
@@ -961,74 +956,41 @@ namespace docMini
 
                 try
                 {
-                    // Tạo gói tin gửi đi với chế độ được chọn
-                    string serverResponse = await SendShareFileAsync(username, mode);
-                    if (serverResponse.StartsWith("SHARE_FILE|"))
+                    string serverResponse = await SendShareFileAsync(userToAdd, mode);
+                    if (serverResponse.StartsWith($"SHARE_FILE|{idUser}|{idDoc}|"))
                     {
+                        // Phân tích gói tin phản hồi từ server để lấy ID nếu thành công
                         var responseParts = serverResponse.Split('|');
-                        if (responseParts.Length >= 4)
+                        if (responseParts[3] == "SUCCESS")
                         {
-                            string status = responseParts[2];
-                            switch (status)
-                            {
-                                case "SUCCESS":
-                                    idDoc = int.Parse(responseParts[3]);
-                                    MessageBox.Show(
-                                        "Chia sẻ tài liệu thành công!",
-                                        "Thông báo",
-                                        MessageBoxButtons.OK,
-                                        MessageBoxIcon.Information
-                                    );
-                                    tempForm.Close();
-                                    break;
-
-                                case "FAIL":
-                                    string reason = responseParts.Length > 3 ? responseParts[3] : "UNKNOWN_ERROR";
-                                    string errorMessage = reason switch
-                                    {
-                                        "USER_NOT_FOUND" => "Người dùng không tồn tại. Vui lòng kiểm tra lại.",
-                                        "DUPLICATE" => "Tài liệu đã tồn tại. Không thể chia sẻ trùng lặp.",
-                                        "LINK_FAILED" => "Không thể liên kết tài liệu với người dùng.",
-                                        "ADD_FAILED" => "Không thể thêm tài liệu vào cơ sở dữ liệu.",
-                                        _ => "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau."
-                                    };
-                                    MessageBox.Show(
-                                        errorMessage,
-                                        "Lỗi",
-                                        MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error
-                                    );
-                                    textBox_UserName.Clear();
-                                    break;
-
-                                default:
-                                    MessageBox.Show(
-                                        "Phản hồi từ server không hợp lệ.",
-                                        "Lỗi",
-                                        MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error
-                                    );
-                                    break;
-                            }
+                            MessageBox.Show(
+                                "Chia sẻ tài liệu thành công!",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            );
+                            tempForm.Close();
+                        }
+                        else if (responseParts[3] == "USER_NOT_FOUND")
+                        {
+                            MessageBox.Show(
+                                "Người dùng không tồn tại. Vui lòng kiểm tra lại.",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            );
+                            textBox_UserName.Clear();
                         }
                         else
                         {
                             MessageBox.Show(
-                                "Phản hồi từ server không đầy đủ.",
+                                "Bạn không có quyền share tài liệu này",
                                 "Lỗi",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error
                             );
+                            tempForm.Close();
                         }
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            "Phản hồi không hợp lệ từ server.",
-                            "Lỗi",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error
-                        );
                     }
                 }
                 catch (SocketException ex)
@@ -1197,24 +1159,29 @@ namespace docMini
             }
         }
 
-        private void listBox_Docs_DoubleClick(object sender, EventArgs e)
+        private async void listBox_Docs_DoubleClick(object sender, EventArgs e)
         {
             if (listBox_Docs.SelectedItem != null)
             {
-                // Lấy đối tượng đã chọn
                 dynamic selectedItem = listBox_Docs.SelectedItem;
 
-                // Lấy tên tài liệu và ID tài liệu
-                string selectedDocName = selectedItem.Text; // Tên tài liệu
-                int selectedDocID = selectedItem.Tag; // ID tài liệu
-                idDoc = selectedDocID;
-                nameDoc = selectedDocName;
+                string selectedDocName = selectedItem.Text;
+                int selectedDocID = selectedItem.Tag;
+
                 label_DocumentName.Text = selectedDocName;
-                // Thực hiện hành động khi chọn tài liệu (ví dụ: mở tài liệu)
-                OpenDocumentAsync(selectedDocName, selectedDocID);
+
+                // Hủy các tác vụ liên quan đến tài liệu cũ
+                cancellationTokenSource.Cancel();
+                await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
+                cancellationTokenSource = new CancellationTokenSource();
+
+                // Mở tài liệu mới
+                await OpenDocumentAsync(selectedDocName, selectedDocID, cancellationTokenSource.Token);
             }
         }
-        private async void OpenDocumentAsync(string docName, int docID)
+
+
+        private async Task OpenDocumentAsync(string docName, int docID, CancellationToken token)
         {
             try
             {
@@ -1228,31 +1195,54 @@ namespace docMini
                     }
                 }
 
-                string serverResponse = await SendContentFileRequestAsync();
-                if (serverResponse.StartsWith($"EDIT_DOC|{idDoc}|{idUser}"))
+                /*MessageBox.Show("Client gửi: " + $"EDIT_DOC|{docID}|{idUser}|");*/
+                string serverResponse = await SendContentFileRequestAsync(docID);
+                if (serverResponse.StartsWith($"EDIT_DOC|{docID}|{idUser}|"))
                 {
+                    /*MessageBox.Show("Nhận được phản hồi");*/
                     var responseParts = serverResponse.Split('|');
-                    if (responseParts.Length == 4)
+                    if (responseParts.Length == 5)
                     {
-                        string content = responseParts[3];
+                        string content = responseParts[4];
+                        int editStatus = int.Parse(responseParts[3]);
 
-                        // Hiển thị nội dung lên RichTextBox
-                        richTextBox_Content.Invoke((MethodInvoker)(() =>
+                        // Đặt cờ isFormatting để ngăn sự kiện TextChanged
+                        isFormatting = true;
+                        try
                         {
-                            richTextBox_Content.Rtf = content;
-                            richTextBox_Content.ReadOnly = false;
-                            richTextBox_Content.Enabled = true;
-                        }));
+                            // Cập nhật nội dung lên RichTextBox
+                            richTextBox_Content.Invoke((MethodInvoker)(() =>
+                            {
+                                richTextBox_Content.Rtf = content;
+                                richTextBox_Content.Enabled = true;
+                                richTextBox_Content.ReadOnly = editStatus != 1;
+                            }));
+                        }
+                        finally
+                        {
+                            // Đảm bảo cờ được tắt
+                            isFormatting = false;
+                        }
 
+                        // Gán tài liệu mới
+                        idDoc = docID;
+                        nameDoc = docName;
+                        label_DocumentName.Text = nameDoc;
+                        // Bắt đầu nhận nội dung mới
+                        _ = Task.Run(() => ReceiveContentAsync(docID, token), token);
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Không thể mở tài liệu: phản hồi từ server không hợp lệ.",
+                    MessageBox.Show($"Không thể mở tài liệu: phản hồi từ server không hợp lệ.\n{serverResponse}",
                                     "Lỗi",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Tác vụ bị hủy, không cần xử lý gì thêm
             }
             catch (SocketException ex)
             {
@@ -1271,6 +1261,7 @@ namespace docMini
         }
 
 
+
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
         {
             try
@@ -1278,9 +1269,6 @@ namespace docMini
                 tcpClient = new TcpClient();
                 await tcpClient.ConnectAsync(serverIP, serverPort);
                 isConnected = true;
-                // Nhận nội dung tài liệu liên tục từ server
-                _ = receiveContentAsync();
-
             }
             catch (Exception ex)
             {
@@ -1326,17 +1314,16 @@ namespace docMini
         }
 
         // Gửi yêu cầu chia sẻ file cho người dùng khác
-        private async Task<string> SendShareFileAsync(string username, string mode)
+        private async Task<string> SendShareFileAsync(string usernameToAdd, string mode)
         {
             using (tcpClient = new TcpClient())
             {
                 await tcpClient.ConnectAsync(serverIP, serverPort);
                 using (stream = tcpClient.GetStream())
                 {
-                    // Gửi yêu cầu chia sẻ file với chế độ được chọn
-                    string message = $"SHARE_FILE|{nameUser}|{username}|{mode}";
+                    // Gửi yêu cầu tạo file
+                    string message = $"SHARE_FILE|{idUser}|{idDoc}|{usernameToAdd}|{mode}";
                     await SendDataAsync(message);
-
                     // Nhận phản hồi từ server
                     string serverResponse = await ReceiveDataAsync();
                     return serverResponse;
@@ -1345,14 +1332,14 @@ namespace docMini
         }
 
         // Gửi yêu cầu lấy nội dung file
-        private async Task<string> SendContentFileRequestAsync()
+        private async Task<string> SendContentFileRequestAsync(int docID)
         {
             if (tcpClient == null || !tcpClient.Connected)
             {
                 throw new InvalidOperationException("Không có kết nối với server.");
             }
 
-            string message = $"EDIT_DOC|{idDoc}|{idUser}";
+            string message = $"EDIT_DOC|{docID}|{idUser}";
             await SendDataAsync(message);
             return await ReceiveDataAsync();
         }
@@ -1360,37 +1347,53 @@ namespace docMini
 
         private async Task SendDataAsync(string message)
         {
+            // Chuyển đổi chuỗi thành mảng byte
             byte[] data = Encoding.UTF8.GetBytes(message);
-            byte[] lengthData = BitConverter.GetBytes(data.Length);
+
+            // Nén dữ liệu
+            byte[] compressedData = Compress(data);
+
+            // Chuyển đổi độ dài dữ liệu đã nén thành mảng byte
+            byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
 
             // Gửi độ dài dữ liệu trước
             await stream.WriteAsync(lengthData, 0, lengthData.Length);
-            // Gửi dữ liệu chính
-            await stream.WriteAsync(data, 0, data.Length);
+
+            // Gửi dữ liệu đã nén
+            await stream.WriteAsync(compressedData, 0, compressedData.Length);
         }
+
 
         private async Task<string> ReceiveDataAsync()
         {
-            // Đọc độ dài dữ liệu phản hồi
+            // Đọc độ dài dữ liệu từ server
             byte[] lengthBuffer = new byte[sizeof(int)];
             int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
             if (bytesRead != sizeof(int))
             {
                 throw new Exception("Không thể đọc kích thước phản hồi từ server.");
             }
-            int responseLength = BitConverter.ToInt32(lengthBuffer, 0);
 
-            // Đọc nội dung phản hồi
-            byte[] responseBuffer = new byte[responseLength];
-            bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
-            if (bytesRead != responseLength)
+            // Chuyển đổi mảng byte thành số nguyên (độ dài dữ liệu)
+            int compressedDataLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+            // Đọc dữ liệu nén từ server
+            byte[] compressedData = new byte[compressedDataLength];
+            bytesRead = await stream.ReadAsync(compressedData, 0, compressedData.Length);
+            if (bytesRead != compressedDataLength)
             {
                 throw new Exception("Phản hồi từ server không đầy đủ.");
             }
-            return Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+
+            // Giải nén dữ liệu
+            byte[] decompressedData = Decompress(compressedData);
+
+            // Chuyển đổi mảng byte đã giải nén thành chuỗi và trả về
+            return Encoding.UTF8.GetString(decompressedData);
         }
 
         private void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
+
         {
             if (isConnected && !isFormatting)
             {
@@ -1484,41 +1487,118 @@ namespace docMini
             }
         }
 
-        private async Task receiveContentAsync()
+        private async Task ReceiveContentAsync(int expectedDocID, CancellationToken token)
         {
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
+            try
             {
-                while (isConnected)
+                while (!token.IsCancellationRequested)
                 {
-                    try
-                    {
-                        int length = reader.ReadInt32();
-                        byte[] buffer = reader.ReadBytes(length);
+                    // Kiểm tra kết nối
+                    if (!isConnected || tcpClient == null || !tcpClient.Connected)
+                        break;
 
-                        // Nhận dữ liệu
-                        string responseMessage = Encoding.UTF8.GetString(buffer);
-                        if (responseMessage.StartsWith($"EDIT_DOC|{idDoc}|"))
+                    // Đọc độ dài dữ liệu đã nén
+                    byte[] lengthBuffer = new byte[sizeof(int)];
+                    int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length, token);
+                    if (bytesRead != sizeof(int))
+                    {
+                        throw new Exception("Nhan du lieu: Không thể đọc kích thước dữ liệu từ server.");
+                    }
+
+                    int compressedLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+                    // Đọc dữ liệu đã nén
+                    byte[] compressedData = new byte[compressedLength];
+                    bytesRead = await stream.ReadAsync(compressedData, 0, compressedData.Length, token);
+                    if (bytesRead != compressedLength)
+                    {
+                        throw new Exception("Nhan du lieu Không thể đọc đầy đủ dữ liệu từ server.");
+                    }
+
+                    // Giải nén dữ liệu
+                    byte[] decompressedData = Decompress(compressedData);
+
+                    // Chuyển đổi dữ liệu đã giải nén sang chuỗi
+                    string response = Encoding.UTF8.GetString(decompressedData);
+
+                    // Chỉ xử lý nếu DocID khớp với tài liệu hiện tại
+                    if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|"))
+                    {
+                        string[] parts = response.Split('|', 3);
+                        if (parts.Length == 3)
                         {
-                            var responseParts = responseMessage.Split('|');
-                            if (responseParts.Length == 3)
+                            string updatedContent = parts[2];
+
+                            // Kiểm tra nếu nội dung là RTF hợp lệ
+                            if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
                             {
-                                string content = responseParts[2];
-                                if (richTextBox_Content.InvokeRequired)
+                                isFormatting = true;
+                                try
                                 {
                                     richTextBox_Content.Invoke((MethodInvoker)(() =>
                                     {
-                                        richTextBox_Content.Rtf = content;
+                                        richTextBox_Content.Rtf = updatedContent;
                                     }));
                                 }
-                                richTextBox_Content.Enabled = true;
+                                catch (ArgumentException ex)
+                                {
+                                    MessageBox.Show($"Lỗi khi hiển thị nội dung RTF: {ex.Message}");
+                                }
+                                finally
+                                {
+                                    isFormatting = false;
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Nội dung nhận được không phải là RTF hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
                     }
-                    catch (Exception ex)
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Hủy tác vụ: không cần xử lý thêm
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi nhận dữ liệu từ server: {ex.Message}",
+                                "Lỗi",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+            }
+        }
+
+
+
+        private void ProcessMessages(Queue<string> messageQueue)
+        {
+            while (messageQueue.Count > 0)
+            {
+                string message;
+                lock (messageQueue)
+                {
+                    message = messageQueue.Dequeue(); // Lấy thông điệp ra khỏi hàng đợi
+                }
+
+                // Xử lý nội dung thông điệp
+                var responseParts = message.Split('|');
+                if (responseParts.Length == 3)
+                {
+                    string content = responseParts[2];
+
+                    // Cập nhật RichTextBox (chỉ 1 lần duy nhất)
+                    if (richTextBox_Content.InvokeRequired)
                     {
-                        MessageBox.Show($"Main Doc Error receiving data: {ex.Message}");
-                        isConnected = false;
-                        break; // Thoát khỏi vòng lặp nếu có lỗi
+                        richTextBox_Content.Invoke((MethodInvoker)(() =>
+                        {
+                            richTextBox_Content.Rtf = content;
+                        }));
+                    }
+                    else
+                    {
+                        richTextBox_Content.Rtf = content;
                     }
                 }
             }
@@ -1548,6 +1628,13 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
+
+        
+
+
+
+
+
         // ---------------------------------------------------------------------------------
 
     }
