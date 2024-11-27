@@ -2,6 +2,8 @@
 using System.Net;
 using System.Text;
 using System.IO.Compression;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using Microsoft.VisualBasic.ApplicationServices;
 
 namespace Server
 {
@@ -21,6 +23,10 @@ namespace Server
         private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Thời gian debounce
         private bool isListening = false;
 
+        public object Address { get; private set; }
+
+        private CancellationTokenSource cts = new CancellationTokenSource();
+
         private async void button_Listen_Click(object sender, EventArgs e)
         {
             listener = new TcpListener(IPAddress.Any, 8080);
@@ -35,68 +41,85 @@ namespace Server
                 {
                     clients.Add(client);
                 }
-                _ = Task.Run(() => handleClientAsync(client));
+                _ = Task.Run(() => handleClientAsync(client, cts.Token));
             }
         }
 
-        private async Task handleClientAsync(TcpClient client)
+        private async Task handleClientAsync(TcpClient client, CancellationToken token)
         {
-            NetworkStream stream = client.GetStream();
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
+            try
             {
-                try
+                NetworkStream stream = client.GetStream();
+                using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
                 {
-                    while (client.Connected)
+                    while (!token.IsCancellationRequested && client.Connected)
                     {
-                        byte[] lengthBuffer = new byte[sizeof(int)];
-                        int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
-                        if (bytesRead == 0) // Connection closed
-                            break;
+                        // Bước 1: Đọc độ dài dữ liệu đã nén
+                        byte[] lengthBuffer = await ReadMessageAsync(stream, sizeof(int));
+                        int compressedLength = BitConverter.ToInt32(lengthBuffer, 0);
 
-                        int length = BitConverter.ToInt32(lengthBuffer, 0);
-                        byte[] buffer = new byte[length];
-                        bytesRead = await stream.ReadAsync(buffer, 0, length);
+                        // Bước 2: Đọc dữ liệu đã nén
+                        byte[] compressedData = await ReadMessageAsync(stream, compressedLength);
 
-                        if (bytesRead < length) // Handle partial reads
-                            break;
+                        // Bước 3: Giải nén dữ liệu
+                        byte[] decompressedData = Decompress(compressedData);
 
-                        string update = Encoding.UTF8.GetString(buffer);
+                        // Bước 4: Chuyển dữ liệu giải nén thành chuỗi
+                        string update = Encoding.UTF8.GetString(decompressedData);
+
+                        // Bước 5: Xử lý yêu cầu
                         await ProcessRequestAsync(update, stream, client);
                     }
                 }
-                catch (IOException ioEx)
-                {
-                    Console.WriteLine($"IO Exception: {ioEx.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"General Exception: {ex.Message}");
-                }
-                finally
-                {
-                    CloseClientConnection(client); // Ensure proper cleanup
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
+                CloseClientConnection(client);
             }
         }
 
 
+        private async Task<byte[]> ReadMessageAsync(NetworkStream stream, int length)
+        {
+            byte[] buffer = new byte[length];
+            int bytesRead = 0;
+            while (bytesRead < length)
+            {
+                int read = await stream.ReadAsync(buffer, bytesRead, length - bytesRead);
+                if (read == 0) throw new IOException("Connection closed during read.");
+                bytesRead += read;
+            }
+            return buffer;
+        }
+
         private async Task ProcessRequestAsync(string update, NetworkStream stream, TcpClient client)
         {
-            await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+            string ipClient = "";
+            string portClient = "";
+            if (client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
             {
-                richTextBox_Editor.Text += update + Environment.NewLine; // Cập nhật giao diện với RTF
-            })));
+                ipClient = remoteEndPoint.Address.ToString(); // Trả về địa chỉ IP
+                ipClient = remoteEndPoint.Port.ToString(); // Trả về port
+            }
+            /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+            {
+                richTextBox_Editor.Text += ipClient + ":" + portClient + " : " + update + Environment.NewLine; // Cập nhật giao diện với RTF
+            })));*/
             if (update.StartsWith("SIGN_IN|"))
             {
-                await HandleSignInAsync(update, stream);
+                await HandleSignInAsync(update, stream, client);
             }
             else if (update.StartsWith("SIGN_UP|"))
             {
-                await HandleSignUpAsync(update, stream);
+                await HandleSignUpAsync(update, stream, client);
             }
             else if (update.StartsWith("NEW_FILE|"))
             {
-                await HandleNewFileAsync(update, stream);
+                await HandleNewFileAsync(update, stream, client);
             }
             else if (update.StartsWith("EDIT_DOC|"))
             {
@@ -104,84 +127,78 @@ namespace Server
             }
             else if (update.StartsWith("GET_ALL_FILE|"))
             {
-                await HandleGetAllFileAsync(update, stream);
+                await HandleGetAllFileAsync(update, stream, client);
             }
             else if (update.StartsWith("SHARE_FILE|"))
             {
-                await HandleShareDocumentAsync(update, stream);
+                await HandleShareDocumentAsync(update, stream, client);
             }
         }
 
-        private async Task HandleShareDocumentAsync(string update, NetworkStream stream)
+        // SHARE_FILE
+        private async Task HandleShareDocumentAsync(string update, NetworkStream stream, TcpClient client)
         {
             try
             {
                 string[] parts = update.Split('|');
-                if (parts.Length == 4)
+                if (parts.Length == 5)
                 {
-                    string userName = parts[1].Trim();
-                    string fileName = parts[2].Trim();
-                    string mode = parts[3].Trim();
+                    int ownerID = int.Parse(parts[1].Trim());
+                    int docID = int.Parse(parts[2].Trim());
+                    string userNameToAdd = parts[3].Trim();
+                    string mode = parts[4].Trim();
 
-                    // "Chỉnh sửa" -> editStatus = 0, "Xem" -> editStatus = 1
-                    int editStatus = mode.Equals("Chỉnh sửa", StringComparison.OrdinalIgnoreCase) ? 0 : 1;
+                    // "Chỉnh sửa" -> editStatus = 1, "Xem" -> editStatus = 0
+                    int editStatus = mode.Equals("Chỉnh sửa", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
 
                     DatabaseManager dbManager = new DatabaseManager();
 
                     // Lấy ID người dùng
-                    int userId = dbManager.GetUserIdByUsername(userName);
-                    if (userId == -1)
+                    int idUserToAdd = dbManager.GetUserIdByUsername(userNameToAdd);
+                    if (idUserToAdd < 1)
                     {
-                        byte[] response = Encoding.UTF8.GetBytes($"SHARE_FILE|{userName}|FAIL|USER_NOT_FOUND");
-                        await SendResponseAsync(stream, response);
+                        byte[] response = Encoding.UTF8.GetBytes($"SHARE_FILE|{ownerID}|{docID}|USER_NOT_FOUND");
+                        await SendResponseAsync(stream, response, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|USER_NOT_FOUND" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                         return;
                     }
 
-                    // Thêm tài liệu mới vào cơ sở dữ liệu
-                    int idDoc = dbManager.AddNewDocument(fileName, userName, userId);
+                    // Thêm vào bảng User_Doc
+                    bool success = dbManager.AddUserDocLink(idUserToAdd, docID, editStatus);
 
-                    if (idDoc > 0)
+                    if (success)
                     {
-                        // Gắn tài liệu với người dùng và cấp quyền
-                        bool linked = dbManager.LinkUserToDoc(userId, idDoc, editStatus);
-
-                        if (linked)
+                        string responseMessage = $"SHARE_FILE|{ownerID}|{docID}|SUCCESS";
+                        byte[] response = Encoding.UTF8.GetBytes(responseMessage);
+                        await SendResponseAsync(stream, response, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
                         {
-                            string responseMessage = $"SHARE_FILE|{userName}|SUCCESS|{idDoc}";
-                            byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                            await SendResponseAsync(stream, response);
-                        }
-                        else
-                        {
-                            string responseMessage = $"SHARE_FILE|{userName}|FAIL|LINK_FAILED";
-                            byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                            await SendResponseAsync(stream, response);
-                        }
+                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|SUCCESS" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                     }
                     else
                     {
-                        string responseMessage = $"SHARE_FILE|{userName}|FAIL|ADD_FAILED";
+                        string responseMessage = $"SHARE_FILE|{ownerID}|{docID}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                        await SendResponseAsync(stream, response);
+                        await SendResponseAsync(stream, response, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|FAIL" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                     }
-                }
-                else
-                {
-                    byte[] response = Encoding.UTF8.GetBytes("ERROR|INVALID_FORMAT");
-                    await SendResponseAsync(stream, response);
                 }
             }
             catch (Exception ex)
             {
-                byte[] response = Encoding.UTF8.GetBytes("ERROR");
-                await SendResponseAsync(stream, response);
-
                 Console.WriteLine($"Error in HandleShareDocumentAsync: {ex.Message}");
             }
         }
 
-
-        private async Task HandleNewFileAsync(string update, NetworkStream stream)
+        // NEW_FILE
+        private async Task HandleNewFileAsync(string update, NetworkStream stream, TcpClient client)
         {
             try
             {
@@ -200,7 +217,11 @@ namespace Server
                     if (dbManager.IsDocumentExists(fileName, userId))
                     {
                         byte[] respons = Encoding.UTF8.GetBytes($"NEW_FILE|{userId}|DUPLICATE");
-                        await SendResponseAsync(stream, respons);
+                        await SendResponseAsync(stream, respons, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|DUPLICATE" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                         return;
                     }
 
@@ -212,26 +233,38 @@ namespace Server
                     {
                         string responseMessage = $"NEW_FILE|{userId}|SUCCESS|{idDoc}";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                        await SendResponseAsync(stream, response);
+                        await SendResponseAsync(stream, response, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|SUCCESS|{idDoc}" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                     }
                     else
                     {
                         string responseMessage = $"NEW_FILE|{userId}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                        await SendResponseAsync(stream, response);
+                        await SendResponseAsync(stream, response, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|FAIL" + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                     }
                 }
             }
             catch (Exception ex)
             {
                 byte[] response = Encoding.UTF8.GetBytes("ERROR");
-                await SendResponseAsync(stream, response);
-
+                await SendResponseAsync(stream, response, client);
+                /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                {
+                    richTextBox_Editor.Text += "Server : " + "ERROR" + Environment.NewLine; // Cập nhật giao diện với RTF
+                })));*/
                 Console.WriteLine($"Error in HandleNewFileAsync: {ex.Message}");
             }
         }
 
-        private async Task HandleSignInAsync(string update, NetworkStream stream)
+        // SIGN_IN
+        private async Task HandleSignInAsync(string update, NetworkStream stream, TcpClient client)
         {
             string[] parts = update.Split('|');
             if (parts.Length == 3)
@@ -250,18 +283,27 @@ namespace Server
                     // Tạo thông điệp phản hồi
                     string responseMessage = $"SIGN_IN|{username}|SUCCESS|{userId}";
                     byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
+                    /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                    {
+                        richTextBox_Editor.Text += "Server : " + $"SIGN_IN|{username}|SUCCESS|{userId}" + Environment.NewLine; // Cập nhật giao diện với RTF
+                    })));*/
                 }
                 else
                 {
                     // Gửi phản hồi thất bại
                     byte[] response = Encoding.UTF8.GetBytes($"SIGN_IN|{username}|FAIL");
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
+                    /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                    {
+                        richTextBox_Editor.Text += "Server : " + $"SIGN_IN|{username}|FAIL" + Environment.NewLine; // Cập nhật giao diện với RTF
+                    })));*/
                 }
             }
         }
 
-        private async Task HandleSignUpAsync(string update, NetworkStream stream)
+        // SIGN_UP
+        private async Task HandleSignUpAsync(string update, NetworkStream stream, TcpClient client)
         {
             string[] parts = update.Split('|');
             if (parts.Length == 4)
@@ -278,17 +320,18 @@ namespace Server
                     int userId = dbManager.GetUserIdByUsername(username);
                     string responseMessage = $"SIGN_UP|{username}|SUCCESS|{userId}";
                     byte[] response = Encoding.UTF8.GetBytes(responseMessage);
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
                 }
                 else
                 {
                     byte[] response = Encoding.UTF8.GetBytes($"SIGN_UP|{username}|FAIL");
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
                 }
             }
         }
 
-        private async Task HandleGetAllFileAsync(string update, NetworkStream stream)
+        // GET_ALL_FILE
+        private async Task HandleGetAllFileAsync(string update, NetworkStream stream, TcpClient client)
         {
             string[] parts = update.Split('|');
             if (parts.Length == 2)
@@ -308,26 +351,17 @@ namespace Server
                     string responseMessage = $"GET_ALL_FILE|{idUser}|SUCCESS|{allFileName}";
                     byte[] response = Encoding.UTF8.GetBytes(responseMessage);
 
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
                 }
                 else
                 {
                     byte[] response = Encoding.UTF8.GetBytes($"GET_ALL_FILE|{idUser}|FAIL|");
-                    await SendResponseAsync(stream, response);
+                    await SendResponseAsync(stream, response, client);
                 }
             }
         }
 
-        private async Task SendResponseAsync(NetworkStream stream, byte[] response)
-        {
-            // Gửi độ dài phản hồi
-            byte[] lengthBuffer = BitConverter.GetBytes(response.Length);
-            await stream.WriteAsync(lengthBuffer, 0, lengthBuffer.Length); // Gửi độ dài phản hồi
-            await stream.WriteAsync(response, 0, response.Length); // Gửi phản hồi
-        }
-
-        //BẢN CÓ CSDL
-
+        // EDIT_DOC
         private async Task HandleEditDocumentAsync(string update, NetworkStream stream, TcpClient sender)
         {
             DatabaseManager dbManager = new DatabaseManager();
@@ -336,23 +370,45 @@ namespace Server
             int docID = int.Parse(parts[1]); // Lấy DocID
             int userID = int.Parse(parts[2]); // Lấy UserID
             string newContent = "";
-            
+
             // Lấy nội dung hiện tại gửi tới client
             if (parts.Length == 3)
             {
                 
                 // Lấy nội dung hiện tại từ cơ sở dữ liệu
                 newContent = await dbManager.GetDocumentContentByIdAsync(docID, userID);
-                string reponseMessage = $"EDIT_DOC|{docID}|{userID}|" + newContent;
+                // Lấy quyền truy cập file
+                int editStatus = dbManager.GetUserPermission(userID, docID);
+                string reponseMessage = $"EDIT_DOC|{docID}|{userID}|{editStatus}|" + newContent;
                 // Gửi nội dung hiện tại dưới dạng RTF tới client mới
                 byte[] contentBuffer = Encoding.UTF8.GetBytes(reponseMessage);
-                await SendResponseAsync(stream, contentBuffer);
+                await SendResponseAsync(stream, contentBuffer, sender);
+                /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                {
+                    richTextBox_Editor.Text += "Server : " + $"EDIT_DOC|{docID}|{userID}|{editStatus}|" + newContent + Environment.NewLine; // Cập nhật giao diện với RTF
+                })));*/
                 return;
             }
             // Xử lý cập nhật
             newContent = parts[3];
             await ProcessUpdateAsync(newContent, sender, docID);
         }
+
+        private async Task SendResponseAsync(NetworkStream stream, byte[] response, TcpClient client)
+        {
+            // Nén dữ liệu phản hồi
+            byte[] compressedResponse = Compress(response);
+
+            // Chuyển đổi độ dài dữ liệu đã nén thành mảng byte
+            byte[] lengthBuffer = BitConverter.GetBytes(compressedResponse.Length);
+
+            // Gửi độ dài dữ liệu đã nén trước
+            await stream.WriteAsync(lengthBuffer, 0, lengthBuffer.Length);
+
+            // Gửi dữ liệu đã nén
+            await stream.WriteAsync(compressedResponse, 0, compressedResponse.Length);
+        }
+
 
         private async Task ProcessUpdateAsync(string update, TcpClient sender, int docId)
         {
@@ -374,11 +430,11 @@ namespace Server
             bool saveSuccess = await dbManager.UpdateDocumentContentAsync(docId, sharedContent);
             if (!saveSuccess)
             {
-                MessageBox.Show($"Không thể lưu nội dung cho DocID: {docId}");
+                MessageBox.Show($"Server: Không thể lưu nội dung cho DocID: {docId}");
                 return;
             }
 
-            string broadcastMessage = $"EDIT_DOC|{docId}|" + sharedContent;
+            string broadcastMessage = $"UPDATE_DOC|{docId}|" + sharedContent;
             await BroadcastUpdateAsync(broadcastMessage, sender);
         }
         
@@ -399,7 +455,11 @@ namespace Server
                     try
                     {
                         NetworkStream stream = client.GetStream();
-                        await SendResponseAsync(stream, updateBuffer);
+                        await SendResponseAsync(stream, updateBuffer, client);
+                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
+                        {
+                            richTextBox_Editor.Text += "Server broadcast: " + update + Environment.NewLine; // Cập nhật giao diện với RTF
+                        })));*/
                     }
                     catch (IOException ex)
                     {

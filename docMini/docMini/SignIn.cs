@@ -1,5 +1,6 @@
 ﻿using docMini;
 using Server;
+using System.IO.Compression;
 using System.Net.Sockets;
 using System.Text;
 
@@ -112,37 +113,72 @@ namespace docMini
 
         private async Task SendDataAsync(string message)
         {
+            // Chuyển đổi chuỗi thành byte
             byte[] data = Encoding.UTF8.GetBytes(message);
-            byte[] lengthData = BitConverter.GetBytes(data.Length);
 
-            // Gửi độ dài dữ liệu trước
+            // Nén dữ liệu
+            byte[] compressedData = Compress(data);
+
+            // Gửi độ dài dữ liệu nén
+            byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
             await stream.WriteAsync(lengthData, 0, lengthData.Length);
-            // Gửi dữ liệu chính
-            await stream.WriteAsync(data, 0, data.Length);
+
+            // Gửi dữ liệu nén
+            await stream.WriteAsync(compressedData, 0, compressedData.Length);
         }
+
 
         private async Task<string> ReceiveDataAsync()
         {
-            // Đọc độ dài dữ liệu phản hồi
+            // Đọc độ dài dữ liệu nén
             byte[] lengthBuffer = new byte[sizeof(int)];
             int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
             if (bytesRead != sizeof(int))
             {
-                throw new Exception("Không thể đọc kích thước phản hồi từ server.");
+                throw new Exception("Không thể đọc kích thước dữ liệu từ server.");
             }
-            int responseLength = BitConverter.ToInt32(lengthBuffer, 0);
+            int compressedLength = BitConverter.ToInt32(lengthBuffer, 0);
 
-            // Đọc nội dung phản hồi
-            byte[] responseBuffer = new byte[responseLength];
-            bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
-            if (bytesRead != responseLength)
+            // Đọc dữ liệu nén
+            byte[] compressedData = new byte[compressedLength];
+            bytesRead = await stream.ReadAsync(compressedData, 0, compressedData.Length);
+            if (bytesRead != compressedLength)
             {
-                throw new Exception("Phản hồi từ server không đầy đủ.");
+                throw new Exception("Không thể đọc đầy đủ dữ liệu từ server.");
             }
-            return Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+
+            // Giải nén dữ liệu
+            byte[] decompressedData = Decompress(compressedData);
+
+            // Chuyển đổi byte thành chuỗi UTF-8
+            return Encoding.UTF8.GetString(decompressedData, 0, decompressedData.Length);
         }
 
 
+        // Phương thức nén dữ liệu
+        private static byte[] Compress(byte[] data)
+        {
+            using (var outputStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
+                {
+                    gzipStream.Write(data, 0, data.Length);
+                }
+                return outputStream.ToArray();
+            }
+        }
+
+        // Phương thức giải nén dữ liệu
+        private static byte[] Decompress(byte[] compressedData)
+        {
+            using (var inputStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+            using (var outputStream = new MemoryStream())
+            {
+                gzipStream.CopyTo(outputStream);
+                return outputStream.ToArray();
+            }
+        }
         private void label_ForgotPass_Click(object sender, EventArgs e)
         {
             this.Hide();
