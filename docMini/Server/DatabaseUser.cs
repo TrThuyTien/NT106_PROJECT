@@ -244,7 +244,7 @@ public class DatabaseManager
     }
 
     // Thêm 1 bản ghi vào bảng User_Doc
-    public bool AddUserDocLink(int userId, int docId, int mode)
+    public bool AddUserDocLink(int userId, int docId, int mode, int ownerID)
     {
         try
         {
@@ -252,32 +252,32 @@ public class DatabaseManager
             {
                 connection.Open();
 
-                // Kiểm tra xem userId có phải là chủ sở hữu của docId không
+                // Kiểm tra xem ownerID có phải là chủ sở hữu của docId không
                 string checkOwnerQuery = @"
-                SELECT COUNT(*)
-                FROM Docs
-                WHERE DocID = @DocID AND OwnerID = @UserId";
+            SELECT COUNT(*)
+            FROM Docs
+            WHERE DocID = @DocID AND OwnerID = @OwnerID";
 
                 using (var checkOwnerCommand = new SQLiteCommand(checkOwnerQuery, connection))
                 {
                     checkOwnerCommand.Parameters.AddWithValue("@DocID", docId);
-                    checkOwnerCommand.Parameters.AddWithValue("@UserId", userId);
+                    checkOwnerCommand.Parameters.AddWithValue("@OwnerID", ownerID);
 
                     long isOwner = (long)checkOwnerCommand.ExecuteScalar();
 
-                    // Nếu không phải chủ sở hữu, từ chối thêm
+                    // Nếu ownerID không phải chủ sở hữu, từ chối thêm
                     if (isOwner == 0)
                     {
-                        Console.WriteLine("User is not the owner of the document. Operation denied.");
+                        Console.WriteLine("Operation denied. Provided ownerID is not the owner of the document.");
                         return false;
                     }
                 }
 
                 // Kiểm tra xem bản ghi UserId-DocID đã tồn tại hay chưa
                 string checkExistQuery = @"
-                SELECT COUNT(*)
-                FROM Users_Docs
-                WHERE UserId = @UserId AND DocID = @DocID";
+            SELECT COUNT(*)
+            FROM Users_Docs
+            WHERE UserId = @UserId AND DocID = @DocID";
 
                 using (var checkExistCommand = new SQLiteCommand(checkExistQuery, connection))
                 {
@@ -290,9 +290,9 @@ public class DatabaseManager
                     {
                         // Nếu bản ghi đã tồn tại, thực hiện UPDATE
                         string updateQuery = @"
-                        UPDATE Users_Docs
-                        SET EditStatus = @EditStatus
-                        WHERE UserId = @UserId AND DocID = @DocID";
+                    UPDATE Users_Docs
+                    SET EditStatus = @EditStatus
+                    WHERE UserId = @UserId AND DocID = @DocID";
 
                         using (var updateCommand = new SQLiteCommand(updateQuery, connection))
                         {
@@ -306,8 +306,8 @@ public class DatabaseManager
                     {
                         // Nếu bản ghi chưa tồn tại, thực hiện INSERT
                         string insertUserDocQuery = @"
-                        INSERT INTO Users_Docs (UserId, DocID, EditStatus)
-                        VALUES (@UserId, @DocID, @EditStatus)";
+                    INSERT INTO Users_Docs (UserId, DocID, EditStatus)
+                    VALUES (@UserId, @DocID, @EditStatus)";
 
                         using (var insertUserDocCommand = new SQLiteCommand(insertUserDocQuery, connection))
                         {
@@ -330,6 +330,7 @@ public class DatabaseManager
             return false;
         }
     }
+
 
 
     // Kiểm tra doc có tồn tại hay không
