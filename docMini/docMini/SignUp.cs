@@ -34,6 +34,15 @@ namespace docMini
                 return;
             }
 
+            if (checkmail(email))
+            {
+                MessageBox.Show("Email hợp lệ.");
+            }
+            else
+            {
+                MessageBox.Show("Email không hợp lệ.");
+            }
+
             try
             {
                 string serverResponse = await SendSignUpRequestAsync(username, email, password);
@@ -176,6 +185,31 @@ namespace docMini
         {
             mainDoc mainDoc = new mainDoc(1, "admin");
             mainDoc.Show();
+        }
+
+        private void checkbox_Showpass_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkbox_Showpass.Checked)
+            {
+                textbox_Password.UseSystemPasswordChar = false;
+            }
+            else
+            {
+                textbox_Password.UseSystemPasswordChar = true;
+            }
+        }
+
+        private bool checkmail(string email)
+        {
+            try
+            {
+                var check = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+                return System.Text.RegularExpressions.Regex.IsMatch(email, check);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

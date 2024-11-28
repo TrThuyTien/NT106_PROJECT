@@ -35,6 +35,7 @@
             button_SignUp = new Button();
             label1 = new Label();
             label_SwitchSignIn = new Label();
+            checkbox_Showpass = new CheckBox();
             SuspendLayout();
             // 
             // textbox_Username
@@ -69,19 +70,19 @@
             textbox_Password.Name = "textbox_Password";
             textbox_Password.Size = new Size(363, 38);
             textbox_Password.TabIndex = 2;
+            textbox_Password.UseSystemPasswordChar = true;
             // 
             // button_SignUp
             // 
-            button_SignUp.AutoSize = true;
             button_SignUp.BackColor = Color.Transparent;
             button_SignUp.FlatAppearance.BorderColor = Color.Black;
             button_SignUp.FlatAppearance.BorderSize = 0;
             button_SignUp.FlatStyle = FlatStyle.Flat;
-            button_SignUp.Font = new Font("Sitka Small", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button_SignUp.Font = new Font("Sitka Small", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             button_SignUp.ForeColor = Color.White;
-            button_SignUp.Location = new Point(262, 585);
+            button_SignUp.Location = new Point(262, 586);
             button_SignUp.Name = "button_SignUp";
-            button_SignUp.Size = new Size(172, 36);
+            button_SignUp.Size = new Size(169, 32);
             button_SignUp.TabIndex = 7;
             button_SignUp.Text = "SIGN UP";
             button_SignUp.UseMnemonic = false;
@@ -113,6 +114,20 @@
             label_SwitchSignIn.Text = "Sign In";
             label_SwitchSignIn.Click += label_SwitchSignIn_Click;
             // 
+            // checkbox_Showpass
+            // 
+            checkbox_Showpass.AutoSize = true;
+            checkbox_Showpass.BackColor = Color.Transparent;
+            checkbox_Showpass.Font = new Font("Sitka Small", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            checkbox_Showpass.ForeColor = Color.White;
+            checkbox_Showpass.Location = new Point(157, 551);
+            checkbox_Showpass.Name = "checkbox_Showpass";
+            checkbox_Showpass.Size = new Size(176, 29);
+            checkbox_Showpass.TabIndex = 12;
+            checkbox_Showpass.Text = "Show password";
+            checkbox_Showpass.UseVisualStyleBackColor = false;
+            checkbox_Showpass.CheckedChanged += checkbox_Showpass_CheckedChanged;
+            // 
             // SignUp
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -120,6 +135,7 @@
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
             BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(682, 753);
+            Controls.Add(checkbox_Showpass);
             Controls.Add(label_SwitchSignIn);
             Controls.Add(label1);
             Controls.Add(button_SignUp);
@@ -144,5 +160,6 @@
         private Button button_SignUp;
         private Label label1;
         private Label label_SwitchSignIn;
+        private CheckBox checkbox_Showpass;
     }
 }

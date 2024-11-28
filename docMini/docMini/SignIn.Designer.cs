@@ -32,7 +32,7 @@
             textbox_Username = new TextBox();
             textbox_Password = new TextBox();
             button_SignIn = new Button();
-            checkbox_SaveAccount = new CheckBox();
+            checkbox_Showpass = new CheckBox();
             label_ForgotPass = new Label();
             label1 = new Label();
             label_SwitchSignUp = new Label();
@@ -42,7 +42,6 @@
             // 
             textbox_Username.BackColor = Color.White;
             textbox_Username.BorderStyle = BorderStyle.None;
-            textbox_Username.Cursor = Cursors.Cross;
             textbox_Username.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             textbox_Username.ForeColor = Color.Black;
             textbox_Username.Location = new Point(220, 319);
@@ -60,37 +59,38 @@
             textbox_Password.Name = "textbox_Password";
             textbox_Password.Size = new Size(297, 27);
             textbox_Password.TabIndex = 4;
+            textbox_Password.UseSystemPasswordChar = true;
             // 
             // button_SignIn
             // 
-            button_SignIn.AutoSize = true;
             button_SignIn.BackColor = Color.Transparent;
             button_SignIn.FlatAppearance.BorderColor = Color.Black;
             button_SignIn.FlatAppearance.BorderSize = 0;
             button_SignIn.FlatStyle = FlatStyle.Flat;
-            button_SignIn.Font = new Font("Sitka Small", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button_SignIn.Font = new Font("Sitka Small", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             button_SignIn.ForeColor = Color.White;
-            button_SignIn.Location = new Point(262, 513);
+            button_SignIn.Location = new Point(261, 518);
             button_SignIn.Name = "button_SignIn";
-            button_SignIn.Size = new Size(171, 44);
+            button_SignIn.Size = new Size(172, 36);
             button_SignIn.TabIndex = 6;
             button_SignIn.Text = "SIGN IN";
             button_SignIn.UseMnemonic = false;
             button_SignIn.UseVisualStyleBackColor = false;
             button_SignIn.Click += button_SignIn_Click;
             // 
-            // checkbox_SaveAccount
+            // checkbox_Showpass
             // 
-            checkbox_SaveAccount.AutoSize = true;
-            checkbox_SaveAccount.BackColor = Color.Transparent;
-            checkbox_SaveAccount.Font = new Font("Sitka Small", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            checkbox_SaveAccount.ForeColor = Color.White;
-            checkbox_SaveAccount.Location = new Point(152, 475);
-            checkbox_SaveAccount.Name = "checkbox_SaveAccount";
-            checkbox_SaveAccount.Size = new Size(161, 28);
-            checkbox_SaveAccount.TabIndex = 7;
-            checkbox_SaveAccount.Text = "Remember me";
-            checkbox_SaveAccount.UseVisualStyleBackColor = false;
+            checkbox_Showpass.AutoSize = true;
+            checkbox_Showpass.BackColor = Color.Transparent;
+            checkbox_Showpass.Font = new Font("Sitka Small", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            checkbox_Showpass.ForeColor = Color.White;
+            checkbox_Showpass.Location = new Point(152, 475);
+            checkbox_Showpass.Name = "checkbox_Showpass";
+            checkbox_Showpass.Size = new Size(176, 29);
+            checkbox_Showpass.TabIndex = 7;
+            checkbox_Showpass.Text = "Show password";
+            checkbox_Showpass.UseVisualStyleBackColor = false;
+            checkbox_Showpass.CheckedChanged += checkbox_Showpass_CheckedChanged;
             // 
             // label_ForgotPass
             // 
@@ -100,7 +100,7 @@
             label_ForgotPass.ForeColor = Color.Coral;
             label_ForgotPass.Location = new Point(345, 475);
             label_ForgotPass.Name = "label_ForgotPass";
-            label_ForgotPass.Size = new Size(180, 26);
+            label_ForgotPass.Size = new Size(182, 26);
             label_ForgotPass.TabIndex = 8;
             label_ForgotPass.Text = "Forgot Password?";
             label_ForgotPass.Click += label_ForgotPass_Click;
@@ -140,7 +140,7 @@
             Controls.Add(label_SwitchSignUp);
             Controls.Add(label1);
             Controls.Add(label_ForgotPass);
-            Controls.Add(checkbox_SaveAccount);
+            Controls.Add(checkbox_Showpass);
             Controls.Add(button_SignIn);
             Controls.Add(textbox_Password);
             Controls.Add(textbox_Username);
@@ -160,7 +160,7 @@
         private TextBox textbox_Username;
         private TextBox textbox_Password;
         private Button button_SignIn;
-        private CheckBox checkbox_SaveAccount;
+        private CheckBox checkbox_Showpass;
         private Label label_ForgotPass;
         private Label label1;
         private Label label_SwitchSignUp;

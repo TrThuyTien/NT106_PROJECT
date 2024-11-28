@@ -33,9 +33,9 @@ namespace docMini
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show(
-                    "Vui lòng nhập đầy đủ thông tin.", 
-                    "Thông báo", 
-                    MessageBoxButtons.OK, 
+                    "Vui lòng nhập đầy đủ thông tin.",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
                 return;
@@ -44,7 +44,8 @@ namespace docMini
             try
             {
                 string serverResponse = await SendSignInRequestAsync(username, password);
-                if (serverResponse.StartsWith($"SIGN_IN|{username}|")) {
+                if (serverResponse.StartsWith($"SIGN_IN|{username}|"))
+                {
                     // Phân tích gói tin phản hồi từ server để lấy ID nếu thành công
                     var responseParts = serverResponse.Split('|');
                     if (responseParts[2] == "SUCCESS")
@@ -68,7 +69,7 @@ namespace docMini
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                     }
-                } 
+                }
                 else
                 {
                     MessageBox.Show("Day khong phai la phan hoi dung can nhan");
@@ -197,6 +198,17 @@ namespace docMini
         {
             mainDoc mainDoc = new mainDoc(1, "admin");
             mainDoc.Show();
+        }
+
+        private void checkbox_Showpass_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkbox_Showpass.Checked) {
+                textbox_Password.UseSystemPasswordChar = false;
+            }
+            else
+            {
+                textbox_Password.UseSystemPasswordChar = true;
+            }
         }
     }
 }
