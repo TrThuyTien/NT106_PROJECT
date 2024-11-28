@@ -167,7 +167,7 @@ namespace Server
                     }
 
                     // Thêm vào bảng User_Doc
-                    bool success = dbManager.AddUserDocLink(idUserToAdd, docID, editStatus);
+                    bool success = dbManager.AddUserDocLink(idUserToAdd, docID, editStatus, ownerID);
 
                     if (success)
                     {
