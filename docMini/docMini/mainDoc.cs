@@ -57,48 +57,72 @@ namespace docMini
         {
             using (PrintDocument printDoc = new PrintDocument())
             {
-                // Chọn máy in "Microsoft Print to PDF"
                 printDoc.PrinterSettings.PrinterName = "Microsoft Print to PDF";
                 printDoc.PrinterSettings.PrintToFile = true;
                 printDoc.PrinterSettings.PrintFileName = outputPdfPath;
 
+                int charFrom = 0; // Vị trí bắt đầu in
+                int textLength = richTextBox.TextLength;
+
                 printDoc.PrintPage += (sender, e) =>
                 {
-                    // Lấy HDC từ máy in
-                    IntPtr hdc = e.Graphics.GetHdc();
+                    IntPtr hdc = IntPtr.Zero;
 
-                    // Cấu hình FORMATRANGE
-                    FORMATRANGE formatRange = new FORMATRANGE
+                    try
                     {
-                        hdc = hdc,
-                        hdcTarget = hdc,
-                        rc = new RECT1
-                        {
-                            Left = 0,
-                            Top = 0,
-                            Right = (int)(e.PageBounds.Width * 14.4),  // Đơn vị TWIPS
-                            Bottom = (int)(e.PageBounds.Height * 14.4) // Đơn vị TWIPS
-                        },
-                        rcPage = new RECT1
-                        {
-                            Left = 0,
-                            Top = 0,
-                            Right = (int)(e.PageBounds.Width * 14.4),
-                            Bottom = (int)(e.PageBounds.Height * 14.4)
-                        },
-                        chrg_cpMin = 0,  // Vị trí bắt đầu in
-                        chrg_cpMax = -1  // In toàn bộ nội dung
-                    };
+                        // Lấy HDC từ Graphics
+                        hdc = e.Graphics.GetHdc();
 
-                    // Gửi thông điệp EM_FORMATRANGE để vẽ nội dung
-                    IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(formatRange));
-                    Marshal.StructureToPtr(formatRange, lParam, false);
-                    SendMessage(richTextBox.Handle, EM_FORMATRANGE, (IntPtr)1, lParam);
+                        FORMATRANGE formatRange = new FORMATRANGE
+                        {
+                            hdc = hdc,
+                            hdcTarget = hdc,
+                            rc = new RECT1
+                            {
+                                Left = (int)(e.MarginBounds.Left * 14.4),
+                                Top = (int)(e.MarginBounds.Top * 14.4),
+                                Right = (int)(e.MarginBounds.Right * 14.4),
+                                Bottom = (int)(e.MarginBounds.Bottom * 14.4),
+                            },
+                            rcPage = new RECT1
+                            {
+                                Left = 0,
+                                Top = 0,
+                                Right = (int)(e.PageBounds.Width * 14.4),
+                                Bottom = (int)(e.PageBounds.Height * 14.4),
+                            },
+                            chrg_cpMin = charFrom,
+                            chrg_cpMax = richTextBox.TextLength
+                        };
 
-                    // Kết thúc in và giải phóng tài nguyên
-                    SendMessage(richTextBox.Handle, EM_FORMATRANGE, IntPtr.Zero, IntPtr.Zero);
-                    Marshal.FreeHGlobal(lParam);
-                    e.Graphics.ReleaseHdc(hdc);
+                        // Gửi FORMATRANGE để tính toán và vẽ nội dung
+                        IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(formatRange));
+                        Marshal.StructureToPtr(formatRange, lParam, false);
+
+                        int nextCharIndex = SendMessage(richTextBox.Handle, EM_FORMATRANGE, (IntPtr)1, lParam).ToInt32();
+                        Marshal.FreeHGlobal(lParam);
+
+                        if (nextCharIndex <= charFrom || nextCharIndex >= richTextBox.TextLength)
+                        {
+                            e.HasMorePages = false;
+                        }
+                        else
+                        {
+                            e.HasMorePages = true;
+                            charFrom = nextCharIndex;
+                        }
+                    }
+                    finally
+                    {
+                        // Giải phóng HDC
+                        if (hdc != IntPtr.Zero)
+                        {
+                            e.Graphics.ReleaseHdc(hdc);
+                        }
+
+                        // Kết thúc in
+                        SendMessage(richTextBox.Handle, EM_FORMATRANGE, IntPtr.Zero, IntPtr.Zero);
+                    }
                 };
 
                 // Bắt đầu in
@@ -312,14 +336,7 @@ namespace docMini
             }
 
         }
-        private System.Drawing.Font ApplyFontSizeToSelection(System.Drawing.Font originalFont, float newSize)
-        {
-            if (originalFont != null)
-            {
-                return new System.Drawing.Font(originalFont.FontFamily, newSize, originalFont.Style);
-            }
-            return new System.Drawing.Font("Tahoma", newSize); // Font mặc định nếu không có font
-        }
+       
         private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
         {
             float newSize;
@@ -436,6 +453,8 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
+
+            UpdateFormattingButtons();
         }
         private void button_Italic_Click(object sender, EventArgs e)
         {
@@ -470,6 +489,7 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
+            UpdateFormattingButtons();
         }
 
         private void button_Underline_Click(object sender, EventArgs e)
@@ -505,6 +525,7 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
+            UpdateFormattingButtons();
         }
 
 
@@ -538,6 +559,7 @@ namespace docMini
             Marshal.StructureToPtr(paraFormat, lParam, false);
             SendMessage(richTextBox_Content.Handle, EM_SETPARAFORMAT, IntPtr.Zero, lParam);
             Marshal.FreeHGlobal(lParam);
+            UpdateFormattingButtons();
         }
         [StructLayout(LayoutKind.Sequential)]
         private struct PARAFORMAT2
@@ -582,6 +604,7 @@ namespace docMini
                 previousAlignment = richTextBox_Content.SelectionAlignment;
                 richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Right;
             }
+            UpdateFormattingButtons();
         }
         private void button_Center_Click(object sender, EventArgs e)
         {
@@ -595,6 +618,7 @@ namespace docMini
                 previousAlignment = richTextBox_Content.SelectionAlignment;
                 richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
             }
+            UpdateFormattingButtons();
         }
 
         private void mainDoc_LoadFormat(object sender, EventArgs e)
@@ -1019,9 +1043,14 @@ namespace docMini
 
 
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
+        private void richTextBox_Content_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateFormattingButtons();
+        }
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
             richTextBox_Content_TextChangedButton(sender, e); // Gọi hàm xử lý định dạng
+            UpdateFormattingButtons();
             richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
         }
 
