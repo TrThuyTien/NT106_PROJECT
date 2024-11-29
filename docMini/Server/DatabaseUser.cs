@@ -331,7 +331,7 @@ public class DatabaseManager
         }
     }
 
-
+    // Xóa 
 
     // Kiểm tra doc có tồn tại hay không
     public bool IsDocumentExists(string docName, int idOwner)
@@ -359,6 +359,109 @@ public class DatabaseManager
             }
         }
     }
+    public bool IsDocumentExists(int idDoc)
+    {
+
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT COUNT(*) FROM Docs WHERE DocID = @DocID";
+
+            using (var command = new SQLiteCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@DocID", idDoc);
+
+                object result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int count))
+                {
+                    return count > 0; // Trả về true nếu tài liệu tồn tại
+                }
+                return false; // Trả về false nếu tài liệu không tồn tại
+            }
+        }
+    }
+
+    // Xóa file
+    public int DeleteFileById(int idUser, int idDoc)
+    {
+        try
+        {
+            // Kiểm tra sự tồn tại của idDoc
+            if (!IsDocumentExists(idDoc))
+            {
+                Console.WriteLine($"Tài liệu với ID {idDoc} không tồn tại.");
+                return -1;
+            }
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // Kiểm tra xem idUser có phải là chủ sở hữu của idDoc hay không
+                string checkOwnerQuery = @"
+                SELECT OwnerID 
+                FROM Docs 
+                WHERE DocID = @DocID";
+
+                using (var checkCommand = new SQLiteCommand(checkOwnerQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@DocID", idDoc);
+
+                    var ownerId = checkCommand.ExecuteScalar();
+
+                    if (ownerId != null && Convert.ToInt32(ownerId) == idUser)
+                    {
+                        // idUser là chủ sở hữu -> Xóa bản ghi trong Docs và Users_Docs
+                        string deleteDocQuery = @"
+                        DELETE FROM Docs 
+                        WHERE DocID = @DocID";
+
+                        using (var deleteDocCommand = new SQLiteCommand(deleteDocQuery, connection))
+                        {
+                            deleteDocCommand.Parameters.AddWithValue("@DocID", idDoc);
+                            deleteDocCommand.ExecuteNonQuery();
+                        }
+
+                        string deleteUserDocsQuery = @"
+                        DELETE FROM Users_Docs 
+                        WHERE DocID = @DocID";
+
+                        using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection))
+                        {
+                            deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
+                            deleteUserDocsCommand.ExecuteNonQuery();
+                        }
+                    }
+                    else
+                    {
+                        // idUser không phải là chủ sở hữu -> Xóa bản ghi trong Users_Docs
+                        string deleteUserDocsQuery = @"
+                        DELETE FROM Users_Docs 
+                        WHERE UserId = @UserId AND DocID = @DocID";
+
+                        using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection))
+                        {
+                            deleteUserDocsCommand.Parameters.AddWithValue("@UserId", idUser);
+                            deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
+                            deleteUserDocsCommand.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                connection.Close();
+            }
+
+            Console.WriteLine("Xóa file thành công.");
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Lỗi khi xóa file: " + ex.Message);
+            return 0;
+        }
+    }
+
 
     // Lấy nội dung của Doc
     public async Task<string> GetDocumentContentByIdAsync(int docID, int userID)

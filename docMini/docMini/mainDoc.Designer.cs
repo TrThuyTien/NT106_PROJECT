@@ -65,6 +65,7 @@ namespace docMini
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripTextBox1 = new ToolStripTextBox();
             button_LoadFile = new Button();
+            button_DeleteFile = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -515,12 +516,29 @@ namespace docMini
             button_LoadFile.UseVisualStyleBackColor = false;
             button_LoadFile.Click += button_LoadFile_Click;
             // 
+            // button_DeleteFile
+            // 
+            button_DeleteFile.BackColor = Color.FromArgb(255, 128, 128);
+            button_DeleteFile.FlatStyle = FlatStyle.Flat;
+            button_DeleteFile.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point, 163);
+            button_DeleteFile.Image = (Image)resources.GetObject("button_DeleteFile.Image");
+            button_DeleteFile.ImageAlign = ContentAlignment.MiddleLeft;
+            button_DeleteFile.Location = new Point(226, 824);
+            button_DeleteFile.Name = "button_DeleteFile";
+            button_DeleteFile.Size = new Size(132, 44);
+            button_DeleteFile.TabIndex = 24;
+            button_DeleteFile.Text = "Xóa File";
+            button_DeleteFile.TextAlign = ContentAlignment.MiddleRight;
+            button_DeleteFile.UseVisualStyleBackColor = false;
+            button_DeleteFile.Click += button_DeleteFile_Click;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1404, 935);
+            Controls.Add(button_DeleteFile);
             Controls.Add(button_LoadFile);
             Controls.Add(listBox_Docs);
             Controls.Add(richTextBox_Content);
@@ -939,5 +957,6 @@ namespace docMini
         private Button button_HighLight;
         private Button button_textColor;
         private Button button_LoadFile;
+        private Button button_DeleteFile;
     }
 }
