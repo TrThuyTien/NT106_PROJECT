@@ -1012,6 +1012,11 @@ namespace docMini
             tempForm.ShowDialog();
         }
 
+        private void button_LoadFile_Click(object sender, EventArgs e)
+        {
+            GetAllFile();
+        }
+
 
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
@@ -1630,6 +1635,8 @@ namespace docMini
         }
 
         
+
+
 
 
 

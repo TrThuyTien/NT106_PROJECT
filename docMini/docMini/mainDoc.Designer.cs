@@ -64,7 +64,7 @@ namespace docMini
             contextMenu_Table = new ContextMenuStrip(components);
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripTextBox1 = new ToolStripTextBox();
-            label1 = new Label();
+            button_LoadFile = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -496,15 +496,23 @@ namespace docMini
             toolStripTextBox1.Name = "toolStripTextBox1";
             toolStripTextBox1.Size = new Size(100, 27);
             // 
-            // label1
+            // button_LoadFile
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Cambria", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 163);
-            label1.Location = new Point(106, 241);
-            label1.Name = "label1";
-            label1.Size = new Size(193, 27);
-            label1.TabIndex = 22;
-            label1.Text = "Danh sách các file";
+            button_LoadFile.BackColor = Color.FromArgb(255, 255, 192);
+            button_LoadFile.FlatAppearance.BorderColor = Color.Black;
+            button_LoadFile.FlatAppearance.MouseDownBackColor = Color.White;
+            button_LoadFile.FlatAppearance.MouseOverBackColor = Color.White;
+            button_LoadFile.FlatStyle = FlatStyle.Flat;
+            button_LoadFile.Font = new Font("Cambria", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 163);
+            button_LoadFile.Image = (Image)resources.GetObject("button_LoadFile.Image");
+            button_LoadFile.ImageAlign = ContentAlignment.MiddleRight;
+            button_LoadFile.Location = new Point(38, 242);
+            button_LoadFile.Name = "button_LoadFile";
+            button_LoadFile.Size = new Size(321, 34);
+            button_LoadFile.TabIndex = 23;
+            button_LoadFile.Text = "Danh sách các file";
+            button_LoadFile.UseVisualStyleBackColor = false;
+            button_LoadFile.Click += button_LoadFile_Click;
             // 
             // mainDoc
             // 
@@ -512,7 +520,7 @@ namespace docMini
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1404, 935);
-            Controls.Add(label1);
+            Controls.Add(button_LoadFile);
             Controls.Add(listBox_Docs);
             Controls.Add(richTextBox_Content);
             Controls.Add(pictureBox_Avatar);
@@ -873,8 +881,8 @@ namespace docMini
         private ToolStripTextBox toolStripTextBox1;
         private Button button_NewFile;
         private Button button_Download;
-        private Label label1;
         private Button button_HighLight;
         private Button button_textColor;
+        private Button button_LoadFile;
     }
 }
