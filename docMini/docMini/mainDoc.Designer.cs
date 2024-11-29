@@ -469,6 +469,7 @@ namespace docMini
             richTextBox_Content.Size = new Size(781, 737);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
+            richTextBox_Content.SelectionChanged += richTextBox_Content_SelectionChanged;
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
             // button_Connect
@@ -846,7 +847,61 @@ namespace docMini
             TextRenderer.DrawText(e.Graphics, button.Text, button.Font, button.ClientRectangle, button.ForeColor,
                                   TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
+        private void UpdateFormattingButtons()
+        {
+            // Lấy font của ký tự tại vị trí con trỏ
+            Font currentFont = richTextBox_Content.SelectionFont;
 
+            // Cập nhật nút Bold, Italic, Underline
+            if (currentFont != null)
+            {
+                button_Bold.BackColor = currentFont.Bold ? Color.LightBlue : SystemColors.Control;
+                button_Italic.BackColor = currentFont.Italic ? Color.LightBlue : SystemColors.Control;
+                button_Underline.BackColor = currentFont.Underline ? Color.LightBlue : SystemColors.Control;
+
+                // Cập nhật ComboBox kiểu chữ
+                comboBox_Font.SelectedItem = currentFont.FontFamily.Name;
+
+                // Cập nhật ComboBox cỡ chữ
+                comboBox_Size.SelectedItem = currentFont.Size.ToString();
+            }
+            else
+            {
+                // Đặt về mặc định nếu không có định dạng
+                button_Bold.BackColor = SystemColors.Control;
+                button_Italic.BackColor = SystemColors.Control;
+                button_Underline.BackColor = SystemColors.Control;
+            }
+
+            // Kiểm tra trạng thái căn lề
+            switch (richTextBox_Content.SelectionAlignment)
+            {
+                case HorizontalAlignment.Left:
+                    button_AlignLeft.BackColor = Color.LightBlue;
+                    button_Center.BackColor = SystemColors.Control;
+                    button_AlignRight.BackColor = SystemColors.Control;
+                    button_Justify.BackColor = SystemColors.Control;
+                    break;
+                case HorizontalAlignment.Center:
+                    button_AlignLeft.BackColor = SystemColors.Control;
+                    button_Center.BackColor = Color.LightBlue;
+                    button_AlignRight.BackColor = SystemColors.Control;
+                    button_Justify.BackColor = SystemColors.Control;
+                    break;
+                case HorizontalAlignment.Right:
+                    button_AlignLeft.BackColor = SystemColors.Control;
+                    button_Center.BackColor = SystemColors.Control;
+                    button_AlignRight.BackColor = Color.LightBlue;
+                    button_Justify.BackColor = SystemColors.Control;
+                    break;
+                default: // Justify không được hỗ trợ trực tiếp trong HorizontalAlignment
+                    button_AlignLeft.BackColor = SystemColors.Control;
+                    button_Center.BackColor = SystemColors.Control;
+                    button_AlignRight.BackColor = SystemColors.Control;
+                    button_Justify.BackColor = Color.LightBlue;
+                    break;
+            }
+        }
 
         #endregion
 
