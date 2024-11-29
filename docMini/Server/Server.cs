@@ -12,6 +12,7 @@ namespace Server
         public Server()
         {
             InitializeComponent();
+            textBox_Port.Text = "8080";
         }
 
 
@@ -29,9 +30,10 @@ namespace Server
 
         private async void button_Listen_Click(object sender, EventArgs e)
         {
-            listener = new TcpListener(IPAddress.Any, 8080);
+            int port = int.Parse(textBox_Port.Text);
+            listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
-            richTextBox_Editor.Text = "Server đang chạy trên cổng 8080...";
+            richTextBox_Editor.Text = $"Server đang chạy trên cổng {port}...";
             isListening = true;
 
             while (isListening)
