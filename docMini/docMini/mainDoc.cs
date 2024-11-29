@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
 namespace docMini
@@ -1041,7 +1042,95 @@ namespace docMini
             GetAllFile();
         }
 
+        private async void button_DeleteFile_Click(object sender, EventArgs e)
+        {
+            // Hiển thị hộp thoại xác nhận
+            var confirmResult = MessageBox.Show(
+                $"Bạn có chắc chắn muốn xóa file \"{nameDoc}\" không?",
+                "Xác nhận xóa",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
 
+            // Nếu người dùng chọn Yes thì bắt đầu xóa
+            if (confirmResult == DialogResult.Yes)
+            {
+                try
+                {
+                    // Gửi yêu cầu xóa file đến server
+                    string serverResponse = await SendDeleteFileAsync();
+                    if (serverResponse.StartsWith($"DELETE_FILE|{idUser}|{idDoc}|"))
+                    {
+                        // Phân tích gói tin phản hồi từ server
+                        var responseParts = serverResponse.Split('|');
+                        if (responseParts[3] == "SUCCESS")
+                        {
+                            MessageBox.Show(
+                                $"Xóa file \"{nameDoc}\" thành công!",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            );
+                            richTextBox_Content.Clear();
+                            richTextBox_Content.ReadOnly = true;
+                        }
+                        else if (responseParts[3] == "FILE_NOT_FOUND")
+                        {
+                            MessageBox.Show(
+                                $"File \"{nameDoc}\" không tồn tại. Vui lòng load lại danh sách file.",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            );
+                            richTextBox_Content.Clear();
+                            richTextBox_Content.ReadOnly = true;
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                "Xóa file thất bại",
+                                "Lỗi",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error
+                            );
+                        }
+                    }
+                }
+                catch (SocketException ex)
+                {
+                    MessageBox.Show(
+                        $"Lỗi kết nối đến server: {ex.Message}",
+                        "Lỗi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Đã xảy ra lỗi: {ex.Message}",
+                        "Lỗi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+            else
+            {
+                // Người dùng chọn No, không thực hiện xóa
+                MessageBox.Show(
+                    "Hủy thao tác xóa file.",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+        }
+
+
+
+        //--------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
         private void richTextBox_Content_SelectionChanged(object sender, EventArgs e)
         {
@@ -1102,6 +1191,7 @@ namespace docMini
             GetAllFile();
         }
 
+        
         private void mainDoc_LoadInfoUser(object sender, EventArgs e)
         {
             label_NameAccount.Text = nameUser;
@@ -1233,7 +1323,6 @@ namespace docMini
                 string serverResponse = await SendContentFileRequestAsync(docID);
                 if (serverResponse.StartsWith($"EDIT_DOC|{docID}|{idUser}|"))
                 {
-                    /*MessageBox.Show("Nhận được phản hồi");*/
                     var responseParts = serverResponse.Split('|');
                     if (responseParts.Length == 5)
                     {
@@ -1265,6 +1354,18 @@ namespace docMini
                         // Bắt đầu nhận nội dung mới
                         _ = Task.Run(() => ReceiveContentAsync(docID, token), token);
                     }
+                    else if (responseParts.Length == 4)
+                    {
+                        if (responseParts[3] == "FAIL")
+                        {
+                            MessageBox.Show(
+                                "Tài liệu này không tồn tại.\nVui lòng reload lại danh sách file.",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            );
+                        }
+                    }
                 }
                 else
                 {
@@ -1293,7 +1394,6 @@ namespace docMini
                                 MessageBoxIcon.Error);
             }
         }
-
 
 
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
@@ -1378,7 +1478,23 @@ namespace docMini
             return await ReceiveDataAsync();
         }
 
-
+        // Gửi yêu cầu XÓA FILE
+        private async Task<string> SendDeleteFileAsync()
+        {
+            using (tcpClient = new TcpClient())
+            {
+                await tcpClient.ConnectAsync(serverIP, serverPort);
+                using (stream = tcpClient.GetStream())
+                {
+                    // Gửi yêu cầu tạo file
+                    string message = $"DELETE_FILE|{idUser}|{idDoc}";
+                    await SendDataAsync(message);
+                    // Nhận phản hồi từ server
+                    string serverResponse = await ReceiveDataAsync();
+                    return serverResponse;
+                }
+            }
+        }
         private async Task SendDataAsync(string message)
         {
             // Chuyển đổi chuỗi thành mảng byte
@@ -1664,6 +1780,8 @@ namespace docMini
         }
 
         
+
+
 
 
 
