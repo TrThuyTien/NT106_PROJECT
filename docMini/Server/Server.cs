@@ -155,7 +155,7 @@ namespace Server
 
                     DatabaseManager dbManager = new DatabaseManager();
 
-                    // Lấy ID người dùng
+                    // Lấy trạng thái xóa file
                     int success = dbManager.DeleteFileById(userID, docID);
                     if (success == -1)
                     {
@@ -168,9 +168,11 @@ namespace Server
                         string responseMessage = $"DELETE_FILE|{userID}|{docID}|SUCCESS";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
+                        return;
                     }
                     else
                     {
+                        return;
                         string responseMessage = $"DELETE_FILE|{userID}|{docID}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
@@ -451,6 +453,7 @@ namespace Server
             }
         }
 
+        // GỬI PHẢN HỒI
         private async Task SendResponseAsync(NetworkStream stream, byte[] response, TcpClient client)
         {
             // Nén dữ liệu phản hồi
@@ -466,7 +469,7 @@ namespace Server
             await stream.WriteAsync(compressedResponse, 0, compressedResponse.Length);
         }
 
-
+        // UPDATE NỘI DUNG DOCUMENT
         private async Task ProcessUpdateAsync(string update, TcpClient sender, int docId)
         {
             lock (lockObject)
@@ -495,6 +498,7 @@ namespace Server
             await BroadcastUpdateAsync(broadcastMessage, sender);
         }
         
+        // BROADCAST TỚI CÁC CLIENT
         private async Task BroadcastUpdateAsync(string update, TcpClient sender)
         {
             byte[] updateBuffer = Encoding.UTF8.GetBytes(update);

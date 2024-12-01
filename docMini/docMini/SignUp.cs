@@ -63,6 +63,7 @@ namespace docMini
                         this.Hide();
                         mainDoc mainForm = new mainDoc(int.Parse(userId), username);
                         mainForm.ShowDialog();
+                        this.Close();
                     }
                     else
                     {

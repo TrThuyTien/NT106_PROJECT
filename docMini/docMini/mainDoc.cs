@@ -1094,6 +1094,10 @@ namespace docMini
                             );
                             richTextBox_Content.Clear();
                             richTextBox_Content.ReadOnly = true;
+                            idDoc = 0;
+                            nameDoc = "";
+                            label_DocumentName.Text = "Tạo tài liệu mới";
+                            GetAllFile();
                         }
                         else if (responseParts[3] == "FILE_NOT_FOUND")
                         {
@@ -1244,8 +1248,6 @@ namespace docMini
                 e.DrawFocusRectangle();
             };
 
-
-
         }
 
         private void mainDoc_LoadGetAllFile(object sender, EventArgs e)
@@ -1273,6 +1275,7 @@ namespace docMini
         private StringBuilder pendingUpdates = new StringBuilder(); // Lưu trữ các thay đổi tạm thời
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
+        // LẤY DANH SÁCH FILE
         private async void GetAllFile()
         {
             try
@@ -1345,6 +1348,7 @@ namespace docMini
             }
         }
 
+        // CHỌN TÀI LIỆU ĐỂ MỞ
         private async void listBox_Docs_DoubleClick(object sender, EventArgs e)
         {
             if (listBox_Docs.SelectedItem != null)
@@ -1366,7 +1370,7 @@ namespace docMini
             }
         }
 
-
+        // MỞ TÀI LIỆU
         private async Task OpenDocumentAsync(string docName, int docID, CancellationToken token)
         {
             try
@@ -1457,7 +1461,7 @@ namespace docMini
             }
         }
 
-
+        // TẠO KẾT NỐI VỚI SERVER
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
         {
             try
@@ -1472,8 +1476,7 @@ namespace docMini
             }
         }
 
-        // Lấy tất cả file Doc của người dùng
-
+        // GỬI YÊU CẦU: Lấy tất cả file Doc của người dùng
         private async Task<string> SendGetAllFileRequestAsync()
         {
             using (tcpClient = new TcpClient())
@@ -1491,7 +1494,7 @@ namespace docMini
             }
         }
 
-        // Gửi yêu cầu tạo file mới tới server
+        // GỬI YÊU CẦU: Tạo file mới tới server
         private async Task<string> SendCreateNewFileAsync(string fileName)
         {
             using (tcpClient = new TcpClient())
@@ -1509,7 +1512,7 @@ namespace docMini
             }
         }
 
-        // Gửi yêu cầu chia sẻ file cho người dùng khác
+        // GỬI YÊU CẦU: Chia sẻ file cho người dùng khác
         private async Task<string> SendShareFileAsync(string usernameToAdd, string mode)
         {
             using (tcpClient = new TcpClient())
@@ -1527,7 +1530,7 @@ namespace docMini
             }
         }
 
-        // Gửi yêu cầu lấy nội dung file
+        // GỬI YÊU CẦU: Lấy nội dung file
         private async Task<string> SendContentFileRequestAsync(int docID)
         {
             if (tcpClient == null || !tcpClient.Connected)
@@ -1540,7 +1543,7 @@ namespace docMini
             return await ReceiveDataAsync();
         }
 
-        // Gửi yêu cầu XÓA FILE
+        // GỬI YÊU CẦU: XÓA FILE
         private async Task<string> SendDeleteFileAsync()
         {
             using (tcpClient = new TcpClient())
