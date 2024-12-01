@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
@@ -20,6 +21,8 @@ namespace docMini
             InitializeTableContextMenu();
             SetRichTextBoxPadding(richTextBox_Content, 65, 65, 65, 65);
             richTextBox_Content.LinkClicked += new LinkClickedEventHandler(richTextBox_Content_LinkClicked);
+            // Khởi tạo menu kiểu đánh dấu
+            InitializeBulletStyleMenu();
             idUser = userID;
             nameUser = userName;
             richTextBox_Content.ReadOnly = true;
@@ -420,6 +423,7 @@ namespace docMini
                 }
                 richTextBox_Content.Select(selectionStart, 0);
             }
+           
         }
         private void button_Bold_Click(object sender, EventArgs e)
         {
@@ -454,8 +458,6 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
-
-            UpdateFormattingButtons();
         }
         private void button_Italic_Click(object sender, EventArgs e)
         {
@@ -490,7 +492,6 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
-            UpdateFormattingButtons();
         }
 
         private void button_Underline_Click(object sender, EventArgs e)
@@ -526,7 +527,6 @@ namespace docMini
                 // Đặt lại vùng chọn ban đầu
                 richTextBox_Content.Select(selectionStart, selectionLength);
             }
-            UpdateFormattingButtons();
         }
 
 
@@ -560,7 +560,7 @@ namespace docMini
             Marshal.StructureToPtr(paraFormat, lParam, false);
             SendMessage(richTextBox_Content.Handle, EM_SETPARAFORMAT, IntPtr.Zero, lParam);
             Marshal.FreeHGlobal(lParam);
-            UpdateFormattingButtons();
+            
         }
         [StructLayout(LayoutKind.Sequential)]
         private struct PARAFORMAT2
@@ -605,7 +605,7 @@ namespace docMini
                 previousAlignment = richTextBox_Content.SelectionAlignment;
                 richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Right;
             }
-            UpdateFormattingButtons();
+            
         }
         private void button_Center_Click(object sender, EventArgs e)
         {
@@ -619,7 +619,7 @@ namespace docMini
                 previousAlignment = richTextBox_Content.SelectionAlignment;
                 richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
             }
-            UpdateFormattingButtons();
+           
         }
 
         private void mainDoc_LoadFormat(object sender, EventArgs e)
@@ -792,46 +792,68 @@ namespace docMini
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref CHARFORMAT2 lParam);
 
-        public static void ApplyBulletPoints(RichTextBox richTextBox)
+        private List<int> lineStartIndices = new List<int>(); // Danh sách vị trí bắt đầu của các dòng đã đánh số
+        public static void ApplyBulletPoints(RichTextBox richTextBox, string newBulletSymbol)
         {
+            // Lưu vị trí con trỏ hiện tại
             int selectionStart = richTextBox.SelectionStart;
             int selectionLength = richTextBox.SelectionLength;
 
-            string[] lines = richTextBox.SelectedText.Split(new[] { '\n' }, StringSplitOptions.None);
-
-            int currentPosition = selectionStart;
-
-            foreach (var line in lines)
+            if (selectionLength == 0)
             {
-                // Lấy định dạng hiện tại của dòng
-                var charFormat = new CHARFORMAT2();
-                charFormat.cbSize = (uint)Marshal.SizeOf(charFormat);
+                MessageBox.Show("Vui lòng chọn văn bản cần đánh dấu đầu dòng.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-                IntPtr result = SendMessage(richTextBox.Handle, EM_GETCHARFORMAT, new IntPtr(SCF_SELECTION), ref charFormat);
-                if (result == IntPtr.Zero)
+            // Tách văn bản đã chọn thành các dòng
+            string selectedText = richTextBox.SelectedText;
+            string[] lines = selectedText.Split(new[] { '\n' }, StringSplitOptions.None);
+
+            // Mẫu nhận diện dấu đề mục cũ
+            string bulletPattern = @"^(\s*[\u2022\u25E6\u25CF\u2219○●-]|\d+\.)\s";
+
+            // Duyệt qua từng dòng
+            int currentIndex = selectionStart;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                // Nhận diện xem dòng có dấu đầu dòng hay không
+                string newLine = line;
+                Match match = Regex.Match(line, bulletPattern);
+                if (match.Success)
                 {
-                    System.Windows.Forms.MessageBox.Show("Lỗi khi lấy định dạng.");
-                    return;
+                    // Thay thế dấu đầu dòng cũ bằng dấu mới
+                    newLine = $"{newBulletSymbol} {line.Substring(match.Length).TrimStart()}";
+                }
+                else
+                {
+                    // Thêm dấu đầu dòng nếu dòng không có
+                    newLine = $"{newBulletSymbol} {line}";
                 }
 
-                // Thêm số thứ tự
-                string bullet = $"{Array.IndexOf(lines, line) + 1}. ";
-                richTextBox.Select(currentPosition, 0);
-                richTextBox.SelectedText = bullet;
+                // Chèn lại văn bản với dấu đầu dòng mới
+                richTextBox.Select(currentIndex, line.Length);
+                Font currentFont = richTextBox.SelectionFont; // Lưu định dạng hiện tại
+                richTextBox.SelectedText = newLine;
+                richTextBox.Select(currentIndex, newLine.Length);
+                richTextBox.SelectionFont = currentFont;
 
-                // Áp dụng lại định dạng gốc
-                currentPosition += bullet.Length;
-                richTextBox.Select(currentPosition, line.Length);
-                SendMessage(richTextBox.Handle, EM_SETCHARFORMAT, new IntPtr(SCF_SELECTION), ref charFormat);
-
-                // Cập nhật vị trí tiếp theo
-                currentPosition += line.Length + 1; // +1 cho ký tự xuống dòng
+                // Cập nhật chỉ số cho dòng tiếp theo
+                currentIndex += newLine.Length + 1; // +1 cho ký tự xuống dòng
             }
+
+            // Đặt lại vùng chọn sau khi hoàn thành
+            richTextBox.Select(selectionStart, currentIndex - selectionStart - 1);
         }
+
+
+
         private void button_LineCounter_Click(object sender, EventArgs e)
         {
-            ApplyBulletPoints(richTextBox_Content);
+            contextMenuStrip_headIcon.Show(button_LineCounter, 0, button_LineCounter.Height);
         }
+
 
         private void button_textColor_Click(object sender, EventArgs e)
         {
@@ -1127,20 +1149,60 @@ namespace docMini
         }
 
 
+        private void richTextBox_Content_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true; // Ngăn hành vi mặc định của phím Enter
+
+                // Lấy vị trí con trỏ hiện tại
+                int cursorPosition = richTextBox_Content.SelectionStart;
+
+                // Lấy dòng hiện tại trước khi nhấn Enter
+                int currentLineIndex = richTextBox_Content.GetLineFromCharIndex(cursorPosition);
+                if (currentLineIndex > 0) // Kiểm tra nếu không phải dòng đầu tiên
+                {
+                    // Lấy văn bản của dòng trên
+                    int lineStartIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex - 1);
+                    int lineEndIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex) - 1;
+                    if (lineEndIndex < 0) lineEndIndex = richTextBox_Content.Text.Length;
+
+                    string previousLine = richTextBox_Content.Text.Substring(lineStartIndex, lineEndIndex - lineStartIndex);
+
+                    // Kiểm tra nếu dòng trên có dấu đầu dòng
+                    string bulletPattern = @"^(\s*[\u2022\u25E6\u25CF\u2219○●-]|\d+\.)\s";
+                    Regex regex = new Regex(bulletPattern);
+                    Match match = regex.Match(previousLine);
+
+                    if (match.Success) // Nếu có dấu đầu dòng
+                    {
+                        // Thêm dòng mới và sao chép dấu đầu dòng
+                        string bullet = match.Value.TrimEnd();
+                        richTextBox_Content.SelectedText = "\n" + bullet + " ";
+
+                        // Đặt con trỏ sau dấu đầu dòng
+                        richTextBox_Content.SelectionStart += bullet.Length + 2; // +2 cho dấu cách
+                        return;
+                    }
+                }
+
+                // Nếu không có dấu đầu dòng, thêm dòng mới bình thường
+                richTextBox_Content.SelectedText = "\n";
+            }
+        }
 
         //--------------------------------------------------------------------------------------------------------
         //--------------------------------------------------------------------------------------------------------
         //--------------------------------------------------------------------------------------------------------
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
-        private void richTextBox_Content_SelectionChanged(object sender, EventArgs e)
-        {
-            UpdateFormattingButtons();
-        }
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
+            
             richTextBox_Content_TextChangedButton(sender, e); // Gọi hàm xử lý định dạng
             UpdateFormattingButtons();
+            
             richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
+            
         }
 
         private void mainDoc_Load(object sender, EventArgs e)
