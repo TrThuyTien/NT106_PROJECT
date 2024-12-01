@@ -62,15 +62,16 @@ namespace docMini
             richTextBox_Content = new RichTextBox();
             button_Connect = new Button();
             contextMenu_Table = new ContextMenuStrip(components);
-            contextMenuStrip1 = new ContextMenuStrip(components);
+            contextMenuStrip_Table = new ContextMenuStrip(components);
             toolStripTextBox1 = new ToolStripTextBox();
             button_LoadFile = new Button();
             button_DeleteFile = new Button();
+            contextMenuStrip_headIcon = new ContextMenuStrip(components);
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).BeginInit();
-            contextMenuStrip1.SuspendLayout();
+            contextMenuStrip_Table.SuspendLayout();
             SuspendLayout();
             // 
             // button_Exit
@@ -463,6 +464,7 @@ namespace docMini
             // 
             // richTextBox_Content
             // 
+            richTextBox_Content.AcceptsTab = true;
             richTextBox_Content.BackColor = Color.White;
             richTextBox_Content.BorderStyle = BorderStyle.None;
             richTextBox_Content.Location = new Point(480, 166);
@@ -470,8 +472,8 @@ namespace docMini
             richTextBox_Content.Size = new Size(781, 737);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
-            richTextBox_Content.SelectionChanged += richTextBox_Content_SelectionChanged;
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
+            richTextBox_Content.KeyDown += richTextBox_Content_KeyDown;
             // 
             // button_Connect
             // 
@@ -486,12 +488,12 @@ namespace docMini
             contextMenu_Table.Name = "contextMenuStrip1";
             contextMenu_Table.Size = new Size(61, 4);
             // 
-            // contextMenuStrip1
+            // contextMenuStrip_Table
             // 
-            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripTextBox1 });
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(161, 33);
+            contextMenuStrip_Table.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip_Table.Items.AddRange(new ToolStripItem[] { toolStripTextBox1 });
+            contextMenuStrip_Table.Name = "contextMenuStrip1";
+            contextMenuStrip_Table.Size = new Size(161, 33);
             // 
             // toolStripTextBox1
             // 
@@ -532,6 +534,12 @@ namespace docMini
             button_DeleteFile.UseVisualStyleBackColor = false;
             button_DeleteFile.Click += button_DeleteFile_Click;
             // 
+            // contextMenuStrip_headIcon
+            // 
+            contextMenuStrip_headIcon.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip_headIcon.Name = "contextMenuStrip_headIcon";
+            contextMenuStrip_headIcon.Size = new Size(211, 32);
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
@@ -559,8 +567,8 @@ namespace docMini
             panel_ToolbarBorder.ResumeLayout(false);
             panel_Toolbar.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox_Avatar).EndInit();
-            contextMenuStrip1.ResumeLayout(false);
-            contextMenuStrip1.PerformLayout();
+            contextMenuStrip_Table.ResumeLayout(false);
+            contextMenuStrip_Table.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -920,7 +928,59 @@ namespace docMini
                     break;
             }
         }
+        private void InitializeBulletStyleMenu()
+        {
+            contextMenuStrip_headIcon = new ContextMenuStrip();
 
+            // Thêm các tùy chọn kiểu đánh dấu
+            contextMenuStrip_headIcon.Items.Add("Chấm trắng", null, (s, e) => ApplyBulletPoints(richTextBox_Content, "○"));
+            contextMenuStrip_headIcon.Items.Add("Chấm đen", null, (s, e) => ApplyBulletPoints(richTextBox_Content, "●"));
+            contextMenuStrip_headIcon.Items.Add("Gạch ngang", null, (s, e) => ApplyBulletPoints(richTextBox_Content, "—"));
+            contextMenuStrip_headIcon.Items.Add("Số thứ tự", null, (s, e) => ApplyNumberedList(richTextBox_Content));
+        }
+        public static void ApplyNumberedList(RichTextBox richTextBox)
+        {
+            // Lưu vị trí con trỏ hiện tại
+            int selectionStart = richTextBox.SelectionStart;
+            int selectionLength = richTextBox.SelectionLength;
+
+            if (selectionLength == 0)
+            {
+                MessageBox.Show("Vui lòng chọn văn bản cần đánh số thứ tự.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Tách văn bản đã chọn thành các dòng
+            string selectedText = richTextBox.SelectedText;
+            string[] lines = selectedText.Split(new[] { '\n' }, StringSplitOptions.None);
+
+            // Duyệt qua từng dòng
+            int currentIndex = selectionStart;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                // Chèn số thứ tự trước dòng
+                richTextBox.Select(currentIndex, line.Length);
+                string numberedLine = $"{i + 1}. {line}";
+
+                // Lưu định dạng hiện tại
+                Font currentFont = richTextBox.SelectionFont;
+
+                // Thay thế nội dung dòng với số thứ tự
+                richTextBox.SelectedText = numberedLine;
+
+                // Đặt lại định dạng
+                richTextBox.Select(currentIndex, numberedLine.Length);
+                richTextBox.SelectionFont = currentFont;
+
+                // Cập nhật chỉ số cho dòng tiếp theo
+                currentIndex += numberedLine.Length + 1; // +1 cho ký tự xuống dòng
+            }
+
+            // Đặt lại vùng chọn sau khi hoàn thành
+            richTextBox.Select(selectionStart, currentIndex - selectionStart - 1);
+        }
         #endregion
 
         private Button button_Exit;
@@ -950,7 +1010,7 @@ namespace docMini
         private ContextMenuStrip contextMenu_Table;
         private Button button_LineCounter;
         private Button button_LineSpace;
-        private ContextMenuStrip contextMenuStrip1;
+        private ContextMenuStrip contextMenuStrip_Table;
         private ToolStripTextBox toolStripTextBox1;
         private Button button_NewFile;
         private Button button_Download;
@@ -958,5 +1018,6 @@ namespace docMini
         private Button button_textColor;
         private Button button_LoadFile;
         private Button button_DeleteFile;
+        private ContextMenuStrip contextMenuStrip_headIcon;
     }
 }
