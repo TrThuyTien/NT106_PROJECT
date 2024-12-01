@@ -387,66 +387,68 @@ public class DatabaseManager
     {
         try
         {
-            // Kiểm tra sự tồn tại của idDoc
-            if (!IsDocumentExists(idDoc))
-            {
-                Console.WriteLine($"Tài liệu với ID {idDoc} không tồn tại.");
-                return -1;
-            }
-
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
 
-                // Kiểm tra xem idUser có phải là chủ sở hữu của idDoc hay không
-                string checkOwnerQuery = @"
-                SELECT OwnerID 
-                FROM Docs 
-                WHERE DocID = @DocID";
-
-                using (var checkCommand = new SQLiteCommand(checkOwnerQuery, connection))
+                // Kiểm tra sự tồn tại của idDoc
+                if (!IsDocumentExists(idDoc))
                 {
-                    checkCommand.Parameters.AddWithValue("@DocID", idDoc);
+                    Console.WriteLine($"Tài liệu với ID {idDoc} không tồn tại.");
+                    return -1;
+                }
 
-                    var ownerId = checkCommand.ExecuteScalar();
-
-                    if (ownerId != null && Convert.ToInt32(ownerId) == idUser)
+                // Tạo giao dịch
+                using (var transaction = connection.BeginTransaction())
+                {
+                    // Kiểm tra xem idUser có phải là chủ sở hữu của idDoc không
+                    string checkOwnerQuery = @"
+                    SELECT OwnerID 
+                    FROM Docs 
+                    WHERE DocID = @DocID";
+                    using (var checkCommand = new SQLiteCommand(checkOwnerQuery, connection, transaction))
                     {
-                        // idUser là chủ sở hữu -> Xóa bản ghi trong Docs và Users_Docs
-                        string deleteDocQuery = @"
-                        DELETE FROM Docs 
-                        WHERE DocID = @DocID";
+                        checkCommand.Parameters.AddWithValue("@DocID", idDoc);
+                        var ownerId = checkCommand.ExecuteScalar();
 
-                        using (var deleteDocCommand = new SQLiteCommand(deleteDocQuery, connection))
+                        if (ownerId != null && int.TryParse(ownerId.ToString(), out int ownerID) && ownerID == idUser)
                         {
-                            deleteDocCommand.Parameters.AddWithValue("@DocID", idDoc);
-                            deleteDocCommand.ExecuteNonQuery();
+                            // idUser là chủ sở hữu -> Xóa bản ghi trong Docs và Users_Docs
+                            string deleteDocQuery = @"
+                            DELETE FROM Docs 
+                            WHERE DocID = @DocID";
+                            using (var deleteDocCommand = new SQLiteCommand(deleteDocQuery, connection, transaction))
+                            {
+                                deleteDocCommand.Parameters.AddWithValue("@DocID", idDoc);
+                                deleteDocCommand.ExecuteNonQuery();
+                            }
+
+                            string deleteUserDocsQuery = @"
+                            DELETE FROM Users_Docs 
+                            WHERE DocID = @DocID";
+                            using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection, transaction))
+                            {
+                                deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
+                                deleteUserDocsCommand.ExecuteNonQuery();
+                            }
                         }
-
-                        string deleteUserDocsQuery = @"
-                        DELETE FROM Users_Docs 
-                        WHERE DocID = @DocID";
-
-                        using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection))
+                        else
                         {
-                            deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
-                            deleteUserDocsCommand.ExecuteNonQuery();
+                            // idUser không phải là chủ sở hữu -> Xóa bản ghi trong Users_Docs
+                            string deleteUserDocsQuery = @"
+                            DELETE FROM Users_Docs 
+                            WHERE UserId = @UserId AND DocID = @DocID";
+                            using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection, transaction))
+                            {
+                                deleteUserDocsCommand.Parameters.AddWithValue("@UserId", idUser);
+                                deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
+                                deleteUserDocsCommand.ExecuteNonQuery();
+                            }
                         }
                     }
-                    else
-                    {
-                        // idUser không phải là chủ sở hữu -> Xóa bản ghi trong Users_Docs
-                        string deleteUserDocsQuery = @"
-                        DELETE FROM Users_Docs 
-                        WHERE UserId = @UserId AND DocID = @DocID";
 
-                        using (var deleteUserDocsCommand = new SQLiteCommand(deleteUserDocsQuery, connection))
-                        {
-                            deleteUserDocsCommand.Parameters.AddWithValue("@UserId", idUser);
-                            deleteUserDocsCommand.Parameters.AddWithValue("@DocID", idDoc);
-                            deleteUserDocsCommand.ExecuteNonQuery();
-                        }
-                    }
+                    // Commit giao dịch
+                    transaction.Commit();
                 }
 
                 connection.Close();
@@ -461,6 +463,7 @@ public class DatabaseManager
             return 0;
         }
     }
+
 
 
     // Lấy nội dung của Doc
