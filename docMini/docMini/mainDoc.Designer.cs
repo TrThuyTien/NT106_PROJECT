@@ -613,41 +613,54 @@ namespace docMini
             // Thêm sự kiện xử lý cho menu
             button_AddTable.Click += (s, e) =>
             {
-                contextMenu_Table.Items.Clear();
-
-                // Thêm các mục chọn số cột
-                for (int cols = 1; cols <= 8; cols++) // Giới hạn số cột
+                // Kiểm soát trạng thái định dạng
+                if (isFormatting) return;
+                isFormatting = true;
+                try
                 {
-                    ToolStripMenuItem colItem = new ToolStripMenuItem($"{cols} Columns");
+                    contextMenu_Table.Items.Clear();
 
-                    // Thêm menu con cho số hàng
-                    for (int rows = 1; rows <= 8; rows++) // Giới hạn số hàng
+                    // Thêm các mục chọn số cột
+                    for (int cols = 1; cols <= 8; cols++) // Giới hạn số cột
                     {
-                        ToolStripMenuItem rowItem = new ToolStripMenuItem($"{cols} x {rows}");
-                        rowItem.Tag = new Tuple<int, int>(rows, cols);
+                        ToolStripMenuItem colItem = new ToolStripMenuItem($"{cols} Columns");
 
-                        // Sự kiện khi mục hàng được chọn
-                        rowItem.Click += (sender, args) =>
+                        // Thêm menu con cho số hàng
+                        for (int rows = 1; rows <= 8; rows++) // Giới hạn số hàng
                         {
-                            if (rowItem.Tag is Tuple<int, int> size)
+                            ToolStripMenuItem rowItem = new ToolStripMenuItem($"{cols} x {rows}");
+                            rowItem.Tag = new Tuple<int, int>(rows, cols);
+
+                            // Sự kiện khi mục hàng được chọn
+                            rowItem.Click += (sender, args) =>
                             {
-                                int selectedRows = size.Item1;
-                                int selectedCols = size.Item2;
+                                if (rowItem.Tag is Tuple<int, int> size)
+                                {
+                                    int selectedRows = size.Item1;
+                                    int selectedCols = size.Item2;
 
-                                // Chèn bảng vào vị trí con trỏ
-                                string newTableRtf = InsertTableInRichTextBox(selectedRows, selectedCols, 500);
-                                InsertRtfAtCursor(this.richTextBox_Content, newTableRtf);
-                            }
-                        };
+                                    // Chèn bảng vào vị trí con trỏ
+                                    string newTableRtf = InsertTableInRichTextBox(selectedRows, selectedCols, 500);
+                                    InsertRtfAtCursor(this.richTextBox_Content, newTableRtf);
+                                }
+                            };
 
-                        colItem.DropDownItems.Add(rowItem);
+                            colItem.DropDownItems.Add(rowItem);
+                        }
+                        contextMenu_Table.Items.Add(colItem);
                     }
-                    contextMenu_Table.Items.Add(colItem);
+
+                    // Hiển thị menu dưới nút
+                    contextMenu_Table.Show(button_AddTable, 0, button_AddTable.Height);
+                }
+                finally
+                {
+                    // Kết thúc trạng thái định dạng
+                    isFormatting = false;
                 }
 
-                // Hiển thị menu dưới nút
-                contextMenu_Table.Show(button_AddTable, 0, button_AddTable.Height);
             };
+
         }
         public class RoundedButton : Button
         {
