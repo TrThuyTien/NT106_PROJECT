@@ -59,14 +59,13 @@ namespace LoadBalance1
             clientToServer.Start();
             serverToClient.Start();
 
-            clientToServer.Join();
+            //clientToServer.Join();
             serverToClient.Join();
 
             client.Close();
             serverClient.Close();
 
-            server.DecrementConnection(); // Giảm số kết nối khi kết nối bị đóng
-            UpdateServerInfo();
+
         }
 
         private ServerInfo GetServerWithLeastConnections()
@@ -113,32 +112,27 @@ namespace LoadBalance1
         {
             public string IP { get; }
             public int Port { get; }
-            public int ConnectionCount { get; private set; }
-            private readonly object lockObject = new object();
+            private int connectionCount;  // Thay đổi từ ConnectionCount công khai thành private
+            public int ConnectionCount => connectionCount;  // Thêm thuộc tính chỉ đọc để truy cập connectionCount
+
             public ServerInfo(string ip, int port)
             {
                 IP = ip;
                 Port = port;
-                ConnectionCount = 0;
+                connectionCount = 0;
             }
 
             public void IncrementConnection()
             {
-                lock (lockObject)
-                {
-                    ConnectionCount++;
-                }    
-                    
+                Interlocked.Increment(ref connectionCount);
             }
 
             public void DecrementConnection()
             {
-                lock(lockObject)
-                {
-                    ConnectionCount--;
-                }    
+                Interlocked.Decrement(ref connectionCount);
             }
         }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
