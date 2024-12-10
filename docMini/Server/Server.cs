@@ -100,17 +100,7 @@ namespace Server
 
         private async Task ProcessRequestAsync(string update, NetworkStream stream, TcpClient client)
         {
-            string ipClient = "";
-            string portClient = "";
-            if (client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
-            {
-                ipClient = remoteEndPoint.Address.ToString(); // Trả về địa chỉ IP
-                ipClient = remoteEndPoint.Port.ToString(); // Trả về port
-            }
-            /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-            {
-                richTextBox_Editor.Text += ipClient + ":" + portClient + " : " + update + Environment.NewLine; // Cập nhật giao diện với RTF
-            })));*/
+
             if (update.StartsWith("SIGN_IN|"))
             {
                 await HandleSignInAsync(update, stream, client);
@@ -172,7 +162,6 @@ namespace Server
                     }
                     else
                     {
-                        return;
                         string responseMessage = $"DELETE_FILE|{userID}|{docID}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
@@ -252,6 +241,7 @@ namespace Server
         {
             try
             {
+
                 string[] parts = update.Split('|');
                 if (parts.Length == 3)
                 {
@@ -392,12 +382,12 @@ namespace Server
 
                 // Gọi hàm lấy danh sách tài liệu mà người dùng đã tham gia
                 Dictionary<int, string> userDocs = dbManager.GetUserDocsByUserId(idUser);
-                
+
                 if (userDocs != null)
                 {
                     // Chuyển Dictionary thành chuỗi với định dạng "DocID|Docname" mỗi cặp trên một dòng
                     string allFileName = string.Join(Environment.NewLine, userDocs.Select(doc => $"{doc.Key}@{doc.Value}"));
-                   
+
                     string responseMessage = $"GET_ALL_FILE|{idUser}|SUCCESS|{allFileName}";
                     byte[] response = Encoding.UTF8.GetBytes(responseMessage);
 
@@ -421,7 +411,8 @@ namespace Server
             int userID = int.Parse(parts[2]); // Lấy UserID
             string newContent = "";
             bool documentExists = dbManager.IsDocumentExists(docID);
-            if (!documentExists) {
+            if (!documentExists)
+            {
                 string reponseMessage = $"EDIT_DOC|{docID}|{userID}|FAIL";
                 byte[] contentBuffer = Encoding.UTF8.GetBytes(reponseMessage);
                 await SendResponseAsync(stream, contentBuffer, sender);
@@ -493,11 +484,10 @@ namespace Server
                 MessageBox.Show($"Server: Không thể lưu nội dung cho DocID: {docId}");
                 return;
             }
-
             string broadcastMessage = $"UPDATE_DOC|{docId}|" + sharedContent;
             await BroadcastUpdateAsync(broadcastMessage, sender);
         }
-        
+
         // BROADCAST TỚI CÁC CLIENT
         private async Task BroadcastUpdateAsync(string update, TcpClient sender)
         {
@@ -626,5 +616,6 @@ namespace Server
             // Cập nhật giao diện người dùng
             richTextBox_Editor.Text = "Server đã dừng.";
         }
+
     }
 }

@@ -168,8 +168,11 @@ namespace docMini
             this.Close();
         }
 
-        private void button_newFile_Click(object sender, EventArgs e)
+        private async void button_newFile_Click(object sender, EventArgs e)
         {
+            // Hủy luồng nhận dữ liệu
+            cancellationTokenSource.Cancel();
+            await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
             // Tạo form tạm thời
             Form tempForm = new Form
             {
@@ -237,7 +240,7 @@ namespace docMini
                         {
                             MessageBox.Show(
                                 "Tên tài liệu đã tồn tại. Vui lòng nhập tên khác!",
-                                "Lỗi",
+                                "Lỗi tạo file mới",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error
                             );
@@ -247,7 +250,7 @@ namespace docMini
                         {
                             MessageBox.Show(
                                 "Tạo tài liệu thất bại. Vui lòng thử lại!",
-                                "Lỗi",
+                                "Lỗi tạo file mới",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error
                             );
@@ -258,19 +261,21 @@ namespace docMini
                 catch (SocketException ex)
                 {
                     MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
-                                    "Lỗi",
+                                    "Lỗi tạo file mới",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                    "Lỗi",
+                                    "Lỗi tạo file mới",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                 }
             };
             tempForm.ShowDialog();
+            cancellationTokenSource = new CancellationTokenSource();
+            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
 
@@ -281,252 +286,380 @@ namespace docMini
         private bool isUnderline = false;
         private void richTextBox_Content_TextChangedButton(object sender, EventArgs e)
         {
+
             if (isBold && richTextBox_Content.SelectionLength == 0)
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-
-                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                // Kiểm soát trạng thái định dạng
+                if (isFormatting) return;
+                isFormatting = true;
+                try
                 {
-                    // Lấy ký tự trước đó
-                    richTextBox_Content.Select(selectionStart - 1, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                    }
+                    int selectionStart = richTextBox_Content.SelectionStart;
 
-                    // Đặt lại con trỏ
-                    richTextBox_Content.Select(selectionStart, 0);
+                    if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                    {
+                        // Lấy ký tự trước đó
+                        richTextBox_Content.Select(selectionStart - 1, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
+
+                        // Đặt lại con trỏ
+                        richTextBox_Content.Select(selectionStart, 0);
+                    }
                 }
+                finally
+                {
+                    // Kết thúc trạng thái định dạng
+                    isFormatting = false;
+                }
+
             }
             if (isItalic && richTextBox_Content.SelectionLength == 0)
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-
-                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                // Kiểm soát trạng thái định dạng
+                if (isFormatting) return;
+                isFormatting = true;
+                try
                 {
-                    // Lấy ký tự trước đó
-                    richTextBox_Content.Select(selectionStart - 1, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                    }
+                    int selectionStart = richTextBox_Content.SelectionStart;
 
-                    // Đặt lại con trỏ
-                    richTextBox_Content.Select(selectionStart, 0);
+                    if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                    {
+                        // Lấy ký tự trước đó
+                        richTextBox_Content.Select(selectionStart - 1, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
+
+                        // Đặt lại con trỏ
+                        richTextBox_Content.Select(selectionStart, 0);
+                    }
                 }
+                finally
+                {
+                    // Kết thúc trạng thái định dạng
+                    isFormatting = false;
+                }
+
             }
             if (isUnderline && richTextBox_Content.SelectionLength == 0)
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-
-                if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                // Kiểm soát trạng thái định dạng
+                if (isFormatting) return;
+                isFormatting = true;
+                try
                 {
-                    // Lấy ký tự trước đó
-                    richTextBox_Content.Select(selectionStart - 1, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                    }
+                    int selectionStart = richTextBox_Content.SelectionStart;
 
-                    // Đặt lại con trỏ
-                    richTextBox_Content.Select(selectionStart, 0);
+                    if (selectionStart > 0) // Đảm bảo không tràn chỉ mục
+                    {
+                        // Lấy ký tự trước đó
+                        richTextBox_Content.Select(selectionStart - 1, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
+
+                        // Đặt lại con trỏ
+                        richTextBox_Content.Select(selectionStart, 0);
+                    }
+                }
+                finally
+                {
+                    // Kết thúc trạng thái định dạng
+                    isFormatting = false;
                 }
             }
-
         }
-       
+
         private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
         {
-            float newSize;
-            if (!float.TryParse(comboBox_Size.SelectedItem.ToString(), out newSize))
-                return; // Thoát nếu không thể chuyển đổi kích thước
-
-            if (richTextBox_Content.SelectionLength > 0)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
-
-                // Áp dụng kích thước mới cho từng ký tự trong vùng chọn
-                for (int i = 0; i < selectionLength; i++)
+                float newSize;
+                if (!float.TryParse(comboBox_Size.SelectedItem.ToString(), out newSize))
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1); // Chọn từng ký tự
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                            currentFont.FontFamily, newSize, currentFont.Style
-                        );
-                    }
+                    // Kết thúc định dạng
+                    isFormatting = false;
+                    return; // Thoát nếu không thể chuyển đổi kích thước
                 }
 
-                // Đặt lại vùng chọn ban đầu
-                richTextBox_Content.Select(selectionStart, selectionLength);
-            }
-            else
-            {
-                // Không có vùng chọn, áp dụng font mới cho văn bản nhập sau này
-                if (richTextBox_Content.SelectionFont != null)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
 
-                    // Áp dụng cỡ chữ mới và loại bỏ các định dạng nếu cần
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                        currentFont.FontFamily,
-                        newSize,
-                        System.Drawing.FontStyle.Regular // Đặt về định dạng cơ bản (không in đậm, in nghiêng)
-                    );
+                    // Áp dụng kích thước mới cho từng ký tự trong vùng chọn
+                    for (int i = 0; i < selectionLength; i++)
+                    {
+                        richTextBox_Content.Select(selectionStart + i, 1); // Chọn từng ký tự
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                                currentFont.FontFamily, newSize, currentFont.Style
+                            );
+                        }
+                    }
+
+                    // Đặt lại vùng chọn ban đầu
+                    richTextBox_Content.Select(selectionStart, selectionLength);
                 }
                 else
                 {
-                    // Trường hợp không có SelectionFont, đặt font mặc định
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                        "Tahoma", newSize, System.Drawing.FontStyle.Regular
-                    );
+                    // Không có vùng chọn, áp dụng font mới cho văn bản nhập sau này
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                        // Áp dụng cỡ chữ mới và loại bỏ các định dạng nếu cần
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                            currentFont.FontFamily,
+                            newSize,
+                            System.Drawing.FontStyle.Regular // Đặt về định dạng cơ bản (không in đậm, in nghiêng)
+                        );
+                    }
+                    else
+                    {
+                        // Trường hợp không có SelectionFont, đặt font mặc định
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                            "Tahoma", newSize, System.Drawing.FontStyle.Regular
+                        );
+                    }
                 }
             }
+            finally
+            {
+                // Trạng thái định dạng kết thúc
+                isFormatting = false;
+            }
+
         }
         private void comboBox_Font_SelectedIndexChanged(object sender, EventArgs e)
         {
-            currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
-
-            if (richTextBox_Content.SelectionLength > 0)
+            // Kiểm soát định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
+                currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
 
-                for (int i = 0; i < selectionLength; i++)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
+
+                    for (int i = 0; i < selectionLength; i++)
+                    {
+                        richTextBox_Content.Select(selectionStart + i, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                        }
+                    }
+
+                    richTextBox_Content.Select(selectionStart, selectionLength);
+                }
+                if (richTextBox_Content.SelectionLength == 0)
+                {
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    richTextBox_Content.Select(selectionStart - 0, 1);
                     if (richTextBox_Content.SelectionFont != null)
                     {
                         System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
                         richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
                     }
+                    richTextBox_Content.Select(selectionStart, 0);
                 }
+                currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
 
-                richTextBox_Content.Select(selectionStart, selectionLength);
-            }
-            if (richTextBox_Content.SelectionLength == 0)
-            {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                richTextBox_Content.Select(selectionStart - 0, 1);
-                if (richTextBox_Content.SelectionFont != null)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                    richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
+
+                    for (int i = 0; i < selectionLength; i++)
+                    {
+                        richTextBox_Content.Select(selectionStart + i, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                        }
+                    }
+
+                    richTextBox_Content.Select(selectionStart, selectionLength);
                 }
-                richTextBox_Content.Select(selectionStart, 0);
+                if (richTextBox_Content.SelectionLength == 0)
+                {
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    richTextBox_Content.Select(selectionStart - 0, 1);
+                    if (richTextBox_Content.SelectionFont != null)
+                    {
+                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                    }
+                    richTextBox_Content.Select(selectionStart, 0);
+                }
             }
-           
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private void button_Bold_Click(object sender, EventArgs e)
         {
-            isBold = !isBold; // Toggle trạng thái in đậm
-
-            if (richTextBox_Content.SelectionLength > 0)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
+                isBold = !isBold; // Toggle trạng thái in đậm
 
-                // Lặp qua từng ký tự được chọn
-                for (int i = 0; i < selectionLength; i++)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
 
-                    if (richTextBox_Content.SelectionFont != null)
+                    // Lặp qua từng ký tự được chọn
+                    for (int i = 0; i < selectionLength; i++)
                     {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle;
+                        richTextBox_Content.Select(selectionStart + i, 1);
 
-                        // Thêm hoặc loại bỏ FontStyle.Bold
-                        if (currentFont.Bold)
-                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Bold; // Loại bỏ Bold
-                        else
-                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold; // Thêm Bold
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle;
 
-                        // Cập nhật font mới
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                            // Thêm hoặc loại bỏ FontStyle.Bold
+                            if (currentFont.Bold)
+                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Bold; // Loại bỏ Bold
+                            else
+                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold; // Thêm Bold
+
+                            // Cập nhật font mới
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
                     }
-                }
 
-                // Đặt lại vùng chọn ban đầu
-                richTextBox_Content.Select(selectionStart, selectionLength);
+                    // Đặt lại vùng chọn ban đầu
+                    richTextBox_Content.Select(selectionStart, selectionLength);
+                }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private void button_Italic_Click(object sender, EventArgs e)
         {
-            isItalic = !isItalic; // Toggle trạng thái in đậm
-
-            if (richTextBox_Content.SelectionLength > 0)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
+                isItalic = !isItalic; // Toggle trạng thái in nghiêng
 
-                // Lặp qua từng ký tự được chọn
-                for (int i = 0; i < selectionLength; i++)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
 
-                    if (richTextBox_Content.SelectionFont != null)
+                    // Lặp qua từng ký tự được chọn
+                    for (int i = 0; i < selectionLength; i++)
                     {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle;
+                        richTextBox_Content.Select(selectionStart + i, 1);
 
-                        // Thêm hoặc loại bỏ FontStyle.Bold
-                        if (currentFont.Italic)
-                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; // Loại bỏ Bold
-                        else
-                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; // Thêm Bold
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle;
 
-                        // Cập nhật font mới
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                            // Thêm hoặc loại bỏ FontStyle.Bold
+                            if (currentFont.Italic)
+                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; // Loại bỏ Bold
+                            else
+                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; // Thêm Bold
+
+                            // Cập nhật font mới
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
                     }
-                }
 
-                // Đặt lại vùng chọn ban đầu
-                richTextBox_Content.Select(selectionStart, selectionLength);
+                    // Đặt lại vùng chọn ban đầu
+                    richTextBox_Content.Select(selectionStart, selectionLength);
+                }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
 
         private void button_Underline_Click(object sender, EventArgs e)
         {
-            isUnderline = !isUnderline; // Toggle trạng thái in đậm
-
-            if (richTextBox_Content.SelectionLength > 0)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                int selectionStart = richTextBox_Content.SelectionStart;
-                int selectionLength = richTextBox_Content.SelectionLength;
+                isUnderline = !isUnderline; // Toggle trạng thái gạch chân
 
-                // Lặp qua từng ký tự được chọn
-                for (int i = 0; i < selectionLength; i++)
+                if (richTextBox_Content.SelectionLength > 0)
                 {
-                    richTextBox_Content.Select(selectionStart + i, 1);
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
 
-                    if (richTextBox_Content.SelectionFont != null)
+                    // Lặp qua từng ký tự được chọn
+                    for (int i = 0; i < selectionLength; i++)
                     {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        System.Drawing.FontStyle newFontStyle;
+                        richTextBox_Content.Select(selectionStart + i, 1);
 
-                        // Thêm hoặc loại bỏ FontStyle.Bold
-                        if (currentFont.Underline)
-                            newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; // Loại bỏ Bold
-                        else
-                            newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; // Thêm Bold
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+                            System.Drawing.FontStyle newFontStyle;
 
-                        // Cập nhật font mới
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                            // Thêm hoặc loại bỏ FontStyle.Bold
+                            if (currentFont.Underline)
+                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; // Loại bỏ Bold
+                            else
+                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; // Thêm Bold
+
+                            // Cập nhật font mới
+                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                        }
                     }
-                }
 
-                // Đặt lại vùng chọn ban đầu
-                richTextBox_Content.Select(selectionStart, selectionLength);
+                    // Đặt lại vùng chọn ban đầu
+                    richTextBox_Content.Select(selectionStart, selectionLength);
+                }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
 
 
@@ -546,21 +679,32 @@ namespace docMini
 
         private void button_Justify_Click(object sender, EventArgs e)
         {
-            // Kích hoạt Typography Options cho RichTextBox
-            SendMessage(richTextBox_Content.Handle, EM_SETTYPOGRAPHYOPTIONS, (IntPtr)TO_ADVANCEDTYPOGRAPHY, IntPtr.Zero);
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
+            {
+                // Kích hoạt Typography Options cho RichTextBox
+                SendMessage(richTextBox_Content.Handle, EM_SETTYPOGRAPHYOPTIONS, (IntPtr)TO_ADVANCEDTYPOGRAPHY, IntPtr.Zero);
 
-            // Tạo cấu trúc PARAFORMAT2 và đặt căn lề hai bên
-            PARAFORMAT2 paraFormat = new PARAFORMAT2();
-            paraFormat.cbSize = (uint)Marshal.SizeOf(paraFormat);
-            paraFormat.dwMask = PFM_ALIGNMENT;
-            paraFormat.wAlignment = PFA_JUSTIFY;
+                // Tạo cấu trúc PARAFORMAT2 và đặt căn lề hai bên
+                PARAFORMAT2 paraFormat = new PARAFORMAT2();
+                paraFormat.cbSize = (uint)Marshal.SizeOf(paraFormat);
+                paraFormat.dwMask = PFM_ALIGNMENT;
+                paraFormat.wAlignment = PFA_JUSTIFY;
 
-            // Áp dụng căn lề hai bên cho đoạn văn bản đang được bôi đen
-            IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(paraFormat));
-            Marshal.StructureToPtr(paraFormat, lParam, false);
-            SendMessage(richTextBox_Content.Handle, EM_SETPARAFORMAT, IntPtr.Zero, lParam);
-            Marshal.FreeHGlobal(lParam);
-            
+                // Áp dụng căn lề hai bên cho đoạn văn bản đang được bôi đen
+                IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(paraFormat));
+                Marshal.StructureToPtr(paraFormat, lParam, false);
+                SendMessage(richTextBox_Content.Handle, EM_SETPARAFORMAT, IntPtr.Zero, lParam);
+                Marshal.FreeHGlobal(lParam);
+            }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         [StructLayout(LayoutKind.Sequential)]
         private struct PARAFORMAT2
@@ -595,31 +739,53 @@ namespace docMini
 
         private void button_AlignRight_Click(object sender, EventArgs e)
         {
-            System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Right)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                richTextBox_Content.SelectionAlignment = previousAlignment;
+                System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
+                if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Right)
+                {
+                    richTextBox_Content.SelectionAlignment = previousAlignment;
+                }
+                else
+                {
+                    previousAlignment = richTextBox_Content.SelectionAlignment;
+                    richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Right;
+                }
             }
-            else
+            finally
             {
-                previousAlignment = richTextBox_Content.SelectionAlignment;
-                richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Right;
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
             }
-            
         }
         private void button_Center_Click(object sender, EventArgs e)
         {
-            System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Center)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                richTextBox_Content.SelectionAlignment = previousAlignment;
+                System.Windows.Forms.HorizontalAlignment previousAlignment = System.Windows.Forms.HorizontalAlignment.Left;
+                if (richTextBox_Content.SelectionAlignment == System.Windows.Forms.HorizontalAlignment.Center)
+                {
+                    richTextBox_Content.SelectionAlignment = previousAlignment;
+                }
+                else
+                {
+                    previousAlignment = richTextBox_Content.SelectionAlignment;
+                    richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
+                }
             }
-            else
+            finally
             {
-                previousAlignment = richTextBox_Content.SelectionAlignment;
-                richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Center;
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
             }
-           
+
+
         }
 
         private void mainDoc_LoadFormat(object sender, EventArgs e)
@@ -641,28 +807,40 @@ namespace docMini
 
         private void button_AddPicture_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                openFileDialog.InitialDirectory = "c:\\";
-                openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    // Get the path of specified file
-                    string filePath = openFileDialog.FileName;
+                    openFileDialog.InitialDirectory = "c:\\";
+                    openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+                    openFileDialog.FilterIndex = 1;
+                    openFileDialog.RestoreDirectory = true;
 
-                    // Load the image
-                    System.Drawing.Image img = System.Drawing.Image.FromFile(filePath);
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // Get the path of specified file
+                        string filePath = openFileDialog.FileName;
 
-                    // Copy the image to the clipboard
-                    Clipboard.SetImage(img);
+                        // Load the image
+                        System.Drawing.Image img = System.Drawing.Image.FromFile(filePath);
 
-                    // Paste the image into the RichTextBox
-                    richTextBox_Content.Paste();
+                        // Copy the image to the clipboard
+                        Clipboard.SetImage(img);
+
+                        // Paste the image into the RichTextBox
+                        richTextBox_Content.Paste();
+                    }
                 }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private static string InsertTableInRichTextBox(int rows, int cols, int width)
         {
@@ -692,54 +870,73 @@ namespace docMini
 
             return stringTableRtf.ToString();
         }
-        private void button_AddTable_Click(object sender, EventArgs e)
-        {
-            contextMenu_Table.Show(button_AddTable, 0, button_AddTable.Height);
-
-        }
         private void button_AddLink_Click(object sender, EventArgs e)
         {
-            string selectedText = richTextBox_Content.SelectedText; // Lấy đoạn văn bản được chọn
-            addLink insertLinkForm = new addLink(selectedText); // Mở form nhập liên kết
-
-            if (insertLinkForm.ShowDialog() == DialogResult.OK)
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                string linkText = insertLinkForm.LinkText; // Văn bản hiển thị
-                string linkAddress = insertLinkForm.LinkAddress; // Địa chỉ liên kết
+                string selectedText = richTextBox_Content.SelectedText; // Lấy đoạn văn bản được chọn
+                addLink insertLinkForm = new addLink(selectedText); // Mở form nhập liên kết
 
-                if (!string.IsNullOrEmpty(selectedText))
+                if (insertLinkForm.ShowDialog() == DialogResult.OK)
                 {
-                    // Thay thế văn bản được chọn bằng liên kết
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    int selectionLength = richTextBox_Content.SelectionLength;
-                    string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
-                    richTextBox_Content.SelectedRtf = rtfLink;
-                    richTextBox_Content.SelectionStart = selectionStart; // Đặt lại con trỏ
-                    richTextBox_Content.SelectionLength = selectionLength;
-                }
-                else
-                {
-                    // Thêm liên kết tại vị trí con trỏ
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
-                    richTextBox_Content.SelectedRtf = rtfLink;
-                    richTextBox_Content.SelectionStart = selectionStart + linkText.Length; // Đặt con trỏ sau liên kết
+                    string linkText = insertLinkForm.LinkText; // Văn bản hiển thị
+                    string linkAddress = insertLinkForm.LinkAddress; // Địa chỉ liên kết
+
+                    if (!string.IsNullOrEmpty(selectedText))
+                    {
+                        // Thay thế văn bản được chọn bằng liên kết
+                        int selectionStart = richTextBox_Content.SelectionStart;
+                        int selectionLength = richTextBox_Content.SelectionLength;
+                        string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
+                        richTextBox_Content.SelectedRtf = rtfLink;
+                        richTextBox_Content.SelectionStart = selectionStart; // Đặt lại con trỏ
+                        richTextBox_Content.SelectionLength = selectionLength;
+                    }
+                    else
+                    {
+                        // Thêm liên kết tại vị trí con trỏ
+                        int selectionStart = richTextBox_Content.SelectionStart;
+                        string rtfLink = $@"{{\rtf1\ansi {{\field{{\*\fldinst HYPERLINK ""{linkAddress}""}}{{\fldrslt {linkText}}}}}}}";
+                        richTextBox_Content.SelectedRtf = rtfLink;
+                        richTextBox_Content.SelectionStart = selectionStart + linkText.Length; // Đặt con trỏ sau liên kết
+                    }
                 }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private void button_LineSpace_Click(object sender, EventArgs e)
         {
-            string input = Microsoft.VisualBasic.Interaction.InputBox("Nhập chỉ số cách dòng:", "Cài đặt khoảng cách dòng", "1", -1, -1);
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
+            {
+                string input = Microsoft.VisualBasic.Interaction.InputBox("Nhập chỉ số cách dòng:", "Cài đặt khoảng cách dòng", "1", -1, -1);
 
-            // Kiểm tra giá trị nhập vào có hợp lệ không
-            if (float.TryParse(input, out float lineSpacing))
-            {
-                SetLineSpacing(richTextBox_Content, lineSpacing);
+                // Kiểm tra giá trị nhập vào có hợp lệ không
+                if (float.TryParse(input, out float lineSpacing))
+                {
+                    SetLineSpacing(richTextBox_Content, lineSpacing);
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng nhập một số hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-            else
+            finally
             {
-                MessageBox.Show("Vui lòng nhập một số hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
             }
+
         }
         private void SetLineSpacing(System.Windows.Forms.RichTextBox richTextBox, float lineSpacing)
         {
@@ -851,31 +1048,67 @@ namespace docMini
 
         private void button_LineCounter_Click(object sender, EventArgs e)
         {
-            contextMenuStrip_headIcon.Show(button_LineCounter, 0, button_LineCounter.Height);
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
+            {
+                contextMenuStrip_headIcon.Show(button_LineCounter, 0, button_LineCounter.Height);
+            }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
 
 
         private void button_textColor_Click(object sender, EventArgs e)
         {
-            using (ColorDialog colorDialog = new ColorDialog())
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                if (colorDialog.ShowDialog() == DialogResult.OK)
+                using (ColorDialog colorDialog = new ColorDialog())
                 {
-                    // Áp dụng màu chữ cho đoạn văn bản được chọn
-                    richTextBox_Content.SelectionColor = colorDialog.Color;
+                    if (colorDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // Áp dụng màu chữ cho đoạn văn bản được chọn
+                        richTextBox_Content.SelectionColor = colorDialog.Color;
+                    }
                 }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private void button_HighLight_Click(object sender, EventArgs e)
         {
-            using (ColorDialog colorDialog = new ColorDialog())
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
             {
-                if (colorDialog.ShowDialog() == DialogResult.OK)
+                using (ColorDialog colorDialog = new ColorDialog())
                 {
-                    // Áp dụng màu nền cho đoạn văn bản được chọn
-                    richTextBox_Content.SelectionBackColor = colorDialog.Color;
+                    if (colorDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // Áp dụng màu nền cho đoạn văn bản được chọn
+                        richTextBox_Content.SelectionBackColor = colorDialog.Color;
+                    }
                 }
             }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
         }
         private void SaveRtf(string filePath)
         {
@@ -944,8 +1177,11 @@ namespace docMini
         }
 
 
-        private void button_ShareDoc_Click(object sender, EventArgs e)
+        private async void button_ShareDoc_Click(object sender, EventArgs e)
         {
+            // Hủy luồng nhận dữ liệu
+            cancellationTokenSource.Cancel();
+            await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
             // Tạo form tạm thời
             Form tempForm = new Form
             {
@@ -1000,10 +1236,10 @@ namespace docMini
                     MessageBox.Show("Tên người dùng không được để trống!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
                 try
                 {
                     string serverResponse = await SendShareFileAsync(userToAdd, mode);
+
                     if (serverResponse.StartsWith($"SHARE_FILE|{idUser}|{idDoc}|"))
                     {
                         // Phân tích gói tin phản hồi từ server để lấy ID nếu thành công
@@ -1032,7 +1268,7 @@ namespace docMini
                         {
                             MessageBox.Show(
                                 "Bạn không có quyền share tài liệu này",
-                                "Lỗi",
+                                "Lỗi share file",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error
                             );
@@ -1043,29 +1279,40 @@ namespace docMini
                 catch (SocketException ex)
                 {
                     MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
-                                    "Lỗi",
+                                    "Lỗi share file",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                    "Lỗi",
+                                    "Lỗi share file",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                 }
             };
 
             tempForm.ShowDialog();
+            cancellationTokenSource = new CancellationTokenSource();
+            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
+
         }
 
-        private void button_LoadFile_Click(object sender, EventArgs e)
+        private async void button_LoadFile_Click(object sender, EventArgs e)
         {
+            // Hủy luồng nhận dữ liệu
+            cancellationTokenSource.Cancel();
+            await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
             GetAllFile();
+            cancellationTokenSource = new CancellationTokenSource();
+            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
         private async void button_DeleteFile_Click(object sender, EventArgs e)
         {
+            // Hủy luồng nhận dữ liệu
+            cancellationTokenSource.Cancel();
+            await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
             // Hiển thị hộp thoại xác nhận
             var confirmResult = MessageBox.Show(
                 $"Bạn có chắc chắn muốn xóa file \"{nameDoc}\" không?",
@@ -1096,7 +1343,7 @@ namespace docMini
                             richTextBox_Content.ReadOnly = true;
                             idDoc = 0;
                             nameDoc = "";
-                            label_DocumentName.Text = "Tạo tài liệu mới";
+                            label_DocumentName.Text = "* Tạo file mới";
                             GetAllFile();
                         }
                         else if (responseParts[3] == "FILE_NOT_FOUND")
@@ -1125,7 +1372,7 @@ namespace docMini
                 {
                     MessageBox.Show(
                         $"Lỗi kết nối đến server: {ex.Message}",
-                        "Lỗi",
+                        "Lỗi xóa file",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                     );
@@ -1134,7 +1381,7 @@ namespace docMini
                 {
                     MessageBox.Show(
                         $"Đã xảy ra lỗi: {ex.Message}",
-                        "Lỗi",
+                        "Lỗi xóa file",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                     );
@@ -1150,6 +1397,8 @@ namespace docMini
                     MessageBoxIcon.Information
                 );
             }
+            cancellationTokenSource = new CancellationTokenSource();
+            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
 
@@ -1201,12 +1450,12 @@ namespace docMini
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
-            
+
             richTextBox_Content_TextChangedButton(sender, e); // Gọi hàm xử lý định dạng
             UpdateFormattingButtons();
-            
+
             richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
-            
+
         }
 
         private void mainDoc_Load(object sender, EventArgs e)
@@ -1255,7 +1504,6 @@ namespace docMini
             GetAllFile();
         }
 
-        
         private void mainDoc_LoadInfoUser(object sender, EventArgs e)
         {
             label_NameAccount.Text = nameUser;
@@ -1263,9 +1511,9 @@ namespace docMini
 
         //------------------------------------------------------------------------------------
         // PHẦN KẾT NỐI VỚI SERVER -------------------------------------------------------------------------
-        private TcpClient tcpClient;
-        private NetworkStream stream;
-        private int serverPort = 8000;
+        private TcpClient tcpClient = null;
+        private NetworkStream stream = null;
+        private int serverPort = 8080;
         private string serverIP = "127.0.0.1";
         private bool isConnected = false;
         private string lastReceivedContent = ""; // Lưu nội dung lần cuối để so sánh
@@ -1274,6 +1522,114 @@ namespace docMini
         private bool isFormatting = false; // Cờ để kiểm soát việc định dạng
         private StringBuilder pendingUpdates = new StringBuilder(); // Lưu trữ các thay đổi tạm thời
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly object connectionLock = new object(); // Khóa đồng bộ
+
+        // TẠO KẾT NỐI VỚI SERVER
+        private async void mainDoc_LoadConnection(object sender, EventArgs e)
+        {
+            await EnsureConnectionAsync();
+        }
+
+        // Đảm bảo kết nối luôn mở
+        private async Task EnsureConnectionAsync()
+        {
+            lock (connectionLock)
+            {
+                if (isConnected) return; // Nếu đã kết nối thì không làm gì thêm
+            }
+
+            try
+            {
+                tcpClient?.Dispose(); // Hủy kết nối cũ nếu tồn tại
+                tcpClient = new TcpClient();
+                await tcpClient.ConnectAsync(serverIP, serverPort); // Thử kết nối lại
+                stream = tcpClient.GetStream(); // Lấy luồng
+                isConnected = true;
+            }
+            catch (Exception ex)
+            {
+                isConnected = false;
+                MessageBox.Show($"Error connecting to server: {ex.Message}");
+            }
+        }
+
+        // Tạo khóa riêng cho gửi và nhận dữ liệu
+        private object sendLock = new object();
+        private object receiveLock = new object();
+
+        // Gửi dữ liệu với đảm bảo kết nối
+        private async Task SendDataAsync(string message)
+        {
+            await EnsureConnectionAsync();
+            if (!isConnected) return;
+
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            byte[] compressedData = Compress(data);
+            byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
+
+            try
+            {
+                // Ghi độ dài của dữ liệu
+                lock (sendLock)
+                {
+                    stream.Write(lengthData, 0, lengthData.Length);
+                }
+
+                // Ghi dữ liệu đã nén
+                lock (sendLock)
+                {
+                    stream.Write(compressedData, 0, compressedData.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                isConnected = false; // Đánh dấu là mất kết nối
+                MessageBox.Show($"Error sending data: {ex.Message}");
+            }
+        }
+
+        // Nhận dữ liệu với đảm bảo kết nối
+        private async Task<string> ReceiveDataAsync()
+        {
+            await EnsureConnectionAsync();
+            if (!isConnected) throw new InvalidOperationException("Not connected to server.");
+
+            byte[] lengthBuffer = new byte[sizeof(int)];
+
+            try
+            {
+                // Đọc độ dài dữ liệu
+                lock (receiveLock)
+                {
+                    int bytesRead = stream.Read(lengthBuffer, 0, lengthBuffer.Length);
+                    if (bytesRead != sizeof(int))
+                        throw new IOException("Failed to read data length.");
+                }
+
+                int compressedDataLength = BitConverter.ToInt32(lengthBuffer, 0);
+                byte[] compressedData = new byte[compressedDataLength];
+
+                int totalBytesRead = 0;
+                while (totalBytesRead < compressedDataLength)
+                {
+                    lock (receiveLock)
+                    {
+                        int bytesRead = stream.Read(compressedData, totalBytesRead, compressedDataLength - totalBytesRead);
+                        if (bytesRead == 0)
+                            throw new IOException("Unexpected end of stream.");
+                        totalBytesRead += bytesRead;
+                    }
+                }
+
+                byte[] decompressedData = Decompress(compressedData);
+                return Encoding.UTF8.GetString(decompressedData);
+            }
+            catch (Exception ex)
+            {
+                isConnected = false;
+                throw new IOException("Error reading data.", ex);
+            }
+        }
 
         // LẤY DANH SÁCH FILE
         private async void GetAllFile()
@@ -1342,51 +1698,97 @@ namespace docMini
             catch (Exception ex)
             {
                 MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                "Lỗi",
+                                "Lỗi lấy file",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
             }
         }
 
-        // CHỌN TÀI LIỆU ĐỂ MỞ
+        class DocumentTask
+        {
+            public CancellationTokenSource CancellationTokenSource { get; set; }
+            public Task Task { get; set; }
+            public int DocumentId { get; set; }
+
+            public DocumentTask()
+            {
+                DocumentId = 0;
+                CancellationTokenSource = new CancellationTokenSource();
+                Task = Task.CompletedTask; // Initialize with a completed task
+            }
+
+            public DocumentTask(int documentId)
+            {
+                DocumentId = documentId;
+                CancellationTokenSource = new CancellationTokenSource();
+                Task = Task.CompletedTask; // Initialize with a completed task
+            }
+            /*~DocumentTask()
+            { 
+                CancellationTokenSource?.Cancel(); 
+                CancellationTokenSource?.Dispose(); }*/
+        }
+
+        // Khởi tạo currentTask với một DocumentTask hợp lệ
+        /*private DocumentTask currentTask = new DocumentTask();*/
+        private bool isTaskRunning = false;
+
         private async void listBox_Docs_DoubleClick(object sender, EventArgs e)
         {
+            if (isTaskRunning)
+            {
+                MessageBox.Show("Tài liệu đang được mở, vui lòng chờ.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             if (listBox_Docs.SelectedItem != null)
             {
                 dynamic selectedItem = listBox_Docs.SelectedItem;
 
                 string selectedDocName = selectedItem.Text;
                 int selectedDocID = selectedItem.Tag;
+                isTaskRunning = true; // Đặt trạng thái đang chạy
+                try
+                {
+                    // Hủy các tác vụ liên quan đến tài liệu cũ
+                    cancellationTokenSource.Cancel();
+                    await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
+                    cancellationTokenSource = new CancellationTokenSource();
 
-                label_DocumentName.Text = selectedDocName;
-
-                // Hủy các tác vụ liên quan đến tài liệu cũ
-                cancellationTokenSource.Cancel();
-                await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
-                cancellationTokenSource = new CancellationTokenSource();
-
-                // Mở tài liệu mới
-                await OpenDocumentAsync(selectedDocName, selectedDocID, cancellationTokenSource.Token);
+                    await OpenDocumentAsync(selectedDocName, selectedDocID); // Thực hiện bất đồng bộ
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Đã xảy ra lỗi khi mở tài liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    isTaskRunning = false; // Đặt lại trạng thái khi hoàn thành
+                }
             }
         }
 
         // MỞ TÀI LIỆU
-        private async Task OpenDocumentAsync(string docName, int docID, CancellationToken token)
+        private async Task OpenDocumentAsync(string docName, int docID)
         {
             try
             {
-                if (!isConnected || tcpClient == null || !tcpClient.Connected)
+                // Kiểm tra token ngay từ đầu
+                if (cancellationTokenSource.IsCancellationRequested)
                 {
-                    await ReconnectToServerAsync();
-                    if (!isConnected)
-                    {
-                        MessageBox.Show("Không thể mở tài liệu vì không kết nối được với server.");
-                        return;
-                    }
+                    return;
                 }
 
-                /*MessageBox.Show("Client gửi: " + $"EDIT_DOC|{docID}|{idUser}|");*/
-                string serverResponse = await SendContentFileRequestAsync(docID);
+                // Đảm bảo kết nối luôn mở
+                await EnsureConnectionAsync().ConfigureAwait(false);
+                if (!isConnected)
+                {
+                    MessageBox.Show("Không thể mở tài liệu vì không kết nối được với server.",
+                                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                string serverResponse = await SendContentFileRequestAsync(docID).ConfigureAwait(false);
                 if (serverResponse.StartsWith($"EDIT_DOC|{docID}|{idUser}|"))
                 {
                     var responseParts = serverResponse.Split('|');
@@ -1399,9 +1801,12 @@ namespace docMini
                         isFormatting = true;
                         try
                         {
-                            // Cập nhật nội dung lên RichTextBox
+                            // Cập nhật nội dung lên RichTextBox trên UI thread
                             richTextBox_Content.Invoke((MethodInvoker)(() =>
                             {
+                                if (cancellationTokenSource.IsCancellationRequested)
+                                    return;
+
                                 richTextBox_Content.Rtf = content;
                                 richTextBox_Content.Enabled = true;
                                 richTextBox_Content.ReadOnly = editStatus != 1;
@@ -1417,301 +1822,60 @@ namespace docMini
                         idDoc = docID;
                         nameDoc = docName;
                         label_DocumentName.Text = nameDoc;
-                        // Bắt đầu nhận nội dung mới
-                        _ = Task.Run(() => ReceiveContentAsync(docID, token), token);
-                    }
-                    else if (responseParts.Length == 4)
-                    {
-                        if (responseParts[3] == "FAIL")
+
+                        if (!cancellationTokenSource.IsCancellationRequested)
                         {
-                            MessageBox.Show(
-                                "Tài liệu này không tồn tại.\nVui lòng reload lại danh sách file.",
-                                "Thông báo",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information
-                            );
+                            // Đợi 500ms trước khi gọi ReceiveContentAsync
+                            await Task.Delay(1000); // Đợi 1000ms
+
+                            _ = Task.Run(() => ReceiveContentAsync(docID, cancellationTokenSource.Token)).ConfigureAwait(false);
                         }
+                    }
+                    else if (responseParts.Length == 4 && responseParts[3] == "FAIL")
+                    {
+                        MessageBox.Show(
+                            "Tài liệu này không tồn tại.\nVui lòng reload lại danh sách file.",
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information
+                        );
                     }
                 }
                 else
                 {
                     MessageBox.Show($"Không thể mở tài liệu: phản hồi từ server không hợp lệ.\n{serverResponse}",
-                                    "Lỗi",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
+                                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (OperationCanceledException)
             {
                 // Tác vụ bị hủy, không cần xử lý gì thêm
             }
+            catch (IOException ex)
+            {
+                MessageBox.Show($"Lỗi đọc/ghi dữ liệu: {ex.Message}",
+                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (SocketException ex)
             {
+                isConnected = false; // Đánh dấu là mất kết nối
                 MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
-                                "Lỗi",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                "Lỗi",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                                "Lỗi mở file", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // TẠO KẾT NỐI VỚI SERVER
-        private async void mainDoc_LoadConnection(object sender, EventArgs e)
-        {
-            try
-            {
-                tcpClient = new TcpClient();
-                await tcpClient.ConnectAsync(serverIP, serverPort);
-                isConnected = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error connecting to server: {ex.Message}");
-            }
-        }
-
-        // GỬI YÊU CẦU: Lấy tất cả file Doc của người dùng
-        private async Task<string> SendGetAllFileRequestAsync()
-        {
-            using (tcpClient = new TcpClient())
-            {
-                await tcpClient.ConnectAsync(serverIP, serverPort);
-                using (stream = tcpClient.GetStream())
-                {
-                    // Gửi yêu cầu tạo file
-                    string message = $"GET_ALL_FILE|{idUser}";
-                    await SendDataAsync(message);
-                    // Nhận phản hồi từ server
-                    string serverResponse = await ReceiveDataAsync();
-                    return serverResponse;
-                }
-            }
-        }
-
-        // GỬI YÊU CẦU: Tạo file mới tới server
-        private async Task<string> SendCreateNewFileAsync(string fileName)
-        {
-            using (tcpClient = new TcpClient())
-            {
-                await tcpClient.ConnectAsync(serverIP, serverPort);
-                using (stream = tcpClient.GetStream())
-                {
-                    // Gửi yêu cầu tạo file
-                    string message = $"NEW_FILE|{idUser}|{fileName}";
-                    await SendDataAsync(message);
-                    // Nhận phản hồi từ server
-                    string serverResponse = await ReceiveDataAsync();
-                    return serverResponse;
-                }
-            }
-        }
-
-        // GỬI YÊU CẦU: Chia sẻ file cho người dùng khác
-        private async Task<string> SendShareFileAsync(string usernameToAdd, string mode)
-        {
-            using (tcpClient = new TcpClient())
-            {
-                await tcpClient.ConnectAsync(serverIP, serverPort);
-                using (stream = tcpClient.GetStream())
-                {
-                    // Gửi yêu cầu tạo file
-                    string message = $"SHARE_FILE|{idUser}|{idDoc}|{usernameToAdd}|{mode}";
-                    await SendDataAsync(message);
-                    // Nhận phản hồi từ server
-                    string serverResponse = await ReceiveDataAsync();
-                    return serverResponse;
-                }
-            }
-        }
-
-        // GỬI YÊU CẦU: Lấy nội dung file
-        private async Task<string> SendContentFileRequestAsync(int docID)
-        {
-            if (tcpClient == null || !tcpClient.Connected)
-            {
-                throw new InvalidOperationException("Không có kết nối với server.");
-            }
-
-            string message = $"EDIT_DOC|{docID}|{idUser}";
-            await SendDataAsync(message);
-            return await ReceiveDataAsync();
-        }
-
-        // GỬI YÊU CẦU: XÓA FILE
-        private async Task<string> SendDeleteFileAsync()
-        {
-            using (tcpClient = new TcpClient())
-            {
-                await tcpClient.ConnectAsync(serverIP, serverPort);
-                using (stream = tcpClient.GetStream())
-                {
-                    // Gửi yêu cầu tạo file
-                    string message = $"DELETE_FILE|{idUser}|{idDoc}";
-                    await SendDataAsync(message);
-                    // Nhận phản hồi từ server
-                    string serverResponse = await ReceiveDataAsync();
-                    return serverResponse;
-                }
-            }
-        }
-        private async Task SendDataAsync(string message)
-        {
-            // Chuyển đổi chuỗi thành mảng byte
-            byte[] data = Encoding.UTF8.GetBytes(message);
-
-            // Nén dữ liệu
-            byte[] compressedData = Compress(data);
-
-            // Chuyển đổi độ dài dữ liệu đã nén thành mảng byte
-            byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
-
-            // Gửi độ dài dữ liệu trước
-            await stream.WriteAsync(lengthData, 0, lengthData.Length);
-
-            // Gửi dữ liệu đã nén
-            await stream.WriteAsync(compressedData, 0, compressedData.Length);
-        }
-
-
-        private async Task<string> ReceiveDataAsync()
-        {
-            // Đọc độ dài dữ liệu từ server
-            byte[] lengthBuffer = new byte[sizeof(int)];
-            int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
-            if (bytesRead != sizeof(int))
-            {
-                throw new Exception("Không thể đọc kích thước phản hồi từ server.");
-            }
-
-            // Chuyển đổi mảng byte thành số nguyên (độ dài dữ liệu)
-            int compressedDataLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-            // Đọc dữ liệu nén từ server
-            byte[] compressedData = new byte[compressedDataLength];
-            bytesRead = await stream.ReadAsync(compressedData, 0, compressedData.Length);
-            if (bytesRead != compressedDataLength)
-            {
-                throw new Exception("Phản hồi từ server không đầy đủ.");
-            }
-
-            // Giải nén dữ liệu
-            byte[] decompressedData = Decompress(compressedData);
-
-            // Chuyển đổi mảng byte đã giải nén thành chuỗi và trả về
-            return Encoding.UTF8.GetString(decompressedData);
-        }
-
-        private void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
-
-        {
-            if (isConnected && !isFormatting)
-            {
-                // Cập nhật nội dung trực tiếp lên RichTextBox cục bộ
-                string updatedContent = richTextBox_Content.Rtf;
-
-                // Nếu nội dung thay đổi so với lần cuối
-                if (updatedContent != lastReceivedContent)
-                {
-                    // Lưu nội dung mới nhất vào lastReceivedContent để hiển thị cục bộ
-                    lastReceivedContent = updatedContent;
-
-                    // Thay vì gửi ngay, lưu nội dung vào pendingUpdates
-                    pendingUpdates.Clear();
-                    pendingUpdates.Append(updatedContent);
-
-                    // Thực hiện gửi sau khoảng debounce
-                    _ = debouncedSendAsync();
-                }
-            }
-        }
-
-        private async Task debouncedSendAsync()
-        {
-
-            try
-            {
-                // Chờ debounce
-                await Task.Delay(debounceTime);
-
-                if (pendingUpdates.Length > 0)
-                {
-                    try
-                    {
-                        // Kiểm tra và mở lại kết nối nếu cần
-                        if (tcpClient == null || !tcpClient.Connected)
-                        {
-                            await ReconnectToServerAsync();
-                        }
-
-                        if (tcpClient != null && tcpClient.Connected)
-                        {
-                            string message = $"EDIT_DOC|{idDoc}|{idUser}|" + pendingUpdates.ToString();
-                            await SendDataAsync(message); // Gửi dữ liệu
-                        }
-                        else
-                        {
-                            MessageBox.Show("Không thể gửi dữ liệu vì không kết nối được với server.");
-                            isConnected = false;
-                        }
-
-                        pendingUpdates.Clear(); // Xóa dữ liệu đã gửi
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error sending data: {ex.Message}");
-                        isConnected = false;
-                    }
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // Tác vụ bị hủy, không cần xử lý gì thêm
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Main Doc Error in DebouncedSendAsync: {ex.Message}");
-            }
-        }
-
-        /// Hàm mở lại kết nối với server nếu kết nối bị mất
-        private async Task ReconnectToServerAsync()
-        {
-            try
-            {
-                if (tcpClient != null)
-                {
-                    tcpClient.Dispose(); // Hủy kết nối cũ nếu tồn tại
-                }
-
-                tcpClient = new TcpClient();
-                await tcpClient.ConnectAsync(serverIP, serverPort); // Kết nối lại với server
-                stream = tcpClient.GetStream(); // Lấy stream mới
-                isConnected = true;
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Main Doc Không thể kết nối lại với server: {ex.Message}");
-                isConnected = false;
-            }
-        }
+        private SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         private async Task ReceiveContentAsync(int expectedDocID, CancellationToken token)
         {
+            await semaphore.WaitAsync(token);  //Đảm bảo chỉ một luồng được thực thi
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    // Kiểm tra kết nối
-                    if (!isConnected || tcpClient == null || !tcpClient.Connected)
-                        break;
-
                     // Đọc độ dài dữ liệu đã nén
                     byte[] lengthBuffer = new byte[sizeof(int)];
                     int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length, token);
@@ -1724,10 +1888,16 @@ namespace docMini
 
                     // Đọc dữ liệu đã nén
                     byte[] compressedData = new byte[compressedLength];
-                    bytesRead = await stream.ReadAsync(compressedData, 0, compressedData.Length, token);
-                    if (bytesRead != compressedLength)
+                    int totalBytesRead = 0;
+
+                    while (totalBytesRead < compressedLength)
                     {
-                        throw new Exception("Nhan du lieu Không thể đọc đầy đủ dữ liệu từ server.");
+                        bytesRead = await stream.ReadAsync(compressedData, totalBytesRead, compressedLength - totalBytesRead, token);
+                        if (bytesRead == 0)
+                        {
+                            throw new Exception("Nhan du lieu: Không thể đọc đầy đủ dữ liệu từ server.");
+                        }
+                        totalBytesRead += bytesRead;
                     }
 
                     // Giải nén dữ liệu
@@ -1736,49 +1906,167 @@ namespace docMini
                     // Chuyển đổi dữ liệu đã giải nén sang chuỗi
                     string response = Encoding.UTF8.GetString(decompressedData);
 
-                    // Chỉ xử lý nếu DocID khớp với tài liệu hiện tại
+                    // Xử lý phản hồi từ server
                     if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|"))
                     {
                         string[] parts = response.Split('|', 3);
                         if (parts.Length == 3)
                         {
-                            string updatedContent = parts[2];
-
-                            // Kiểm tra nếu nội dung là RTF hợp lệ
-                            if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
-                            {
-                                isFormatting = true;
-                                try
-                                {
-                                    richTextBox_Content.Invoke((MethodInvoker)(() =>
-                                    {
-                                        richTextBox_Content.Rtf = updatedContent;
-                                    }));
-                                }
-                                catch (ArgumentException ex)
-                                {
-                                    MessageBox.Show($"Lỗi khi hiển thị nội dung RTF: {ex.Message}");
-                                }
-                                finally
-                                {
-                                    isFormatting = false;
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Nội dung nhận được không phải là RTF hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
+                            UpdateRichTextBox(parts[2]); // Cập nhật nội dung
                         }
                     }
                 }
             }
             catch (OperationCanceledException)
             {
-                // Hủy tác vụ: không cần xử lý thêm
+                // Luồng bị hủy, không làm gì thêm
+            }
+            catch (IOException ex)
+            {
+                MessageBox.Show($"Lỗi đọc dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi nhận dữ liệu từ server: {ex.Message}",
+                MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Giải phóng semaphore ngay cả khi có lỗi hoặc bị hủy
+                semaphore.Release();
+            }
+        }
+
+
+        // GỬI YÊU CẦU: Lấy tất cả file Doc của người dùng
+        private async Task<string> SendGetAllFileRequestAsync()
+        {
+            string message = $"GET_ALL_FILE|{idUser}";
+            await SendDataAsync(message);
+            return await ReceiveDataAsync();
+        }
+
+        // GỬI YÊU CẦU: Tạo file mới tới server
+        private async Task<string> SendCreateNewFileAsync(string fileName)
+        {
+            string message = $"NEW_FILE|{idUser}|{fileName}";
+            await SendDataAsync(message);
+            return await ReceiveDataAsync();
+        }
+
+        // GỬI YÊU CẦU: Chia sẻ file cho người dùng khác
+        private async Task<string> SendShareFileAsync(string usernameToAdd, string mode)
+        {
+            string message = $"SHARE_FILE|{idUser}|{idDoc}|{usernameToAdd}|{mode}";
+            await SendDataAsync(message);
+            return await ReceiveDataAsync();
+        }
+
+        // GỬI YÊU CẦU: Lấy nội dung file
+        private async Task<string> SendContentFileRequestAsync(int docID)
+        {
+            string message = $"EDIT_DOC|{docID}|{idUser}";
+            await SendDataAsync(message);
+            return await ReceiveDataAsync();
+        }
+
+        // GỬI YÊU CẦU: XÓA FILE
+        private async Task<string> SendDeleteFileAsync()
+        {
+            string message = $"DELETE_FILE|{idUser}|{idDoc}";
+            await SendDataAsync(message);
+            return await ReceiveDataAsync();
+        }
+
+
+        private bool isLocalUpdate = false; // Đánh dấu cập nhật cục bộ
+
+        private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
+        {
+            if (isLocalUpdate) return; // Bỏ qua nếu đây là cập nhật cục bộ
+
+            if (isConnected)
+            {
+                while (isFormatting)
+                {
+                    await Task.Delay(50); // Đợi đến khi định dạng hoàn tất
+                }
+
+                string updatedContent = richTextBox_Content.Rtf;
+
+                if (updatedContent != lastReceivedContent)
+                {
+                    lastReceivedContent = updatedContent;
+
+                    pendingUpdates.Clear();
+                    pendingUpdates.Append(updatedContent);
+
+                    _ = debouncedSendAsync();
+                }
+            }
+        }
+
+
+
+        private async Task debouncedSendAsync()
+        {
+            try
+            {
+                // Chờ debounce
+                await Task.Delay(debounceTime);
+
+                // Nếu có dữ liệu cần gửi
+                if (pendingUpdates.Length > 0)
+                {
+                    try
+                    {
+                        // Đảm bảo kết nối đến server
+                        await EnsureConnectionAsync();
+                        if (!isConnected)
+                        {
+                            MessageBox.Show("Không thể gửi dữ liệu vì không kết nối được với server.",
+                                            "Lỗi",
+                                            MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        // Tạo thông điệp cần gửi
+                        string message = $"EDIT_DOC|{idDoc}|{idUser}|{pendingUpdates}";
+                        await SendDataAsync(message); // Gửi dữ liệu đến server
+
+                        pendingUpdates.Clear(); // Xóa dữ liệu đã gửi thành công
+                    }
+                    catch (IOException ioEx)
+                    {
+                        MessageBox.Show($"Lỗi đọc/ghi dữ liệu khi gửi: {ioEx.Message}",
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                    }
+                    catch (SocketException sockEx)
+                    {
+                        isConnected = false; // Đánh dấu mất kết nối
+                        MessageBox.Show($"Lỗi kết nối khi gửi dữ liệu: {sockEx.Message}",
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Đã xảy ra lỗi khi gửi dữ liệu: {ex.Message}",
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                    }
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Tác vụ bị hủy, không cần xử lý thêm
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi không xác định trong DebouncedSendAsync: {ex.Message}",
                                 "Lỗi",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
@@ -1787,37 +2075,44 @@ namespace docMini
 
 
 
-        private void ProcessMessages(Queue<string> messageQueue)
+
+
+        private void UpdateRichTextBox(string updatedContent)
         {
-            while (messageQueue.Count > 0)
+            if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
             {
-                string message;
-                lock (messageQueue)
+                if (richTextBox_Content.InvokeRequired)
                 {
-                    message = messageQueue.Dequeue(); // Lấy thông điệp ra khỏi hàng đợi
+                    richTextBox_Content.Invoke((MethodInvoker)(() =>
+                    {
+                        ApplyRichTextBoxContent(updatedContent);
+                    }));
                 }
-
-                // Xử lý nội dung thông điệp
-                var responseParts = message.Split('|');
-                if (responseParts.Length == 3)
+                else
                 {
-                    string content = responseParts[2];
-
-                    // Cập nhật RichTextBox (chỉ 1 lần duy nhất)
-                    if (richTextBox_Content.InvokeRequired)
-                    {
-                        richTextBox_Content.Invoke((MethodInvoker)(() =>
-                        {
-                            richTextBox_Content.Rtf = content;
-                        }));
-                    }
-                    else
-                    {
-                        richTextBox_Content.Rtf = content;
-                    }
+                    ApplyRichTextBoxContent(updatedContent);
                 }
             }
         }
+
+        private void ApplyRichTextBoxContent(string content)
+        {
+            int cursorPosition = richTextBox_Content.SelectionStart;
+            isLocalUpdate = true;
+            try
+            {
+                richTextBox_Content.Rtf = content;          // Cập nhật nội dung
+                richTextBox_Content.SelectionStart = cursorPosition; // Giữ vị trí con trỏ
+            }
+            finally
+            {
+                isLocalUpdate = false;
+            }
+        }
+
+
+
+
 
         // Phương thức nén dữ liệu
         private static byte[] Compress(byte[] data)
@@ -1843,11 +2138,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
-        
-
-
-
 
 
 

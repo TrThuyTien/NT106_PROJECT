@@ -182,11 +182,6 @@ namespace docMini
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            mainDoc mainDoc = new mainDoc(1, "admin");
-            mainDoc.Show();
-        }
 
         private void checkbox_Showpass_CheckedChanged(object sender, EventArgs e)
         {

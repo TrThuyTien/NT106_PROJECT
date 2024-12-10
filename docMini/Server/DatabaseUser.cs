@@ -506,11 +506,16 @@ public class DatabaseManager
 
         try
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            // Thêm timeout để tránh bị khóa
+            var connectionStringWithTimeout = $"{connectionString};BusyTimeout=3000"; // 3 giây
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionStringWithTimeout))
             {
                 await connection.OpenAsync();
 
-                // Câu lệnh SQL để cập nhật nội dung tài liệu
+                // Đảm bảo rằng cơ sở dữ liệu không bị khóa
+                await Task.Delay(50); // Tăng khoảng trễ nhỏ để giải phóng khóa nếu có giao dịch khác đang diễn ra.
+
                 string query = "UPDATE Docs SET Content = @Content WHERE DocID = @DocID";
 
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
@@ -519,8 +524,7 @@ public class DatabaseManager
                     command.Parameters.AddWithValue("@Content", content);
 
                     int rowsAffected = await command.ExecuteNonQueryAsync();
-                    
-                    // Kiểm tra số dòng bị ảnh hưởng
+
                     if (rowsAffected > 0)
                     {
                         /*MessageBox.Show($"Cập nhật thành công cho DocID: {docId}");*/
@@ -528,18 +532,25 @@ public class DatabaseManager
                     }
                     else
                     {
-                        /*MessageBox.Show($"Không tìm thấy DocID: {docId} để cập nhật.");*/
+                        /* MessageBox.Show($"Không tìm thấy DocID: {docId} để cập nhật.");*/
                         return false;
                     }
                 }
             }
         }
-        catch (Exception ex)
+        catch (SQLiteException ex) when (ex.Message.Contains("database is locked"))
         {
-            Console.WriteLine($"Lỗi khi cập nhật tài liệu: {ex.Message}");
+            // Xử lý riêng lỗi bị khóa
+            /* MessageBox.Show($"Lỗi: Cơ sở dữ liệu đang bị khóa. Vui lòng thử lại sau.");*/
             return false;
         }
-    }    
+        catch (Exception ex)
+        {
+            /*MessageBox.Show($"Lỗi khi cập nhật tài liệu {docId}: {ex.Message}");*/
+            return false;
+        }
+    }
+
 
     // Gắn tài liệu với người dùng và cấp quyền
     public bool LinkUserToDoc(int userId, int docId, int editStatus)
