@@ -2139,6 +2139,11 @@ namespace docMini
             }
         }
 
+        private void contextMenuStrip_headIcon_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+
+        }
+
 
 
 
