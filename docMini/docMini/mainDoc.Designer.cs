@@ -474,6 +474,7 @@ namespace docMini
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             richTextBox_Content.KeyDown += richTextBox_Content_KeyDown;
+         
             // 
             // button_Connect
             // 

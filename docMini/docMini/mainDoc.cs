@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
 namespace docMini
@@ -277,10 +276,7 @@ namespace docMini
             cancellationTokenSource = new CancellationTokenSource();
             _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
-
-
-        private string currentFont = "Tahoma";
-        private float currentFontSize = 12f;
+        
         private bool isBold = false;
         private bool isItalic = false;
         private bool isUnderline = false;
@@ -383,145 +379,195 @@ namespace docMini
 
         private void comboBox_Size_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Kiểm soát trạng thái định dạng
             if (isFormatting) return;
             isFormatting = true;
+
             try
             {
-                float newSize;
-                if (!float.TryParse(comboBox_Size.SelectedItem.ToString(), out newSize))
-                {
-                    // Kết thúc định dạng
-                    isFormatting = false;
-                    return; // Thoát nếu không thể chuyển đổi kích thước
-                }
+                if (!float.TryParse(comboBox_Size.SelectedItem.ToString(), out float newSize))
+                    return;
 
-                if (richTextBox_Content.SelectionLength > 0)
-                {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    int selectionLength = richTextBox_Content.SelectionLength;
+                int selectionStart = richTextBox_Content.SelectionStart;
+                int selectionLength = richTextBox_Content.SelectionLength;
 
-                    // Áp dụng kích thước mới cho từng ký tự trong vùng chọn
-                    for (int i = 0; i < selectionLength; i++)
+                if (selectionLength > 0)
+                {
+                    var textFormatCache = new Dictionary<(int Start, int Length), System.Drawing.Font>();
+
+                    int end = selectionStart + selectionLength;
+                    richTextBox_Content.SuspendLayout();
+
+                    int currentStart = selectionStart;
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                    for (int i = selectionStart; i < end; i++)
                     {
-                        richTextBox_Content.Select(selectionStart + i, 1); // Chọn từng ký tự
-                        if (richTextBox_Content.SelectionFont != null)
+                        richTextBox_Content.Select(i, 1);
+                        var charFont = richTextBox_Content.SelectionFont;
+
+                        if (currentFont == null || !charFont.Equals(currentFont))
                         {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                                currentFont.FontFamily, newSize, currentFont.Style
-                            );
+                            // Caching: Lưu đoạn và font hiện tại
+                            if (!textFormatCache.ContainsKey((currentStart, i - currentStart)))
+                            {
+                                textFormatCache[(currentStart, i - currentStart)] = currentFont;
+                            }
+
+                            // Bắt đầu đoạn mới
+                            currentFont = charFont;
+                            currentStart = i;
                         }
                     }
 
-                    // Đặt lại vùng chọn ban đầu
+                    // Xử lý đoạn cuối cùng
+                    if (!textFormatCache.ContainsKey((currentStart, end - currentStart)))
+                    {
+                        textFormatCache[(currentStart, end - currentStart)] = currentFont;
+                    }
+
+                    // Lazy Rendering: Áp dụng các định dạng đã lưu
+                    foreach (var range in textFormatCache)
+                    {
+                        ApplyFontToRange(range.Key.Start, range.Key.Length, newSize);
+                    }
+
                     richTextBox_Content.Select(selectionStart, selectionLength);
+                    richTextBox_Content.ResumeLayout();
                 }
                 else
                 {
-                    // Không có vùng chọn, áp dụng font mới cho văn bản nhập sau này
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-
-                        // Áp dụng cỡ chữ mới và loại bỏ các định dạng nếu cần
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                            currentFont.FontFamily,
-                            newSize,
-                            System.Drawing.FontStyle.Regular // Đặt về định dạng cơ bản (không in đậm, in nghiêng)
-                        );
-                    }
-                    else
-                    {
-                        // Trường hợp không có SelectionFont, đặt font mặc định
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
-                            "Tahoma", newSize, System.Drawing.FontStyle.Regular
-                        );
-                    }
+                    ApplyDefaultFont(newSize);
                 }
             }
             finally
             {
-                // Trạng thái định dạng kết thúc
                 isFormatting = false;
             }
-
         }
+
+        private void ApplyFontToRange(int start, int length, float newSize)
+        {
+            if (length <= 0) return;
+
+            richTextBox_Content.Select(start, length);
+            var currentFont = richTextBox_Content.SelectionFont;
+
+            if (currentFont != null)
+            {
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    currentFont.FontFamily, newSize, currentFont.Style);
+            }
+        }
+
+        private void ApplyDefaultFont(float newSize)
+        {
+            if (richTextBox_Content.SelectionFont != null)
+            {
+                var currentFont = richTextBox_Content.SelectionFont;
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    currentFont.FontFamily, newSize, currentFont.Style);
+            }
+            else
+            {
+                richTextBox_Content.SelectionFont = new System.Drawing.Font("Tahoma", newSize, System.Drawing.FontStyle.Regular);
+            }
+        }
+
         private void comboBox_Font_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Kiểm soát định dạng
             if (isFormatting) return;
             isFormatting = true;
+
             try
             {
-                currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
+                string newFontFamily = comboBox_Font.SelectedItem.ToString();
+                int selectionStart = richTextBox_Content.SelectionStart;
+                int selectionLength = richTextBox_Content.SelectionLength;
 
-                if (richTextBox_Content.SelectionLength > 0)
+                if (selectionLength > 0)
                 {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    int selectionLength = richTextBox_Content.SelectionLength;
+                    var textFormatCache = new Dictionary<(int Start, int Length), System.Drawing.Font>();
 
-                    for (int i = 0; i < selectionLength; i++)
+                    int end = selectionStart + selectionLength;
+                    richTextBox_Content.SuspendLayout();
+
+                    int currentStart = selectionStart;
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                    for (int i = selectionStart; i < end; i++)
                     {
-                        richTextBox_Content.Select(selectionStart + i, 1);
-                        if (richTextBox_Content.SelectionFont != null)
+                        richTextBox_Content.Select(i, 1);
+                        var charFont = richTextBox_Content.SelectionFont;
+
+                        if (currentFont == null || !charFont.Equals(currentFont))
                         {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                            // Caching: Lưu đoạn và font hiện tại
+                            if (!textFormatCache.ContainsKey((currentStart, i - currentStart)))
+                            {
+                                textFormatCache[(currentStart, i - currentStart)] = currentFont;
+                            }
+
+                            // Bắt đầu đoạn mới
+                            currentFont = charFont;
+                            currentStart = i;
                         }
                     }
 
-                    richTextBox_Content.Select(selectionStart, selectionLength);
-                }
-                if (richTextBox_Content.SelectionLength == 0)
-                {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    richTextBox_Content.Select(selectionStart - 0, 1);
-                    if (richTextBox_Content.SelectionFont != null)
+                    // Xử lý đoạn cuối cùng
+                    if (!textFormatCache.ContainsKey((currentStart, end - currentStart)))
                     {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
+                        textFormatCache[(currentStart, end - currentStart)] = currentFont;
                     }
-                    richTextBox_Content.Select(selectionStart, 0);
-                }
-                currentFont = comboBox_Font.SelectedItem.ToString(); // Update the current font
 
-                if (richTextBox_Content.SelectionLength > 0)
-                {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    int selectionLength = richTextBox_Content.SelectionLength;
-
-                    for (int i = 0; i < selectionLength; i++)
+                    // Lazy Rendering: Áp dụng các định dạng đã lưu
+                    foreach (var range in textFormatCache)
                     {
-                        richTextBox_Content.Select(selectionStart + i, 1);
-                        if (richTextBox_Content.SelectionFont != null)
-                        {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
-                        }
+                        ApplyFontFamilyToRange(range.Key.Start, range.Key.Length, newFontFamily);
                     }
 
                     richTextBox_Content.Select(selectionStart, selectionLength);
+                    richTextBox_Content.ResumeLayout();
                 }
-                if (richTextBox_Content.SelectionLength == 0)
+                else
                 {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    richTextBox_Content.Select(selectionStart - 0, 1);
-                    if (richTextBox_Content.SelectionFont != null)
-                    {
-                        System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                        richTextBox_Content.SelectionFont = new System.Drawing.Font(this.currentFont, currentFont.Size, currentFont.Style);
-                    }
-                    richTextBox_Content.Select(selectionStart, 0);
+                    ApplyDefaultFontFamily(newFontFamily);
                 }
             }
             finally
             {
-                // Kết thúc trạng thái định dạng
                 isFormatting = false;
             }
-
         }
+
+        private void ApplyFontFamilyToRange(int start, int length, string newFontFamily)
+        {
+            if (length <= 0) return;
+
+            richTextBox_Content.Select(start, length);
+            var currentFont = richTextBox_Content.SelectionFont;
+
+            if (currentFont != null)
+            {
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    newFontFamily, currentFont.Size, currentFont.Style);
+            }
+        }
+
+        private void ApplyDefaultFontFamily(string newFontFamily)
+        {
+            if (richTextBox_Content.SelectionFont != null)
+            {
+                var currentFont = richTextBox_Content.SelectionFont;
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    newFontFamily, currentFont.Size, currentFont.Style);
+            }
+            else
+            {
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    newFontFamily, 8, System.Drawing.FontStyle.Regular);
+            }
+        }
+
         private void button_Bold_Click(object sender, EventArgs e)
         {
             // Kiểm soát trạng thái định dạng
@@ -536,29 +582,136 @@ namespace docMini
                     int selectionStart = richTextBox_Content.SelectionStart;
                     int selectionLength = richTextBox_Content.SelectionLength;
 
-                    // Lặp qua từng ký tự được chọn
-                    for (int i = 0; i < selectionLength; i++)
+                    var textFormatCache = new Dictionary<(int Start, int Length), System.Drawing.Font>();
+
+                    int end = selectionStart + selectionLength;
+                    richTextBox_Content.SuspendLayout();
+
+                    int currentStart = selectionStart;
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                    for (int i = selectionStart; i < end; i++)
                     {
-                        richTextBox_Content.Select(selectionStart + i, 1);
+                        richTextBox_Content.Select(i, 1);
+                        var charFont = richTextBox_Content.SelectionFont;
 
-                        if (richTextBox_Content.SelectionFont != null)
+                        if (currentFont == null || !charFont.Equals(currentFont))
                         {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            System.Drawing.FontStyle newFontStyle;
+                            // Caching: Lưu đoạn và font hiện tại
+                            if (!textFormatCache.ContainsKey((currentStart, i - currentStart)))
+                            {
+                                textFormatCache[(currentStart, i - currentStart)] = currentFont;
+                            }
 
-                            // Thêm hoặc loại bỏ FontStyle.Bold
-                            if (currentFont.Bold)
-                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Bold; // Loại bỏ Bold
-                            else
-                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold; // Thêm Bold
-
-                            // Cập nhật font mới
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                            // Bắt đầu đoạn mới
+                            currentFont = charFont;
+                            currentStart = i;
                         }
                     }
 
-                    // Đặt lại vùng chọn ban đầu
+                    // Xử lý đoạn cuối cùng
+                    if (!textFormatCache.ContainsKey((currentStart, end - currentStart)))
+                    {
+                        textFormatCache[(currentStart, end - currentStart)] = currentFont;
+                    }
+
+                    // Lazy Rendering: Áp dụng các định dạng đã lưu
+                    foreach (var range in textFormatCache)
+                    {
+                        ApplyBoldToRange(range.Key.Start, range.Key.Length, isBold);
+                    }
+
                     richTextBox_Content.Select(selectionStart, selectionLength);
+                    richTextBox_Content.ResumeLayout();
+                }
+
+
+
+            }
+            finally
+            {
+                // Kết thúc trạng thái định dạng
+                isFormatting = false;
+            }
+
+        }
+        private void ApplyBoldToRange(int start, int length, bool isBold)
+        {
+            if (length <= 0) return;
+
+            richTextBox_Content.Select(start, length);
+            var currentFont = richTextBox_Content.SelectionFont;
+
+            if (currentFont != null)
+            {
+                System.Drawing.FontStyle newFontStyle;
+
+                if (isBold)
+                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Bold; // Thêm Bold
+                else
+                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Bold; // Loại bỏ Bold
+
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    currentFont.FontFamily, currentFont.Size, newFontStyle);
+            }
+        }
+        private void button_Italic_Click(object sender, EventArgs e)
+        {
+            // Kiểm soát trạng thái định dạng
+            if (isFormatting) return;
+            isFormatting = true;
+            try
+            {
+
+                isItalic = !isItalic; // Toggle trạng thái in đậm
+
+                if (richTextBox_Content.SelectionLength > 0)
+                {
+                    int selectionStart = richTextBox_Content.SelectionStart;
+                    int selectionLength = richTextBox_Content.SelectionLength;
+
+                    var textFormatCache = new Dictionary<(int Start, int Length), System.Drawing.Font>();
+
+                    int end = selectionStart + selectionLength;
+                    richTextBox_Content.SuspendLayout();
+
+                    int currentStart = selectionStart;
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                    for (int i = selectionStart; i < end; i++)
+                    {
+                        richTextBox_Content.Select(i, 1);
+                        var charFont = richTextBox_Content.SelectionFont;
+
+                        if (currentFont == null || !charFont.Equals(currentFont))
+                        {
+                            // Caching: Lưu đoạn và font hiện tại
+                            if (!textFormatCache.ContainsKey((currentStart, i - currentStart)))
+                            {
+                                textFormatCache[(currentStart, i - currentStart)] = currentFont;
+                            }
+
+                            // Bắt đầu đoạn mới
+                            currentFont = charFont;
+                            currentStart = i;
+                        }
+                    }
+
+                    // Xử lý đoạn cuối cùng
+                    if (!textFormatCache.ContainsKey((currentStart, end - currentStart)))
+                    {
+                        textFormatCache[(currentStart, end - currentStart)] = currentFont;
+                    }
+
+                    // Lazy Rendering: Áp dụng các định dạng đã lưu
+                    foreach (var range in textFormatCache)
+                    {
+                        ApplyItalicToRange(range.Key.Start, range.Key.Length, isBold);
+                    }
+
+                    richTextBox_Content.Select(selectionStart, selectionLength);
+                    richTextBox_Content.ResumeLayout();
+
                 }
             }
             finally
@@ -568,51 +721,25 @@ namespace docMini
             }
 
         }
-        private void button_Italic_Click(object sender, EventArgs e)
+        private void ApplyItalicToRange(int start, int length, bool isItalic)
         {
-            // Kiểm soát trạng thái định dạng
-            if (isFormatting) return;
-            isFormatting = true;
-            try
+            if (length <= 0) return;
+
+            richTextBox_Content.Select(start, length);
+            var currentFont = richTextBox_Content.SelectionFont;
+
+            if (currentFont != null)
             {
-                isItalic = !isItalic; // Toggle trạng thái in nghiêng
+                System.Drawing.FontStyle newFontStyle;
 
-                if (richTextBox_Content.SelectionLength > 0)
-                {
-                    int selectionStart = richTextBox_Content.SelectionStart;
-                    int selectionLength = richTextBox_Content.SelectionLength;
+                if (isItalic)
+                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; 
+                else
+                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; 
 
-                    // Lặp qua từng ký tự được chọn
-                    for (int i = 0; i < selectionLength; i++)
-                    {
-                        richTextBox_Content.Select(selectionStart + i, 1);
-
-                        if (richTextBox_Content.SelectionFont != null)
-                        {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            System.Drawing.FontStyle newFontStyle;
-
-                            // Thêm hoặc loại bỏ FontStyle.Bold
-                            if (currentFont.Italic)
-                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; // Loại bỏ Bold
-                            else
-                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; // Thêm Bold
-
-                            // Cập nhật font mới
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
-                        }
-                    }
-
-                    // Đặt lại vùng chọn ban đầu
-                    richTextBox_Content.Select(selectionStart, selectionLength);
-                }
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    currentFont.FontFamily, currentFont.Size, newFontStyle);
             }
-            finally
-            {
-                // Kết thúc trạng thái định dạng
-                isFormatting = false;
-            }
-
         }
 
         private void button_Underline_Click(object sender, EventArgs e)
@@ -622,36 +749,56 @@ namespace docMini
             isFormatting = true;
             try
             {
-                isUnderline = !isUnderline; // Toggle trạng thái gạch chân
+
+                isUnderline = !isUnderline; // Toggle trạng thái in đậm
 
                 if (richTextBox_Content.SelectionLength > 0)
                 {
                     int selectionStart = richTextBox_Content.SelectionStart;
                     int selectionLength = richTextBox_Content.SelectionLength;
 
-                    // Lặp qua từng ký tự được chọn
-                    for (int i = 0; i < selectionLength; i++)
+                    var textFormatCache = new Dictionary<(int Start, int Length), System.Drawing.Font>();
+
+                    int end = selectionStart + selectionLength;
+                    richTextBox_Content.SuspendLayout();
+
+                    int currentStart = selectionStart;
+                    System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
+
+                    for (int i = selectionStart; i < end; i++)
                     {
-                        richTextBox_Content.Select(selectionStart + i, 1);
+                        richTextBox_Content.Select(i, 1);
+                        var charFont = richTextBox_Content.SelectionFont;
 
-                        if (richTextBox_Content.SelectionFont != null)
+                        if (currentFont == null || !charFont.Equals(currentFont))
                         {
-                            System.Drawing.Font currentFont = richTextBox_Content.SelectionFont;
-                            System.Drawing.FontStyle newFontStyle;
+                            // Caching: Lưu đoạn và font hiện tại
+                            if (!textFormatCache.ContainsKey((currentStart, i - currentStart)))
+                            {
+                                textFormatCache[(currentStart, i - currentStart)] = currentFont;
+                            }
 
-                            // Thêm hoặc loại bỏ FontStyle.Bold
-                            if (currentFont.Underline)
-                                newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; // Loại bỏ Bold
-                            else
-                                newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; // Thêm Bold
-
-                            // Cập nhật font mới
-                            richTextBox_Content.SelectionFont = new System.Drawing.Font(currentFont.FontFamily, currentFont.Size, newFontStyle);
+                            // Bắt đầu đoạn mới
+                            currentFont = charFont;
+                            currentStart = i;
                         }
                     }
 
-                    // Đặt lại vùng chọn ban đầu
+                    // Xử lý đoạn cuối cùng
+                    if (!textFormatCache.ContainsKey((currentStart, end - currentStart)))
+                    {
+                        textFormatCache[(currentStart, end - currentStart)] = currentFont;
+                    }
+
+                    // Lazy Rendering: Áp dụng các định dạng đã lưu
+                    foreach (var range in textFormatCache)
+                    {
+                        ApplyUnderlineToRange(range.Key.Start, range.Key.Length, isBold);
+                    }
+
                     richTextBox_Content.Select(selectionStart, selectionLength);
+                    richTextBox_Content.ResumeLayout();
+
                 }
             }
             finally
@@ -659,10 +806,27 @@ namespace docMini
                 // Kết thúc trạng thái định dạng
                 isFormatting = false;
             }
-
         }
+        private void ApplyUnderlineToRange(int start, int length, bool isUnderline)
+        {
+            if (length <= 0) return;
 
+            richTextBox_Content.Select(start, length);
+            var currentFont = richTextBox_Content.SelectionFont;
 
+            if (currentFont != null)
+            {
+                System.Drawing.FontStyle newFontStyle;
+
+                if (isUnderline)
+                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; 
+                else
+                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; 
+
+                richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                    currentFont.FontFamily, currentFont.Size, newFontStyle);
+            }
+        }
         private void button_AlignLeft_Click(object sender, EventArgs e)
         {
 
@@ -1163,20 +1327,6 @@ namespace docMini
                 }
             }
         }
-        private void LoadRtf(string filePath)
-        {
-            try
-            {
-                richTextBox_Content.LoadFile(filePath, RichTextBoxStreamType.RichText);
-                MessageBox.Show("File loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error: " + ex.Message);
-            }
-        }
-
-
         private async void button_ShareDoc_Click(object sender, EventArgs e)
         {
             // Hủy luồng nhận dữ liệu
@@ -1406,43 +1556,72 @@ namespace docMini
         {
             if (e.KeyCode == Keys.Enter)
             {
-                e.SuppressKeyPress = true; // Ngăn hành vi mặc định của phím Enter
+                if (isFormatting) return; // Ngăn chặn xung đột định dạng
+                isFormatting = true;
 
-                // Lấy vị trí con trỏ hiện tại
-                int cursorPosition = richTextBox_Content.SelectionStart;
-
-                // Lấy dòng hiện tại trước khi nhấn Enter
-                int currentLineIndex = richTextBox_Content.GetLineFromCharIndex(cursorPosition);
-                if (currentLineIndex > 0) // Kiểm tra nếu không phải dòng đầu tiên
+                try
                 {
-                    // Lấy văn bản của dòng trên
-                    int lineStartIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex - 1);
-                    int lineEndIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex) - 1;
-                    if (lineEndIndex < 0) lineEndIndex = richTextBox_Content.Text.Length;
+                    int selectionStart = richTextBox_Content.SelectionStart;
 
-                    string previousLine = richTextBox_Content.Text.Substring(lineStartIndex, lineEndIndex - lineStartIndex);
-
-                    // Kiểm tra nếu dòng trên có dấu đầu dòng
-                    string bulletPattern = @"^(\s*[\u2022\u25E6\u25CF\u2219○●-]|\d+\.)\s";
-                    Regex regex = new Regex(bulletPattern);
-                    Match match = regex.Match(previousLine);
-
-                    if (match.Success) // Nếu có dấu đầu dòng
+                    // Lưu font hiện tại trước khi nhấn Enter
+                    System.Drawing.Font currentFont = null;
+                    if (selectionStart > 0)
                     {
-                        // Thêm dòng mới và sao chép dấu đầu dòng
-                        string bullet = match.Value.TrimEnd();
-                        richTextBox_Content.SelectedText = "\n" + bullet + " ";
+                        richTextBox_Content.Select(selectionStart - 1, 1);
+                        if (richTextBox_Content.SelectionFont != null)
+                        {
+                            currentFont = richTextBox_Content.SelectionFont;
+                        }
+                    }
 
-                        // Đặt con trỏ sau dấu đầu dòng
-                        richTextBox_Content.SelectionStart += bullet.Length + 2; // +2 cho dấu cách
-                        return;
+                    // Chèn dòng mới
+                    richTextBox_Content.Select(selectionStart, 0);
+                    richTextBox_Content.SelectedText = "\n";
+
+                    // Áp dụng lại kiểu chữ và cỡ chữ sau khi Enter
+                    if (currentFont != null)
+                    {
+                        richTextBox_Content.Select(selectionStart + 1, 0); // Di chuyển đến sau dòng mới
+                        richTextBox_Content.SelectionFont = new System.Drawing.Font(
+                            currentFont.FontFamily,
+                            currentFont.Size,
+                            currentFont.Style
+                        );
+                    }
+
+                    // Kiểm tra và sao chép dấu đầu dòng nếu cần
+                    int currentLineIndex = richTextBox_Content.GetLineFromCharIndex(selectionStart);
+                    if (currentLineIndex > 0) // Không áp dụng cho dòng đầu tiên
+                    {
+                        int lineStartIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex - 1);
+                        int lineEndIndex = richTextBox_Content.GetFirstCharIndexFromLine(currentLineIndex) - 1;
+                        if (lineEndIndex < 0) lineEndIndex = richTextBox_Content.Text.Length;
+
+                        string previousLine = richTextBox_Content.Text.Substring(lineStartIndex, lineEndIndex - lineStartIndex);
+
+                        // Kiểm tra dấu đầu dòng
+                        string bulletPattern = @"^(\s*[\u2022\u25E6\u25CF\u2219○●-]|\d+\.)\s";
+                        Regex regex = new Regex(bulletPattern);
+                        Match match = regex.Match(previousLine);
+
+                        if (match.Success) // Nếu dòng trước có dấu đầu dòng
+                        {
+                            string bullet = match.Value.TrimEnd();
+                            richTextBox_Content.AppendText(bullet + " ");
+                            richTextBox_Content.SelectionStart += bullet.Length + 1; // Đặt lại con trỏ
+                        }
                     }
                 }
+                finally
+                {
+                    isFormatting = false;
+                }
 
-                // Nếu không có dấu đầu dòng, thêm dòng mới bình thường
-                richTextBox_Content.SelectedText = "\n";
+                e.SuppressKeyPress = true; // Ngăn hành vi mặc định của phím Enter
             }
         }
+
+
 
         //--------------------------------------------------------------------------------------------------------
         //--------------------------------------------------------------------------------------------------------
@@ -1450,8 +1629,7 @@ namespace docMini
         // PHẦN CODE LIÊN QUAN CHUNG GIỮA LOGIC DOC VÀ CLIENT
         private void richTextBox_Content_TextChanged(object sender, EventArgs e)
         {
-
-            richTextBox_Content_TextChangedButton(sender, e); // Gọi hàm xử lý định dạng
+            richTextBox_Content_TextChangedButton(sender, e);// Gọi hàm xử lý định dạng
             UpdateFormattingButtons();
 
             richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
@@ -1634,6 +1812,7 @@ namespace docMini
         // LẤY DANH SÁCH FILE
         private async void GetAllFile()
         {
+            
             try
             {
                 string serverResponse = await SendGetAllFileRequestAsync();
