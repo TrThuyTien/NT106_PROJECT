@@ -13,6 +13,7 @@ namespace Server
         {
             InitializeComponent();
             textBox_Port.Text = "8080";
+            crypto = new Crypto(pass);
         }
 
 
@@ -23,7 +24,8 @@ namespace Server
         private static DateTime lastUpdateTime = DateTime.MinValue;
         private static readonly TimeSpan debounceTime = TimeSpan.FromMilliseconds(300); // Thời gian debounce
         private bool isListening = false;
-
+        private readonly string pass = "SuperSecureSharedSecret123!";
+        private Crypto crypto;
         public object Address { get; private set; }
 
         private CancellationTokenSource cts = new CancellationTokenSource();
@@ -52,6 +54,7 @@ namespace Server
             try
             {
                 NetworkStream stream = client.GetStream();
+
                 using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true))
                 {
                     while (!token.IsCancellationRequested && client.Connected)
@@ -64,12 +67,15 @@ namespace Server
                         byte[] compressedData = await ReadMessageAsync(stream, compressedLength);
 
                         // Bước 3: Giải nén dữ liệu
-                        byte[] decompressedData = Decompress(compressedData);
+                        byte[] encryptedData = Decompress(compressedData);
 
-                        // Bước 4: Chuyển dữ liệu giải nén thành chuỗi
-                        string update = Encoding.UTF8.GetString(decompressedData);
+                        // Bước 4: Giải mã dữ liệu
+                        byte[] decryptedData = Encoding.UTF8.GetBytes(crypto.Decrypt(encryptedData));
 
-                        // Bước 5: Xử lý yêu cầu
+                        // Bước 5: Chuyển dữ liệu giải mã thành chuỗi
+                        string update = Encoding.UTF8.GetString(decryptedData);
+
+                        // Bước 6: Xử lý yêu cầu
                         await ProcessRequestAsync(update, stream, client);
                     }
                 }
@@ -447,18 +453,22 @@ namespace Server
         // GỬI PHẢN HỒI
         private async Task SendResponseAsync(NetworkStream stream, byte[] response, TcpClient client)
         {
-            // Nén dữ liệu phản hồi
-            byte[] compressedResponse = Compress(response);
+            // Chuyển response từ byte[] -> string -> Encrypt
+            byte[] encryptedResponse = crypto.Encrypt(Encoding.UTF8.GetString(response));
+
+            // Nén dữ liệu phản hồi đã mã hóa
+            byte[] compressedResponse = Compress(encryptedResponse);
 
             // Chuyển đổi độ dài dữ liệu đã nén thành mảng byte
             byte[] lengthBuffer = BitConverter.GetBytes(compressedResponse.Length);
 
-            // Gửi độ dài dữ liệu đã nén trước
+            // Gửi độ dài dữ liệu
             await stream.WriteAsync(lengthBuffer, 0, lengthBuffer.Length);
 
             // Gửi dữ liệu đã nén
             await stream.WriteAsync(compressedResponse, 0, compressedResponse.Length);
         }
+
 
         // UPDATE NỘI DUNG DOCUMENT
         private async Task ProcessUpdateAsync(string update, TcpClient sender, int docId)

@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
+using Server;
+
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -1701,10 +1703,12 @@ namespace docMini
         private StringBuilder pendingUpdates = new StringBuilder(); // Lưu trữ các thay đổi tạm thời
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private readonly object connectionLock = new object(); // Khóa đồng bộ
-
+        private readonly string sharedSecret = "SuperSecureSharedSecret123!";
+        private Crypto crypto;
         // TẠO KẾT NỐI VỚI SERVER
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
         {
+            crypto = new Crypto(sharedSecret);
             await EnsureConnectionAsync();
         }
 
@@ -1735,7 +1739,7 @@ namespace docMini
         private object sendLock = new object();
         private object receiveLock = new object();
 
-        // Gửi dữ liệu với đảm bảo kết nối
+        /*// Gửi dữ liệu với đảm bảo kết nối
         private async Task SendDataAsync(string message)
         {
             await EnsureConnectionAsync();
@@ -1801,6 +1805,86 @@ namespace docMini
 
                 byte[] decompressedData = Decompress(compressedData);
                 return Encoding.UTF8.GetString(decompressedData);
+            }
+            catch (Exception ex)
+            {
+                isConnected = false;
+                throw new IOException("Error reading data.", ex);
+            }
+        }*/
+
+        // Gửi dữ liệu với đảm bảo kết nối
+        private async Task SendDataAsync(string message)
+        {
+            await EnsureConnectionAsync();
+            if (!isConnected) return;
+
+            try
+            {
+                // Mã hóa dữ liệu trước khi gửi
+                byte[] encryptedData = crypto.Encrypt(message);
+
+                // Nén dữ liệu đã mã hóa
+                byte[] compressedData = Compress(encryptedData);
+                byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
+
+                // Gửi độ dài dữ liệu
+                lock (sendLock)
+                {
+                    stream.Write(lengthData, 0, lengthData.Length);
+                }
+
+                // Gửi dữ liệu đã nén
+                lock (sendLock)
+                {
+                    stream.Write(compressedData, 0, compressedData.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                isConnected = false; // Đánh dấu là mất kết nối
+                MessageBox.Show($"Error sending data: {ex.Message}");
+            }
+        }
+
+        // Nhận dữ liệu với đảm bảo kết nối
+        private async Task<string> ReceiveDataAsync()
+        {
+            await EnsureConnectionAsync();
+            if (!isConnected) throw new InvalidOperationException("Not connected to server.");
+
+            byte[] lengthBuffer = new byte[sizeof(int)];
+
+            try
+            {
+                // Đọc độ dài dữ liệu
+                lock (receiveLock)
+                {
+                    int bytesRead = stream.Read(lengthBuffer, 0, lengthBuffer.Length);
+                    if (bytesRead != sizeof(int))
+                        throw new IOException("Failed to read data length.");
+                }
+
+                int compressedDataLength = BitConverter.ToInt32(lengthBuffer, 0);
+                byte[] compressedData = new byte[compressedDataLength];
+
+                int totalBytesRead = 0;
+                while (totalBytesRead < compressedDataLength)
+                {
+                    lock (receiveLock)
+                    {
+                        int bytesRead = stream.Read(compressedData, totalBytesRead, compressedDataLength - totalBytesRead);
+                        if (bytesRead == 0)
+                            throw new IOException("Unexpected end of stream.");
+                        totalBytesRead += bytesRead;
+                    }
+                }
+
+                // Giải nén dữ liệu
+                byte[] encryptedData = Decompress(compressedData);
+
+                // Giải mã dữ liệu đã nhận
+                return crypto.Decrypt(encryptedData);
             }
             catch (Exception ex)
             {
@@ -2083,7 +2167,7 @@ namespace docMini
                     byte[] decompressedData = Decompress(compressedData);
 
                     // Chuyển đổi dữ liệu đã giải nén sang chuỗi
-                    string response = Encoding.UTF8.GetString(decompressedData);
+                    string response = crypto.Decrypt(decompressedData);
 
                     // Xử lý phản hồi từ server
                     if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|"))
@@ -2156,7 +2240,6 @@ namespace docMini
             return await ReceiveDataAsync();
         }
 
-
         private bool isLocalUpdate = false; // Đánh dấu cập nhật cục bộ
 
         private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
@@ -2183,8 +2266,6 @@ namespace docMini
                 }
             }
         }
-
-
 
         private async Task debouncedSendAsync()
         {
@@ -2252,10 +2333,6 @@ namespace docMini
             }
         }
 
-
-
-
-
         private void UpdateRichTextBox(string updatedContent)
         {
             if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
@@ -2289,10 +2366,6 @@ namespace docMini
             }
         }
 
-
-
-
-
         // Phương thức nén dữ liệu
         private static byte[] Compress(byte[] data)
         {
@@ -2317,12 +2390,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
-        private void contextMenuStrip_headIcon_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-
-        }
-
 
 
 
