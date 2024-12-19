@@ -59,7 +59,9 @@ namespace LoadBalance1
             clientToServer.Start();
             serverToClient.Start();
 
-            //clientToServer.Join();
+            clientToServer.Join();
+            server.DecrementConnection();
+            UpdateServerInfo();
             serverToClient.Join();
 
             client.Close();

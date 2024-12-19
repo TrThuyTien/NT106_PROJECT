@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
+using System.Diagnostics;
+using System.Reflection;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -1691,7 +1693,7 @@ namespace docMini
         // PHẦN KẾT NỐI VỚI SERVER -------------------------------------------------------------------------
         private TcpClient tcpClient = null;
         private NetworkStream stream = null;
-        private int serverPort = 8080;
+        private int serverPort = 8000;
         private string serverIP = "127.0.0.1";
         private bool isConnected = false;
         private string lastReceivedContent = ""; // Lưu nội dung lần cuối để so sánh
@@ -1730,7 +1732,7 @@ namespace docMini
                 MessageBox.Show($"Error connecting to server: {ex.Message}");
             }
         }
-
+      
         // Tạo khóa riêng cho gửi và nhận dữ liệu
         private object sendLock = new object();
         private object receiveLock = new object();
@@ -1981,7 +1983,7 @@ namespace docMini
                         try
                         {
                             // Cập nhật nội dung lên RichTextBox trên UI thread
-                            richTextBox_Content.Invoke((MethodInvoker)(() =>
+                            richTextBox_Content.Invoke((System.Windows.Forms.MethodInvoker)(() =>
                             {
                                 if (cancellationTokenSource.IsCancellationRequested)
                                     return;
@@ -2238,11 +2240,11 @@ namespace docMini
                                         MessageBoxIcon.Error);
                     }
                 }
-            }
-            catch (TaskCanceledException)
-            {
-                // Tác vụ bị hủy, không cần xử lý thêm
-            }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Tác vụ bị hủy, không cần xử lý thêm
+                }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi không xác định trong DebouncedSendAsync: {ex.Message}",
@@ -2262,7 +2264,7 @@ namespace docMini
             {
                 if (richTextBox_Content.InvokeRequired)
                 {
-                    richTextBox_Content.Invoke((MethodInvoker)(() =>
+                    richTextBox_Content.Invoke((System.Windows.Forms.MethodInvoker)(() =>
                     {
                         ApplyRichTextBoxContent(updatedContent);
                     }));

@@ -95,7 +95,7 @@ namespace docMini
         private async Task<string> SendSignUpRequestAsync(string username, string email, string password)
         {
             string serverIp = "127.0.0.1";
-            int serverPort = 8080;
+            int serverPort = 8000;
 
             using (client = new TcpClient())
             {
