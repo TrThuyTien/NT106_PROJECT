@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
+using Server;
+
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -276,7 +278,7 @@ namespace docMini
             cancellationTokenSource = new CancellationTokenSource();
             _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
-        
+
         private bool isBold = false;
         private bool isItalic = false;
         private bool isUnderline = false;
@@ -733,9 +735,9 @@ namespace docMini
                 System.Drawing.FontStyle newFontStyle;
 
                 if (isItalic)
-                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic; 
+                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Italic;
                 else
-                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic; 
+                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Italic;
 
                 richTextBox_Content.SelectionFont = new System.Drawing.Font(
                     currentFont.FontFamily, currentFont.Size, newFontStyle);
@@ -819,9 +821,9 @@ namespace docMini
                 System.Drawing.FontStyle newFontStyle;
 
                 if (isUnderline)
-                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline; 
+                    newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
                 else
-                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline; 
+                    newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline;
 
                 richTextBox_Content.SelectionFont = new System.Drawing.Font(
                     currentFont.FontFamily, currentFont.Size, newFontStyle);
@@ -1701,10 +1703,12 @@ namespace docMini
         private StringBuilder pendingUpdates = new StringBuilder(); // Lưu trữ các thay đổi tạm thời
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private readonly object connectionLock = new object(); // Khóa đồng bộ
-
+        private readonly string sharedSecret = "SuperSecureSharedSecret123!";
+        private Crypto crypto;
         // TẠO KẾT NỐI VỚI SERVER
         private async void mainDoc_LoadConnection(object sender, EventArgs e)
         {
+            crypto = new Crypto(sharedSecret);
             await EnsureConnectionAsync();
         }
 
@@ -1741,19 +1745,22 @@ namespace docMini
             await EnsureConnectionAsync();
             if (!isConnected) return;
 
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            byte[] compressedData = Compress(data);
-            byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
-
             try
             {
-                // Ghi độ dài của dữ liệu
+                // Mã hóa dữ liệu trước khi gửi
+                byte[] encryptedData = crypto.Encrypt(message);
+
+                // Nén dữ liệu đã mã hóa
+                byte[] compressedData = Compress(encryptedData);
+                byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
+
+                // Gửi độ dài dữ liệu
                 lock (sendLock)
                 {
                     stream.Write(lengthData, 0, lengthData.Length);
                 }
 
-                // Ghi dữ liệu đã nén
+                // Gửi dữ liệu đã nén
                 lock (sendLock)
                 {
                     stream.Write(compressedData, 0, compressedData.Length);
@@ -1799,8 +1806,11 @@ namespace docMini
                     }
                 }
 
-                byte[] decompressedData = Decompress(compressedData);
-                return Encoding.UTF8.GetString(decompressedData);
+                // Giải nén dữ liệu
+                byte[] encryptedData = Decompress(compressedData);
+
+                // Giải mã dữ liệu đã nhận
+                return crypto.Decrypt(encryptedData);
             }
             catch (Exception ex)
             {
@@ -1812,7 +1822,7 @@ namespace docMini
         // LẤY DANH SÁCH FILE
         private async void GetAllFile()
         {
-            
+
             try
             {
                 string serverResponse = await SendGetAllFileRequestAsync();
@@ -2083,7 +2093,7 @@ namespace docMini
                     byte[] decompressedData = Decompress(compressedData);
 
                     // Chuyển đổi dữ liệu đã giải nén sang chuỗi
-                    string response = Encoding.UTF8.GetString(decompressedData);
+                    string response = crypto.Decrypt(decompressedData);
 
                     // Xử lý phản hồi từ server
                     if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|"))
@@ -2156,7 +2166,6 @@ namespace docMini
             return await ReceiveDataAsync();
         }
 
-
         private bool isLocalUpdate = false; // Đánh dấu cập nhật cục bộ
 
         private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
@@ -2183,8 +2192,6 @@ namespace docMini
                 }
             }
         }
-
-
 
         private async Task debouncedSendAsync()
         {
@@ -2252,10 +2259,6 @@ namespace docMini
             }
         }
 
-
-
-
-
         private void UpdateRichTextBox(string updatedContent)
         {
             if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
@@ -2289,10 +2292,6 @@ namespace docMini
             }
         }
 
-
-
-
-
         // Phương thức nén dữ liệu
         private static byte[] Compress(byte[] data)
         {
@@ -2317,15 +2316,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
-        private void contextMenuStrip_headIcon_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-
-        }
-
-
-
-
 
 
         // ---------------------------------------------------------------------------------

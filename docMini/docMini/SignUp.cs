@@ -4,13 +4,18 @@ using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
 using Server;
+using System.Security.Cryptography;
 
 namespace docMini
 {
     public partial class SignUp : Form
     {
+        private readonly string pass = "SuperSecureSharedSecret123!";
+        private Crypto crypto;
+
         public SignUp()
         {
+            crypto = new Crypto(pass);
             InitializeComponent();
         }
 
@@ -34,13 +39,11 @@ namespace docMini
                 return;
             }
 
-            if (checkmail(email))
-            {
-                MessageBox.Show("Email hợp lệ.");
-            }
-            else
+            if (!checkmail(email))
             {
                 MessageBox.Show("Email không hợp lệ.");
+                textbox_Email.Text = string.Empty;
+                return;
             }
 
             try
@@ -116,10 +119,10 @@ namespace docMini
         private async Task SendDataAsync(string message)
         {
             // Chuyển đổi chuỗi thành byte
-            byte[] data = Encoding.UTF8.GetBytes(message);
+            byte[] encryptedData = crypto.Encrypt(message);
 
             // Nén dữ liệu
-            byte[] compressedData = Compress(data);
+            byte[] compressedData = Compress(encryptedData);
 
             // Gửi độ dài dữ liệu nén
             byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
@@ -150,10 +153,10 @@ namespace docMini
             }
 
             // Giải nén dữ liệu
-            byte[] decompressedData = Decompress(compressedData);
+            byte[] encryptedData = Decompress(compressedData);
 
             // Chuyển đổi byte thành chuỗi UTF-8
-            return Encoding.UTF8.GetString(decompressedData, 0, decompressedData.Length);
+            return crypto.Decrypt(encryptedData);
         }
 
 
