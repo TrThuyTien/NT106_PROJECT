@@ -3,14 +3,19 @@ using Server;
 using System.IO.Compression;
 using System.Net.Sockets;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace docMini
 {
     public partial class SignIn : Form
     {
+        private readonly string pass = "SuperSecureSharedSecret123!";
+        private Crypto crypto;
+
         public SignIn()
         {
             InitializeComponent();
+            crypto = new Crypto(pass);
             textbox_Username.KeyDown += TextBox_KeyDown;
             textbox_Password.KeyDown += TextBox_KeyDown;
         }
@@ -116,10 +121,10 @@ namespace docMini
         private async Task SendDataAsync(string message)
         {
             // Chuyển đổi chuỗi thành byte
-            byte[] data = Encoding.UTF8.GetBytes(message);
+            byte[] encryptedData = crypto.Encrypt(message);
 
             // Nén dữ liệu
-            byte[] compressedData = Compress(data);
+            byte[] compressedData = Compress(encryptedData);
 
             // Gửi độ dài dữ liệu nén
             byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
@@ -150,10 +155,9 @@ namespace docMini
             }
 
             // Giải nén dữ liệu
-            byte[] decompressedData = Decompress(compressedData);
+            byte[] encryptedData = Decompress(compressedData);
 
-            // Chuyển đổi byte thành chuỗi UTF-8
-            return Encoding.UTF8.GetString(decompressedData, 0, decompressedData.Length);
+            return crypto.Decrypt(encryptedData);
         }
 
 
@@ -203,7 +207,8 @@ namespace docMini
 
         private void checkbox_Showpass_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkbox_Showpass.Checked) {
+            if (checkbox_Showpass.Checked)
+            {
                 textbox_Password.UseSystemPasswordChar = false;
             }
             else
