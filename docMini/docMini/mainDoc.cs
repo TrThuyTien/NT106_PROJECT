@@ -1693,7 +1693,7 @@ namespace docMini
         // PHẦN KẾT NỐI VỚI SERVER -------------------------------------------------------------------------
         private TcpClient tcpClient = null;
         private NetworkStream stream = null;
-        private int serverPort = 8080;
+        private int serverPort = 8000;
         private string serverIP = "127.0.0.1";
         private bool isConnected = false;
         private string lastReceivedContent = ""; // Lưu nội dung lần cuối để so sánh
