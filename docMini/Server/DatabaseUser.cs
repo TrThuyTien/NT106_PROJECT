@@ -52,7 +52,7 @@ public class DatabaseManager
                         Docname TEXT NOT NULL,
                         OwnerID INTEGER NOT NULL,
                         Content TEXT,
-                        LOpenTime TEXT,
+                        LastEditById INTEGER NOT NULL,
                         FOREIGN KEY(OwnerID) REFERENCES Users(Id)
                     )";
                 using (var command = new SQLiteCommand(createDocsTableQuery, connection))
@@ -206,17 +206,17 @@ public class DatabaseManager
                 }
             }
 
-            string currentTime = DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
+            /*string currentTime = DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");*/
 
             // Thêm tài liệu mới vào bảng Docs
             string insertDocQuery = @"
-            INSERT INTO Docs (Docname, OwnerID, Content, LOpenTime)
-            VALUES (@Docname, @OwnerID, '', @LOpenTime)";
+            INSERT INTO Docs (Docname, OwnerID, Content, LastEditById)
+            VALUES (@Docname, @OwnerID, '', @LastEditById)";
             using (var insertCommand = new SQLiteCommand(insertDocQuery, connection))
             {
                 insertCommand.Parameters.AddWithValue("@Docname", docName);
                 insertCommand.Parameters.AddWithValue("@OwnerID", userId);
-                insertCommand.Parameters.AddWithValue("@LOpenTime", currentTime);
+                insertCommand.Parameters.AddWithValue("@LastEditById", userId);
                 insertCommand.ExecuteNonQuery();
             }
 
@@ -495,12 +495,69 @@ public class DatabaseManager
         }
     }
 
+    // Lấy id người chỉnh sửa cuối c
+    public async Task<int> GetLastEditByIdAsync(int docId)
+    {
+        if (docId < 1)
+        {
+            // Nếu docId không hợp lệ, trả về null
+
+            return 0;
+        }
+
+        try
+        {
+            // Thêm timeout để tránh bị khóa
+            var connectionStringWithTimeout = $"{connectionString};BusyTimeout=3000"; // 3 giây
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionStringWithTimeout))
+            {
+                await connection.OpenAsync();
+
+                // Đảm bảo rằng cơ sở dữ liệu không bị khóa
+                await Task.Delay(50); // Tăng khoảng trễ nhỏ để giải phóng khóa nếu có giao dịch khác đang diễn ra.
+
+                string query = @"SELECT LastEditById FROM Docs WHERE DocID = @DocID";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DocID", docId);
+                    object result = await command.ExecuteScalarAsync();
+
+                    if (result != null)
+                    {
+                        return Convert.ToInt32(result); // Trả về LastEditById
+                    }
+                    else
+                    {
+                        // Nếu không tìm thấy DocID, trả về null
+
+                        return 0;
+                    }
+                }
+            }
+        }
+        catch (SQLiteException ex) when (ex.Message.Contains("database is locked"))
+        { 
+            // Xử lý riêng lỗi bị khóa
+            // Có thể log lỗi hoặc thông báo cho người dùng
+            return 0;
+        }
+        catch (Exception ex)
+        {
+
+            // Xử lý các lỗi khác
+            // Có thể log lỗi hoặc thông báo cho người dùng
+            return 0;
+        }
+    }
+
     // Cập nhập tài liệu
-    public async Task<bool> UpdateDocumentContentAsync(int docId, string content)
+    public async Task<bool> UpdateDocumentContentAsync(int docId, string content, int userId)
     {
         if (docId < 1 || string.IsNullOrEmpty(content))
         {
-            /*MessageBox.Show("DocID hoặc nội dung rỗng. Không thể cập nhật.");*/
+           
             return false;
         }
 
@@ -516,23 +573,23 @@ public class DatabaseManager
                 // Đảm bảo rằng cơ sở dữ liệu không bị khóa
                 await Task.Delay(50); // Tăng khoảng trễ nhỏ để giải phóng khóa nếu có giao dịch khác đang diễn ra.
 
-                string query = "UPDATE Docs SET Content = @Content WHERE DocID = @DocID";
+                string query = "UPDATE Docs SET Content = @Content, LastEditById = @LastEditById  WHERE DocID = @DocID";
 
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@DocID", docId);
                     command.Parameters.AddWithValue("@Content", content);
-
+                    command.Parameters.AddWithValue("@LastEditById", userId);
                     int rowsAffected = await command.ExecuteNonQueryAsync();
 
                     if (rowsAffected > 0)
                     {
-                        /*MessageBox.Show($"Cập nhật thành công cho DocID: {docId}");*/
+                        
                         return true;
                     }
                     else
                     {
-                        /* MessageBox.Show($"Không tìm thấy DocID: {docId} để cập nhật.");*/
+                        
                         return false;
                     }
                 }
@@ -541,12 +598,12 @@ public class DatabaseManager
         catch (SQLiteException ex) when (ex.Message.Contains("database is locked"))
         {
             // Xử lý riêng lỗi bị khóa
-            /* MessageBox.Show($"Lỗi: Cơ sở dữ liệu đang bị khóa. Vui lòng thử lại sau.");*/
+            
             return false;
         }
         catch (Exception ex)
         {
-            /*MessageBox.Show($"Lỗi khi cập nhật tài liệu {docId}: {ex.Message}");*/
+           
             return false;
         }
     }
@@ -566,24 +623,6 @@ public class DatabaseManager
                 command.Parameters.AddWithValue("@UserId", userId);
                 command.Parameters.AddWithValue("@DocID", docId);
                 command.Parameters.AddWithValue("@EditStatus", editStatus);
-                command.ExecuteNonQuery();
-            }
-        }
-        return true;
-    }
-
-    // Cập nhật thời gian mở tài liệu lần cuối
-    public bool DocLastOpenTime(int docId, string lastOpenTime)
-    {
-        using (var connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-
-            string updateQuery = "UPDATE Docs SET LOpenTime = @LOpenTime WHERE DocID = @DocID";
-            using (var command = new SQLiteCommand(updateQuery, connection))
-            {
-                command.Parameters.AddWithValue("@LOpenTime", lastOpenTime);
-                command.Parameters.AddWithValue("@DocID", docId);
                 command.ExecuteNonQuery();
             }
         }

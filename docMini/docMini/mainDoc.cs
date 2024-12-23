@@ -276,7 +276,7 @@ namespace docMini
             };
             tempForm.ShowDialog();
             cancellationTokenSource = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
+            _ = Task.Run(() => UpdateContentLoop(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
         private bool isBold = false;
@@ -1446,7 +1446,7 @@ namespace docMini
 
             tempForm.ShowDialog();
             cancellationTokenSource = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
+            _ = Task.Run(() => UpdateContentLoop(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
 
         }
 
@@ -1457,7 +1457,7 @@ namespace docMini
             await Task.Delay(100); // Đợi các tác vụ cũ dừng hẳn
             GetAllFile();
             cancellationTokenSource = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
+            _ = Task.Run(() => UpdateContentLoop(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
         private async void button_DeleteFile_Click(object sender, EventArgs e)
@@ -1550,7 +1550,7 @@ namespace docMini
                 );
             }
             cancellationTokenSource = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveContentAsync(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
+            _ = Task.Run(() => UpdateContentLoop(idDoc, cancellationTokenSource.Token)).ConfigureAwait(false);
         }
 
 
@@ -1774,6 +1774,45 @@ namespace docMini
         }
 
         // Nhận dữ liệu với đảm bảo kết nối
+        private async Task SendDataAsync(string message, CancellationToken token)
+        {
+            await EnsureConnectionAsync();
+            if (!isConnected) return;
+
+            try
+            {
+                // Mã hóa dữ liệu trước khi gửi
+                byte[] encryptedData = crypto.Encrypt(message);
+
+                // Nén dữ liệu đã mã hóa
+                byte[] compressedData = Compress(encryptedData);
+                byte[] lengthData = BitConverter.GetBytes(compressedData.Length);
+
+                // Gửi độ dài dữ liệu
+                lock (sendLock)
+                {
+                    token.ThrowIfCancellationRequested(); // Kiểm tra hủy trước khi gửi
+                    stream.WriteAsync(lengthData, 0, lengthData.Length, token);
+                }
+
+                // Gửi dữ liệu đã nén
+                lock (sendLock)
+                {
+                    token.ThrowIfCancellationRequested(); // Kiểm tra hủy trước khi gửi
+                    stream.WriteAsync(compressedData, 0, compressedData.Length, token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Tác vụ bị hủy
+                throw;
+            }
+            catch (Exception ex)
+            {
+                isConnected = false; // Đánh dấu là mất kết nối
+                MessageBox.Show($"Error sending data: {ex.Message}");
+            }
+        }
         private async Task<string> ReceiveDataAsync()
         {
             await EnsureConnectionAsync();
@@ -1818,6 +1857,61 @@ namespace docMini
                 throw new IOException("Error reading data.", ex);
             }
         }
+
+
+        private SemaphoreSlim receiveSemaphore = new SemaphoreSlim(1, 1);
+
+        private async Task<string> ReceiveDataAsync(CancellationToken token)
+        {
+            if (!isConnected) throw new InvalidOperationException("Not connected to server.");
+
+            byte[] lengthBuffer = new byte[sizeof(int)];
+
+            await receiveSemaphore.WaitAsync(token); // Chờ nhận quyền truy cập
+            try
+            {
+                token.ThrowIfCancellationRequested(); // Kiểm tra hủy trước khi đọc
+
+                // Đọc độ dài dữ liệu
+                int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length, token);
+                if (bytesRead != sizeof(int))
+                    throw new IOException("Failed to read data length.");
+
+                int compressedDataLength = BitConverter.ToInt32(lengthBuffer, 0);
+                byte[] compressedData = new byte[compressedDataLength];
+
+                int totalBytesRead = 0;
+                while (totalBytesRead < compressedDataLength)
+                {
+                    token.ThrowIfCancellationRequested(); // Kiểm tra hủy trong vòng lặp
+                    bytesRead = await stream.ReadAsync(compressedData, totalBytesRead, compressedDataLength - totalBytesRead, token);
+                    if (bytesRead == 0)
+                        throw new IOException("Unexpected end of stream.");
+                    totalBytesRead += bytesRead;
+                }
+
+                // Giải nén dữ liệu
+                byte[] encryptedData = Decompress(compressedData);
+
+                // Giải mã dữ liệu đã nhận
+                return crypto.Decrypt(encryptedData);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // Tác vụ bị hủy
+            }
+            catch (Exception ex)
+            {
+                isConnected = false;
+                throw new IOException("Error reading data.", ex);
+            }
+            finally
+            {
+                receiveSemaphore.Release(); // Giải phóng quyền truy cập
+            }
+        }
+
+
 
         // LẤY DANH SÁCH FILE
         private async void GetAllFile()
@@ -1879,47 +1973,20 @@ namespace docMini
             }
             catch (SocketException ex)
             {
-                MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
+               /* MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
                                 "Lỗi",
                                 MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                                MessageBoxIcon.Error);*/
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
+                /*MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
                                 "Lỗi lấy file",
                                 MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                                MessageBoxIcon.Error);*/
             }
         }
 
-        class DocumentTask
-        {
-            public CancellationTokenSource CancellationTokenSource { get; set; }
-            public Task Task { get; set; }
-            public int DocumentId { get; set; }
-
-            public DocumentTask()
-            {
-                DocumentId = 0;
-                CancellationTokenSource = new CancellationTokenSource();
-                Task = Task.CompletedTask; // Initialize with a completed task
-            }
-
-            public DocumentTask(int documentId)
-            {
-                DocumentId = documentId;
-                CancellationTokenSource = new CancellationTokenSource();
-                Task = Task.CompletedTask; // Initialize with a completed task
-            }
-            /*~DocumentTask()
-            { 
-                CancellationTokenSource?.Cancel(); 
-                CancellationTokenSource?.Dispose(); }*/
-        }
-
-        // Khởi tạo currentTask với một DocumentTask hợp lệ
-        /*private DocumentTask currentTask = new DocumentTask();*/
         private bool isTaskRunning = false;
 
         private async void listBox_Docs_DoubleClick(object sender, EventArgs e)
@@ -1948,7 +2015,7 @@ namespace docMini
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Đã xảy ra lỗi khi mở tài liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show($"Đã xảy ra lỗi khi mở tài liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 finally
                 {
@@ -1997,7 +2064,8 @@ namespace docMini
                                     return;
 
                                 richTextBox_Content.Rtf = content;
-                                richTextBox_Content.Enabled = true;
+                                if (editStatus == 1) richTextBox_Content.Enabled = true;
+                                else richTextBox_Content.Enabled = false;
                                 richTextBox_Content.ReadOnly = editStatus != 1;
                             }));
                         }
@@ -2014,10 +2082,9 @@ namespace docMini
 
                         if (!cancellationTokenSource.IsCancellationRequested)
                         {
-                            // Đợi 500ms trước khi gọi ReceiveContentAsync
+                            // Đợi 1000ms trước khi gọi UpdateContentLoop
                             await Task.Delay(1000); // Đợi 1000ms
-
-                            _ = Task.Run(() => ReceiveContentAsync(docID, cancellationTokenSource.Token)).ConfigureAwait(false);
+                            _ = Task.Run(() => UpdateContentLoop(docID, cancellationTokenSource.Token));
                         }
                     }
                     else if (responseParts.Length == 4 && responseParts[3] == "FAIL")
@@ -2030,8 +2097,8 @@ namespace docMini
                 }
                 else
                 {
-                    MessageBox.Show($"Không thể mở tài liệu: phản hồi từ server không hợp lệ.\n{serverResponse}",
-                                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    /*MessageBox.Show($"Không thể mở tài liệu: phản hồi từ server không hợp lệ.\n{serverResponse}",
+                                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
                 }
             }
             catch (OperationCanceledException)
@@ -2040,70 +2107,47 @@ namespace docMini
             }
             catch (IOException ex)
             {
-                MessageBox.Show($"Lỗi đọc/ghi dữ liệu: {ex.Message}",
-                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                /*MessageBox.Show($"Lỗi đọc/ghi dữ liệu: {ex.Message}",
+                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
             }
             catch (SocketException ex)
             {
-                isConnected = false; // Đánh dấu là mất kết nối
+                /*isConnected = false; // Đánh dấu là mất kết nối
                 MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
-                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                "Lỗi mở file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+               /* MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
+                                "Lỗi mở file", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
             }
         }
 
         private SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
-        private async Task ReceiveContentAsync(int expectedDocID, CancellationToken token)
+        private async Task UpdateContentLoop(int expectedDocID, CancellationToken token)
         {
             await semaphore.WaitAsync(token);  //Đảm bảo chỉ một luồng được thực thi
             try
             {
+
                 while (!token.IsCancellationRequested)
                 {
-                    // Đọc độ dài dữ liệu đã nén
-                    byte[] lengthBuffer = new byte[sizeof(int)];
-                    int bytesRead = await stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length, token);
-                    if (bytesRead != sizeof(int))
-                    {
-                        throw new Exception("Nhan du lieu: Không thể đọc kích thước dữ liệu từ server.");
-                    }
-
-                    int compressedLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-                    // Đọc dữ liệu đã nén
-                    byte[] compressedData = new byte[compressedLength];
-                    int totalBytesRead = 0;
-
-                    while (totalBytesRead < compressedLength)
-                    {
-                        bytesRead = await stream.ReadAsync(compressedData, totalBytesRead, compressedLength - totalBytesRead, token);
-                        if (bytesRead == 0)
-                        {
-                            throw new Exception("Nhan du lieu: Không thể đọc đầy đủ dữ liệu từ server.");
-                        }
-                        totalBytesRead += bytesRead;
-                    }
-
-                    // Giải nén dữ liệu
-                    byte[] decompressedData = Decompress(compressedData);
-
-                    // Chuyển đổi dữ liệu đã giải nén sang chuỗi
-                    string response = crypto.Decrypt(decompressedData);
-
+                    string response = await SendUpdateDocAsync(token);
                     // Xử lý phản hồi từ server
-                    if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|"))
+                    if (response.StartsWith($"UPDATE_DOC|{expectedDocID}|{idUser}|SUCCESS|"))
                     {
-                        string[] parts = response.Split('|', 3);
-                        if (parts.Length == 3)
+                        string[] parts = response.Split('|', 6);
+                        if (parts.Length == 6)
                         {
-                            UpdateRichTextBox(parts[2]); // Cập nhật nội dung
+                            while (isEditing)
+                            {
+                                await Task.Delay(500);
+                            }
+                            if (int.Parse(parts[4]) != idUser) UpdateRichTextBox(parts[5]); // Cập nhật nội dung
                         }
                     }
+                    await Task.Delay(3000);
                 }
             }
             catch (OperationCanceledException)
@@ -2112,11 +2156,11 @@ namespace docMini
             }
             catch (IOException ex)
             {
-                MessageBox.Show($"Lỗi đọc dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show($"Lỗi đọc dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -2166,12 +2210,28 @@ namespace docMini
             return await ReceiveDataAsync();
         }
 
-        private bool isLocalUpdate = false; // Đánh dấu cập nhật cục bộ
+        // GỬI YÊU CẦU: UPDATE DOC
 
+        private async Task<string> SendUpdateDocAsync(CancellationToken token)
+        {
+            // Kiểm tra nếu tác vụ đã bị hủy trước khi thực hiện
+            token.ThrowIfCancellationRequested();
+
+            // Chuẩn bị thông điệp cần gửi
+            string message = $"UPDATE_DOC|{idDoc}|{idUser}";
+
+            // Thực hiện gửi dữ liệu, đảm bảo hỗ trợ hủy
+            await SendDataAsync(message, token);
+            // Nhận dữ liệu, hỗ trợ hủy
+            return await ReceiveDataAsync(token);
+        }
+
+        private bool isLocalUpdate = false; // Đánh dấu cập nhật cục bộ
+        private bool isEditing = false;
         private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
         {
             if (isLocalUpdate) return; // Bỏ qua nếu đây là cập nhật cục bộ
-
+            
             if (isConnected)
             {
                 while (isFormatting)
@@ -2188,6 +2248,7 @@ namespace docMini
                     pendingUpdates.Clear();
                     pendingUpdates.Append(updatedContent);
 
+                    isEditing = true;
                     _ = debouncedSendAsync();
                 }
             }
@@ -2199,7 +2260,7 @@ namespace docMini
             {
                 // Chờ debounce
                 await Task.Delay(debounceTime);
-
+                
                 // Nếu có dữ liệu cần gửi
                 if (pendingUpdates.Length > 0)
                 {
@@ -2209,10 +2270,10 @@ namespace docMini
                         await EnsureConnectionAsync();
                         if (!isConnected)
                         {
-                            MessageBox.Show("Không thể gửi dữ liệu vì không kết nối được với server.",
+                            /*MessageBox.Show("Không thể gửi dữ liệu vì không kết nối được với server.",
                                             "Lỗi",
                                             MessageBoxButtons.OK,
-                                            MessageBoxIcon.Error);
+                                            MessageBoxIcon.Error);*/
                             return;
                         }
 
@@ -2221,13 +2282,14 @@ namespace docMini
                         await SendDataAsync(message); // Gửi dữ liệu đến server
 
                         pendingUpdates.Clear(); // Xóa dữ liệu đã gửi thành công
+                        isEditing = false;
                     }
                     catch (IOException ioEx)
                     {
-                        MessageBox.Show($"Lỗi đọc/ghi dữ liệu khi gửi: {ioEx.Message}",
+                        /*MessageBox.Show($"Lỗi đọc/ghi dữ liệu khi gửi: {ioEx.Message}",
                                         "Lỗi",
                                         MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error);
+                                        MessageBoxIcon.Error);*/
                     }
                     catch (SocketException sockEx)
                     {
@@ -2239,10 +2301,10 @@ namespace docMini
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Đã xảy ra lỗi khi gửi dữ liệu: {ex.Message}",
+                        /*MessageBox.Show($"Đã xảy ra lỗi khi gửi dữ liệu: {ex.Message}",
                                         "Lỗi",
                                         MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error);
+                                        MessageBoxIcon.Error);*/
                     }
                 }
             }
@@ -2252,15 +2314,18 @@ namespace docMini
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi không xác định trong DebouncedSendAsync: {ex.Message}",
+                /*MessageBox.Show($"Lỗi không xác định trong DebouncedSendAsync: {ex.Message}",
                                 "Lỗi",
                                 MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                                MessageBoxIcon.Error);*/
             }
+            
         }
 
-        private void UpdateRichTextBox(string updatedContent)
+        private async void UpdateRichTextBox(string updatedContent)
         {
+            // Hủy luồng nhận dữ liệu
+            isLocalUpdate = true;
             if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
             {
                 if (richTextBox_Content.InvokeRequired)
@@ -2275,10 +2340,12 @@ namespace docMini
                     ApplyRichTextBoxContent(updatedContent);
                 }
             }
+            isLocalUpdate = false;
         }
 
         private void ApplyRichTextBoxContent(string content)
         {
+            if (isEditing) return;
             int cursorPosition = richTextBox_Content.SelectionStart;
             isLocalUpdate = true;
             try
