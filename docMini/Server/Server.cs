@@ -135,6 +135,10 @@ namespace Server
             {
                 await HandleDeleteDocumentAsync(update, stream, client);
             }
+            else if (update.StartsWith("UPDATE_DOC|"))
+            {
+                await HandleUpdateDocumentAsync(update, stream, client);
+            }
         }
 
         // XÓA FILE
@@ -446,7 +450,7 @@ namespace Server
                 }
                 // Xử lý cập nhật
                 newContent = parts[3];
-                await ProcessUpdateAsync(newContent, sender, docID);
+                await ProcessUpdateAsync(newContent, sender, docID, userID);
             }
         }
 
@@ -471,7 +475,7 @@ namespace Server
 
 
         // UPDATE NỘI DUNG DOCUMENT
-        private async Task ProcessUpdateAsync(string update, TcpClient sender, int docId)
+        private async Task ProcessUpdateAsync(string update, TcpClient sender, int docId, int userID)
         {
             lock (lockObject)
             {
@@ -488,50 +492,46 @@ namespace Server
 
             // Lưu nội dung mới vào cơ sở dữ liệu
             DatabaseManager dbManager = new DatabaseManager();
-            bool saveSuccess = await dbManager.UpdateDocumentContentAsync(docId, sharedContent);
+            bool saveSuccess = await dbManager.UpdateDocumentContentAsync(docId, sharedContent, userID);
             if (!saveSuccess)
             {
                 MessageBox.Show($"Server: Không thể lưu nội dung cho DocID: {docId}");
                 return;
             }
-            string broadcastMessage = $"UPDATE_DOC|{docId}|" + sharedContent;
-            await BroadcastUpdateAsync(broadcastMessage, sender);
+
         }
 
-        // BROADCAST TỚI CÁC CLIENT
-        private async Task BroadcastUpdateAsync(string update, TcpClient sender)
+        // UPDATE DOC
+        private async Task HandleUpdateDocumentAsync(string update, NetworkStream stream, TcpClient sender)
         {
-            byte[] updateBuffer = Encoding.UTF8.GetBytes(update);
-            List<TcpClient> clientsCopy;
-
-            lock (clients)
+            DatabaseManager dbManager = new DatabaseManager();
+            // Tách DocID từ chuỗi update
+            string[] parts = update.Split('|');
+            int docID = int.Parse(parts[1]); // Lấy DocID
+            int userID = int.Parse(parts[2]); // Lấy UserID
+            string newContent = "";
+            bool documentExists = dbManager.IsDocumentExists(docID);
+            if (!documentExists)
             {
-                clientsCopy = new List<TcpClient>(clients);
+                string reponseMessage = $"UPDATE_DOC|{docID}|{userID}|FAIL";
+                byte[] contentBuffer = Encoding.UTF8.GetBytes(reponseMessage);
+                await SendResponseAsync(stream, contentBuffer, sender);
+                return;
             }
-
-            foreach (TcpClient client in clientsCopy)
+            else
             {
-                if (client != sender)
+                // Lấy nội dung hiện tại gửi tới client
+                if (parts.Length == 3)
                 {
-                    try
-                    {
-                        NetworkStream stream = client.GetStream();
-                        await SendResponseAsync(stream, updateBuffer, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server broadcast: " + update + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
-                    }
-                    catch (IOException ex)
-                    {
-                        Console.WriteLine($"Broadcast IO Error: {ex.Message}");
-                        CloseClientConnection(client); // Cleanup disconnected clients
-                    }
-                    catch (SocketException ex)
-                    {
-                        Console.WriteLine($"Broadcast Socket Error: {ex.Message}");
-                        CloseClientConnection(client);
-                    }
+
+                    // Lấy nội dung hiện tại từ cơ sở dữ liệu
+                    newContent = await dbManager.GetDocumentContentByIdAsync(docID, userID);
+                    int lastEditId = await dbManager.GetLastEditByIdAsync(docID);
+                    string reponseMessage = $"UPDATE_DOC|{docID}|{userID}|SUCCESS|{lastEditId}|" + newContent;
+                    // Gửi nội dung hiện tại dưới dạng RTF tới client mới
+                    byte[] contentBuffer = Encoding.UTF8.GetBytes(reponseMessage);
+                    await SendResponseAsync(stream, contentBuffer, sender);
+                    return;
                 }
             }
         }
