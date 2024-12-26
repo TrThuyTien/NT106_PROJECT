@@ -473,7 +473,8 @@ namespace docMini
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
             richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
-            richTextBox_Content.KeyDown += richTextBox_Content_KeyDown;
+            richTextBox_Content.SelectionChanged += richTextBox_Content_SelectionChanged;
+           // richTextBox_Content.KeyDown += richTextBox_Content_KeyDown;
          
             // 
             // button_Connect
@@ -891,28 +892,6 @@ namespace docMini
         {
             // Lấy font của ký tự tại vị trí con trỏ
             Font currentFont = richTextBox_Content.SelectionFont;
-
-            // Cập nhật nút Bold, Italic, Underline
-            if (currentFont != null)
-            {
-                button_Bold.BackColor = currentFont.Bold ? Color.LightBlue : SystemColors.Control;
-                button_Italic.BackColor = currentFont.Italic ? Color.LightBlue : SystemColors.Control;
-                button_Underline.BackColor = currentFont.Underline ? Color.LightBlue : SystemColors.Control;
-
-                // Cập nhật ComboBox kiểu chữ
-                comboBox_Font.SelectedItem = currentFont.FontFamily.Name;
-
-                // Cập nhật ComboBox cỡ chữ
-                comboBox_Size.SelectedItem = currentFont.Size.ToString();
-            }
-            else
-            {
-                // Đặt về mặc định nếu không có định dạng
-                button_Bold.BackColor = SystemColors.Control;
-                button_Italic.BackColor = SystemColors.Control;
-                button_Underline.BackColor = SystemColors.Control;
-            }
-
             // Kiểm tra trạng thái căn lề
             switch (richTextBox_Content.SelectionAlignment)
             {
