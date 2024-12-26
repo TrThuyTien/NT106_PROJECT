@@ -579,6 +579,16 @@ namespace docMini
             {
                 isBold = !isBold; // Toggle trạng thái in đậm
 
+                if (isBold)
+                {
+                    // Đổi màu nền hoặc viền của nút
+                    button_Bold.BackColor = Color.LightGray;
+                }
+                else
+                {
+                    // Trả về màu nền mặc định
+                    button_Bold.BackColor = SystemColors.Control;
+                }
                 if (richTextBox_Content.SelectionLength > 0)
                 {
                     int selectionStart = richTextBox_Content.SelectionStart;
@@ -666,7 +676,16 @@ namespace docMini
             {
 
                 isItalic = !isItalic; // Toggle trạng thái in đậm
-
+                if (isItalic)
+                {
+                    // Đổi màu nền hoặc viền của nút
+                    button_Italic.BackColor = Color.LightGray;
+                }
+                else
+                {
+                    // Trả về màu nền mặc định
+                    button_Italic.BackColor = SystemColors.Control;
+                }
                 if (richTextBox_Content.SelectionLength > 0)
                 {
                     int selectionStart = richTextBox_Content.SelectionStart;
@@ -726,7 +745,6 @@ namespace docMini
         private void ApplyItalicToRange(int start, int length, bool isItalic)
         {
             if (length <= 0) return;
-
             richTextBox_Content.Select(start, length);
             var currentFont = richTextBox_Content.SelectionFont;
 
@@ -753,7 +771,16 @@ namespace docMini
             {
 
                 isUnderline = !isUnderline; // Toggle trạng thái in đậm
-
+                if (isUnderline)
+                {
+                    // Đổi màu nền hoặc viền của nút
+                    button_Underline.BackColor = Color.LightGray;
+                }
+                else
+                {
+                    // Trả về màu nền mặc định
+                    button_Underline.BackColor = SystemColors.Control;
+                }
                 if (richTextBox_Content.SelectionLength > 0)
                 {
                     int selectionStart = richTextBox_Content.SelectionStart;
@@ -824,25 +851,19 @@ namespace docMini
                     newFontStyle = currentFont.Style | System.Drawing.FontStyle.Underline;
                 else
                     newFontStyle = currentFont.Style & ~System.Drawing.FontStyle.Underline;
-
                 richTextBox_Content.SelectionFont = new System.Drawing.Font(
                     currentFont.FontFamily, currentFont.Size, newFontStyle);
             }
         }
         private void button_AlignLeft_Click(object sender, EventArgs e)
         {
-
             richTextBox_Content.SelectionAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-
         }
         private const int EM_SETTYPOGRAPHYOPTIONS = 0x04CA;
         private const int TO_ADVANCEDTYPOGRAPHY = 0x1;
         private const int EM_SETPARAFORMAT = 0x447;
         private const int PFM_ALIGNMENT = 0x0008;
         private const int PFA_JUSTIFY = 0x4;
-
-
-
         private void button_Justify_Click(object sender, EventArgs e)
         {
             // Kiểm soát trạng thái định dạng
@@ -852,13 +873,11 @@ namespace docMini
             {
                 // Kích hoạt Typography Options cho RichTextBox
                 SendMessage(richTextBox_Content.Handle, EM_SETTYPOGRAPHYOPTIONS, (IntPtr)TO_ADVANCEDTYPOGRAPHY, IntPtr.Zero);
-
                 // Tạo cấu trúc PARAFORMAT2 và đặt căn lề hai bên
                 PARAFORMAT2 paraFormat = new PARAFORMAT2();
                 paraFormat.cbSize = (uint)Marshal.SizeOf(paraFormat);
                 paraFormat.dwMask = PFM_ALIGNMENT;
                 paraFormat.wAlignment = PFA_JUSTIFY;
-
                 // Áp dụng căn lề hai bên cho đoạn văn bản đang được bôi đen
                 IntPtr lParam = Marshal.AllocHGlobal(Marshal.SizeOf(paraFormat));
                 Marshal.StructureToPtr(paraFormat, lParam, false);
@@ -1106,20 +1125,47 @@ namespace docMini
         }
         private void SetLineSpacing(System.Windows.Forms.RichTextBox richTextBox, float lineSpacing)
         {
-            richTextBox.SuspendLayout();
+            try
+            {
+                richTextBox.SuspendLayout();
 
-            // Lấy toàn bộ nội dung của RichTextBox
-            richTextBox.SelectAll();
+                // Lưu lại vị trí chọn ban đầu
+                int selectionStart = richTextBox.SelectionStart;
+                int selectionLength = richTextBox.SelectionLength;
 
-            // Thiết lập khoảng cách dòng thông qua thuộc tính SelectionCharOffset
-            float emHeight = richTextBox.SelectionFont.GetHeight(richTextBox.CreateGraphics());
-            int lineSpacingInPixels = (int)(emHeight * (lineSpacing - 1));
+                // Áp dụng dãn dòng từng đoạn văn bản trong vùng chọn
+                int endPosition = selectionStart + selectionLength;
+                richTextBox.SelectionStart = selectionStart;
 
-            richTextBox.SelectionCharOffset = lineSpacingInPixels;
+                while (richTextBox.SelectionStart < endPosition)
+                {
+                    // Đặt vùng chọn từng ký tự hoặc đoạn
+                    richTextBox.SelectionLength = 1;
 
-            // Đặt lại vùng chọn ban đầu
-            richTextBox.DeselectAll();
-            richTextBox.ResumeLayout();
+                    // Kiểm tra nếu font không null
+                    if (richTextBox.SelectionFont != null)
+                    {
+                        float emHeight = richTextBox.SelectionFont.GetHeight(richTextBox.CreateGraphics());
+                        int lineSpacingInPixels = (int)(emHeight * (lineSpacing - 1));
+
+                        richTextBox.SelectionCharOffset = lineSpacingInPixels;
+                    }
+
+                    // Di chuyển con trỏ đến ký tự tiếp theo
+                    richTextBox.SelectionStart += 1;
+                }
+
+                // Khôi phục lại vùng chọn ban đầu
+                richTextBox.Select(selectionStart, selectionLength);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                richTextBox.ResumeLayout();
+            }
         }
 
         private const int EM_GETCHARFORMAT = 0x043A;
@@ -1622,6 +1668,22 @@ namespace docMini
                 e.SuppressKeyPress = true; // Ngăn hành vi mặc định của phím Enter
             }
         }
+        private void richTextBox_Content_SelectionChanged(object sender, EventArgs e)
+        {
+            var currentFont = richTextBox_Content.SelectionFont;
+
+            if (currentFont != null)
+            {
+                // Kiểm tra trạng thái in đậm
+                button_Bold.BackColor = currentFont.Bold ? Color.LightGray : SystemColors.Control;
+
+                // Kiểm tra trạng thái in nghiêng
+                button_Italic.BackColor = currentFont.Italic ? Color.LightGray : SystemColors.Control;
+
+                // Kiểm tra trạng thái gạch chân
+                button_Underline.BackColor = currentFont.Underline ? Color.LightGray : SystemColors.Control;
+            }
+        }
 
 
 
@@ -1633,9 +1695,7 @@ namespace docMini
         {
             richTextBox_Content_TextChangedButton(sender, e);// Gọi hàm xử lý định dạng
             UpdateFormattingButtons();
-
             richTextBox_Content_TextChangedHandler(sender, e); // Gọi hàm xử lý cập nhật nội dung
-
         }
 
         private void mainDoc_Load(object sender, EventArgs e)
