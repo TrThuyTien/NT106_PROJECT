@@ -342,12 +342,13 @@ namespace docMini
             // 
             // button_Center
             // 
+            button_Center.BackgroundImage = (Image)resources.GetObject("button_Center.BackgroundImage");
+            button_Center.BackgroundImageLayout = ImageLayout.Zoom;
             button_Center.FlatAppearance.BorderSize = 0;
             button_Center.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Center.FlatStyle = FlatStyle.Flat;
-            button_Center.Image = Properties.Resources.format;
-            button_Center.Location = new Point(594, 25);
+            button_Center.Location = new Point(594, 28);
             button_Center.Name = "button_Center";
             button_Center.Size = new Size(36, 36);
             button_Center.TabIndex = 9;
@@ -356,12 +357,13 @@ namespace docMini
             // 
             // button_AlignRight
             // 
+            button_AlignRight.BackgroundImage = (Image)resources.GetObject("button_AlignRight.BackgroundImage");
+            button_AlignRight.BackgroundImageLayout = ImageLayout.Zoom;
             button_AlignRight.FlatAppearance.BorderSize = 0;
             button_AlignRight.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignRight.FlatStyle = FlatStyle.Flat;
-            button_AlignRight.Image = Properties.Resources.align_right;
-            button_AlignRight.Location = new Point(636, 25);
+            button_AlignRight.Location = new Point(636, 28);
             button_AlignRight.Name = "button_AlignRight";
             button_AlignRight.Size = new Size(36, 36);
             button_AlignRight.TabIndex = 8;
@@ -370,12 +372,13 @@ namespace docMini
             // 
             // button_Justify
             // 
+            button_Justify.BackgroundImage = (Image)resources.GetObject("button_Justify.BackgroundImage");
+            button_Justify.BackgroundImageLayout = ImageLayout.Zoom;
             button_Justify.FlatAppearance.BorderSize = 0;
             button_Justify.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_Justify.FlatStyle = FlatStyle.Flat;
-            button_Justify.Image = Properties.Resources.justify;
-            button_Justify.Location = new Point(679, 25);
+            button_Justify.Location = new Point(678, 27);
             button_Justify.Name = "button_Justify";
             button_Justify.Size = new Size(36, 36);
             button_Justify.TabIndex = 7;
@@ -384,12 +387,13 @@ namespace docMini
             // 
             // button_AlignLeft
             // 
+            button_AlignLeft.BackgroundImage = (Image)resources.GetObject("button_AlignLeft.BackgroundImage");
+            button_AlignLeft.BackgroundImageLayout = ImageLayout.Zoom;
             button_AlignLeft.FlatAppearance.BorderSize = 0;
             button_AlignLeft.FlatAppearance.MouseDownBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 236, 255);
             button_AlignLeft.FlatStyle = FlatStyle.Flat;
-            button_AlignLeft.Image = Properties.Resources.align_left1;
-            button_AlignLeft.Location = new Point(552, 25);
+            button_AlignLeft.Location = new Point(552, 28);
             button_AlignLeft.Name = "button_AlignLeft";
             button_AlignLeft.Size = new Size(36, 36);
             button_AlignLeft.TabIndex = 6;

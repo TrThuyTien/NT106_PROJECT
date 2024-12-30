@@ -728,7 +728,7 @@ namespace docMini
                     // Lazy Rendering: Áp dụng các định dạng đã lưu
                     foreach (var range in textFormatCache)
                     {
-                        ApplyItalicToRange(range.Key.Start, range.Key.Length, isBold);
+                        ApplyItalicToRange(range.Key.Start, range.Key.Length, isItalic);
                     }
 
                     richTextBox_Content.Select(selectionStart, selectionLength);
@@ -823,7 +823,7 @@ namespace docMini
                     // Lazy Rendering: Áp dụng các định dạng đã lưu
                     foreach (var range in textFormatCache)
                     {
-                        ApplyUnderlineToRange(range.Key.Start, range.Key.Length, isBold);
+                        ApplyUnderlineToRange(range.Key.Start, range.Key.Length, isUnderline);
                     }
 
                     richTextBox_Content.Select(selectionStart, selectionLength);
