@@ -26,7 +26,6 @@ namespace Server
         private bool isListening = false;
         private readonly string pass = "SuperSecureSharedSecret123!";
         private Crypto crypto;
-        public object Address { get; private set; }
 
         private CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -208,10 +207,6 @@ namespace Server
                     {
                         byte[] response = Encoding.UTF8.GetBytes($"SHARE_FILE|{ownerID}|{docID}|USER_NOT_FOUND");
                         await SendResponseAsync(stream, response, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|USER_NOT_FOUND" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                         return;
                     }
 
@@ -223,20 +218,12 @@ namespace Server
                         string responseMessage = $"SHARE_FILE|{ownerID}|{docID}|SUCCESS";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|SUCCESS" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                     }
                     else
                     {
                         string responseMessage = $"SHARE_FILE|{ownerID}|{docID}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"SHARE_FILE|{ownerID}|{docID}|FAIL" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                     }
                 }
             }
@@ -268,10 +255,6 @@ namespace Server
                     {
                         byte[] respons = Encoding.UTF8.GetBytes($"NEW_FILE|{userId}|DUPLICATE");
                         await SendResponseAsync(stream, respons, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|DUPLICATE" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                         return;
                     }
 
@@ -284,31 +267,17 @@ namespace Server
                         string responseMessage = $"NEW_FILE|{userId}|SUCCESS|{idDoc}";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|SUCCESS|{idDoc}" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                     }
                     else
                     {
                         string responseMessage = $"NEW_FILE|{userId}|FAIL";
                         byte[] response = Encoding.UTF8.GetBytes(responseMessage);
                         await SendResponseAsync(stream, response, client);
-                        /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                        {
-                            richTextBox_Editor.Text += "Server : " + $"NEW_FILE|{userId}|FAIL" + Environment.NewLine; // Cập nhật giao diện với RTF
-                        })));*/
                     }
                 }
             }
             catch (Exception ex)
             {
-                byte[] response = Encoding.UTF8.GetBytes("ERROR");
-                await SendResponseAsync(stream, response, client);
-                /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                {
-                    richTextBox_Editor.Text += "Server : " + "ERROR" + Environment.NewLine; // Cập nhật giao diện với RTF
-                })));*/
                 Console.WriteLine($"Error in HandleNewFileAsync: {ex.Message}");
             }
         }
@@ -442,10 +411,6 @@ namespace Server
                     // Gửi nội dung hiện tại dưới dạng RTF tới client mới
                     byte[] contentBuffer = Encoding.UTF8.GetBytes(reponseMessage);
                     await SendResponseAsync(stream, contentBuffer, sender);
-                    /*await Task.Run(() => richTextBox_Editor.Invoke((Action)(() =>
-                    {
-                        richTextBox_Editor.Text += "Server : " + $"EDIT_DOC|{docID}|{userID}|{editStatus}|" + newContent + Environment.NewLine; // Cập nhật giao diện với RTF
-                    })));*/
                     return;
                 }
                 // Xử lý cập nhật

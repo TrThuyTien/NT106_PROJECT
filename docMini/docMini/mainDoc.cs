@@ -7,7 +7,8 @@ using System.Text.RegularExpressions;
 using RichTextBox = System.Windows.Forms.RichTextBox;
 using Task = System.Threading.Tasks.Task;
 using Server;
-
+using System.Drawing.Imaging;
+using System.Security.Cryptography;
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -1791,7 +1792,7 @@ namespace docMini
             catch (Exception ex)
             {
                 isConnected = false;
-                MessageBox.Show($"Error connecting to server: {ex.Message}");
+                /*MessageBox.Show($"Error connecting to server: {ex.Message}");*/
             }
         }
 
@@ -2207,7 +2208,7 @@ namespace docMini
                             if (int.Parse(parts[4]) != idUser) UpdateRichTextBox(parts[5]); // Cập nhật nội dung
                         }
                     }
-                    await Task.Delay(3000);
+                    await Task.Delay(2000);
                 }
             }
             catch (OperationCanceledException)
@@ -2384,8 +2385,27 @@ namespace docMini
 
         private async void UpdateRichTextBox(string updatedContent)
         {
+            
             // Hủy luồng nhận dữ liệu
             isLocalUpdate = true;
+            bool canEdit = !richTextBox_Content.ReadOnly;
+            if (richTextBox_Content.InvokeRequired)
+            {
+                richTextBox_Content.Invoke((MethodInvoker)(() =>
+                {
+                    if (richTextBox_Content.Enabled)
+                        richTextBox_Content.Enabled = false;
+                    if (!richTextBox_Content.ReadOnly) 
+                        richTextBox_Content.ReadOnly = true;
+                }));
+            }
+            else
+            {
+                if (richTextBox_Content.Enabled)
+                    richTextBox_Content.Enabled = false;
+                if (!richTextBox_Content.ReadOnly)
+                    richTextBox_Content.ReadOnly = true;
+            }
             if (!string.IsNullOrEmpty(updatedContent) && updatedContent.StartsWith(@"{\rtf"))
             {
                 if (richTextBox_Content.InvokeRequired)
@@ -2400,6 +2420,20 @@ namespace docMini
                     ApplyRichTextBoxContent(updatedContent);
                 }
             }
+            
+            if (richTextBox_Content.InvokeRequired)
+            {
+                richTextBox_Content.Invoke((MethodInvoker)(() =>
+                {
+                    richTextBox_Content.Enabled = true;
+                    if (canEdit) richTextBox_Content.ReadOnly = false;
+                }));
+            }
+            else
+            {
+                richTextBox_Content.Enabled = true;
+                if (canEdit) richTextBox_Content.ReadOnly = false;
+            }
             isLocalUpdate = false;
         }
 
@@ -2410,7 +2444,8 @@ namespace docMini
             isLocalUpdate = true;
             try
             {
-                richTextBox_Content.Rtf = content;          // Cập nhật nội dung
+                richTextBox_Content.Rtf = content;
+                // Cập nhật nội dung
                 richTextBox_Content.SelectionStart = cursorPosition; // Giữ vị trí con trỏ
             }
             finally
@@ -2446,6 +2481,10 @@ namespace docMini
 
 
         // ---------------------------------------------------------------------------------
+
+
+        
+
 
     }
 }
