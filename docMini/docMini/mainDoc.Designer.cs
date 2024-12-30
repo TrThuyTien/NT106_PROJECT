@@ -472,10 +472,8 @@ namespace docMini
             richTextBox_Content.Size = new Size(781, 737);
             richTextBox_Content.TabIndex = 10;
             richTextBox_Content.Text = "";
-            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             richTextBox_Content.SelectionChanged += richTextBox_Content_SelectionChanged;
-           // richTextBox_Content.KeyDown += richTextBox_Content_KeyDown;
-         
+            richTextBox_Content.TextChanged += richTextBox_Content_TextChanged;
             // 
             // button_Connect
             // 
@@ -540,7 +538,7 @@ namespace docMini
             // 
             contextMenuStrip_headIcon.ImageScalingSize = new Size(20, 20);
             contextMenuStrip_headIcon.Name = "contextMenuStrip_headIcon";
-            contextMenuStrip_headIcon.Size = new Size(211, 32);
+            contextMenuStrip_headIcon.Size = new Size(61, 4);
             // 
             // mainDoc
             // 
@@ -561,6 +559,8 @@ namespace docMini
             Controls.Add(button_Exit);
             Font = new Font("Tahoma", 9F, FontStyle.Regular, GraphicsUnit.Point, 163);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "mainDoc";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "mainDoc";
