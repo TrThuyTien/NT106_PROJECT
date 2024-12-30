@@ -185,12 +185,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-        private void label_ForgotPass_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            FogotPass form = new FogotPass();
-            form.Show();
-        }
 
         private void label_SwitchSignUp_Click(object sender, EventArgs e)
         {

@@ -103,7 +103,6 @@
             label_ForgotPass.Size = new Size(182, 26);
             label_ForgotPass.TabIndex = 8;
             label_ForgotPass.Text = "Forgot Password?";
-            label_ForgotPass.Click += label_ForgotPass_Click;
             // 
             // label1
             // 
