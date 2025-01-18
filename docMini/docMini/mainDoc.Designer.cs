@@ -67,6 +67,7 @@ namespace docMini
             button_LoadFile = new Button();
             button_DeleteFile = new Button();
             contextMenuStrip_headIcon = new ContextMenuStrip(components);
+            button_Translate = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox_Logo).BeginInit();
             panel_ToolbarBorder.SuspendLayout();
             panel_Toolbar.SuspendLayout();
@@ -544,12 +545,24 @@ namespace docMini
             contextMenuStrip_headIcon.Name = "contextMenuStrip_headIcon";
             contextMenuStrip_headIcon.Size = new Size(61, 4);
             // 
+            // button_Translate
+            // 
+            button_Translate.BackgroundImage = (Image)resources.GetObject("button_Translate.BackgroundImage");
+            button_Translate.BackgroundImageLayout = ImageLayout.Zoom;
+            button_Translate.Location = new Point(175, 177);
+            button_Translate.Name = "button_Translate";
+            button_Translate.Size = new Size(47, 43);
+            button_Translate.TabIndex = 25;
+            button_Translate.UseVisualStyleBackColor = true;
+            button_Translate.Click += button_Translate_Click;
+            // 
             // mainDoc
             // 
             AutoScaleDimensions = new SizeF(8F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(205, 236, 255);
             ClientSize = new Size(1404, 935);
+            Controls.Add(button_Translate);
             Controls.Add(button_DeleteFile);
             Controls.Add(button_LoadFile);
             Controls.Add(listBox_Docs);
@@ -1016,5 +1029,6 @@ namespace docMini
         private Button button_LoadFile;
         private Button button_DeleteFile;
         private ContextMenuStrip contextMenuStrip_headIcon;
+        private Button button_Translate;
     }
 }

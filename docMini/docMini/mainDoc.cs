@@ -9,6 +9,7 @@ using Task = System.Threading.Tasks.Task;
 using Server;
 using System.Drawing.Imaging;
 using System.Security.Cryptography;
+
 namespace docMini
 {
     public partial class mainDoc : Form
@@ -2034,10 +2035,10 @@ namespace docMini
             }
             catch (SocketException ex)
             {
-               /* MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
-                                "Lỗi",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);*/
+                /* MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}",
+                                 "Lỗi",
+                                 MessageBoxButtons.OK,
+                                 MessageBoxIcon.Error);*/
             }
             catch (Exception ex)
             {
@@ -2179,8 +2180,8 @@ namespace docMini
             }
             catch (Exception ex)
             {
-               /* MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
-                                "Lỗi mở file", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
+                /* MessageBox.Show($"Đã xảy ra lỗi: {ex.Message}",
+                                 "Lỗi mở file", MessageBoxButtons.OK, MessageBoxIcon.Error);*/
             }
         }
 
@@ -2292,7 +2293,7 @@ namespace docMini
         private async void richTextBox_Content_TextChangedHandler(object sender, EventArgs e)
         {
             if (isLocalUpdate) return; // Bỏ qua nếu đây là cập nhật cục bộ
-            
+
             if (isConnected)
             {
                 while (isFormatting)
@@ -2321,7 +2322,7 @@ namespace docMini
             {
                 // Chờ debounce
                 await Task.Delay(debounceTime);
-                
+
                 // Nếu có dữ liệu cần gửi
                 if (pendingUpdates.Length > 0)
                 {
@@ -2380,12 +2381,10 @@ namespace docMini
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);*/
             }
-            
-        }
 
+        }
         private async void UpdateRichTextBox(string updatedContent)
         {
-            
             // Hủy luồng nhận dữ liệu
             isLocalUpdate = true;
             bool canEdit = !richTextBox_Content.ReadOnly;
@@ -2395,7 +2394,7 @@ namespace docMini
                 {
                     if (richTextBox_Content.Enabled)
                         richTextBox_Content.Enabled = false;
-                    if (!richTextBox_Content.ReadOnly) 
+                    if (!richTextBox_Content.ReadOnly)
                         richTextBox_Content.ReadOnly = true;
                 }));
             }
@@ -2420,7 +2419,7 @@ namespace docMini
                     ApplyRichTextBoxContent(updatedContent);
                 }
             }
-            
+
             if (richTextBox_Content.InvokeRequired)
             {
                 richTextBox_Content.Invoke((MethodInvoker)(() =>
@@ -2436,7 +2435,6 @@ namespace docMini
             }
             isLocalUpdate = false;
         }
-
         private void ApplyRichTextBoxContent(string content)
         {
             if (isEditing) return;
@@ -2453,7 +2451,6 @@ namespace docMini
                 isLocalUpdate = false;
             }
         }
-
         // Phương thức nén dữ liệu
         private static byte[] Compress(byte[] data)
         {
@@ -2466,7 +2463,6 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
         // Phương thức giải nén dữ liệu
         private static byte[] Decompress(byte[] compressedData)
         {
@@ -2478,13 +2474,13 @@ namespace docMini
                 return outputStream.ToArray();
             }
         }
-
-
         // ---------------------------------------------------------------------------------
+        private async void button_Translate_Click(object sender, EventArgs e)
+        {
+            string selectedText = richTextBox_Content.SelectedText; // Lấy đoạn văn bản được chọn
 
-
-        
-
-
+            Translate trans = new Translate();
+            trans.ShowDialog();
+        }
     }
 }
